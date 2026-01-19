@@ -1,0 +1,13 @@
+export { default as LandingPage } from './LandingPage';
+export { default as LoginPage } from './LoginPage';
+export { default as GoalCreationPage } from './GoalCreationPage';
+export { default as MilestonesPage } from './MilestonesPage';
+export { default as LockPromisePage } from './LockPromisePage';
+export { default as DashboardPage } from './DashboardPage';
+export { default as CalendarPage } from './CalendarPage';
+export { default as ProfilePage } from './ProfilePage';
+export { default as SettingsPage } from './SettingsPage';
+export { default as HistoryPage } from './HistoryPage';
+export { default as HelpPage } from './HelpPage';
+export { default as ShareablePage } from './ShareablePage';
+export { default as GoalAccomplishedPage } from './GoalAccomplishedPage';

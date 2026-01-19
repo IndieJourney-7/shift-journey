@@ -1,0 +1,54 @@
+/** @type {import('tailwindcss').Config} */
+export default {
+  content: [
+    "./index.html",
+    "./src/**/*.{js,ts,jsx,tsx}",
+  ],
+  theme: {
+    extend: {
+      colors: {
+        obsidian: {
+          950: '#0a0a0a',
+          900: '#121212',
+          800: '#1a1a1a',
+          700: '#252525',
+          600: '#333333',
+          500: '#4a4a4a',
+          400: '#666666',
+          300: '#888888',
+          200: '#aaaaaa',
+          100: '#cccccc',
+        },
+        gold: {
+          500: '#c9a962',
+          400: '#d4b978',
+          300: '#e0ca8e',
+        },
+        broken: {
+          500: '#8b4513',
+          400: '#a0522d',
+        }
+      },
+      fontFamily: {
+        sans: ['Inter', 'system-ui', 'sans-serif'],
+        serif: ['Playfair Display', 'Georgia', 'serif'],
+      },
+      boxShadow: {
+        'glow': '0 0 20px rgba(201, 169, 98, 0.4)',
+        'glow-sm': '0 0 10px rgba(201, 169, 98, 0.3)',
+        'inner-glow': 'inset 0 0 20px rgba(201, 169, 98, 0.2)',
+      },
+      animation: {
+        'pulse-glow': 'pulse-glow 2s ease-in-out infinite',
+        'crack': 'crack 0.5s ease-out forwards',
+      },
+      keyframes: {
+        'pulse-glow': {
+          '0%, 100%': { boxShadow: '0 0 20px rgba(201, 169, 98, 0.4)' },
+          '50%': { boxShadow: '0 0 30px rgba(201, 169, 98, 0.6)' },
+        },
+      },
+    },
+  },
+  plugins: [],
+}

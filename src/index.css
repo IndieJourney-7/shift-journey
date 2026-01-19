@@ -1,0 +1,169 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background-color: #0a0a0a;
+  color: #cccccc;
+  font-family: 'Inter', system-ui, sans-serif;
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #121212;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #333333;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #4a4a4a;
+}
+
+/* Noise texture overlay */
+.noise-bg {
+  position: relative;
+}
+
+.noise-bg::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+  opacity: 0.03;
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* Gradient overlays */
+.gradient-radial {
+  background: radial-gradient(ellipse at center, rgba(201, 169, 98, 0.05) 0%, transparent 70%);
+}
+
+/* Glow effects */
+.glow-gold {
+  box-shadow: 0 0 20px rgba(201, 169, 98, 0.4);
+}
+
+.glow-gold-intense {
+  box-shadow: 0 0 30px rgba(201, 169, 98, 0.6), 0 0 60px rgba(201, 169, 98, 0.3);
+}
+
+/* Cracked effect for broken promises */
+.cracked {
+  position: relative;
+}
+
+.cracked::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cpath d='M50 0 L48 30 L35 45 L50 50 L45 70 L50 100' stroke='%23333' stroke-width='2' fill='none'/%3E%3Cpath d='M50 50 L65 55 L80 45' stroke='%23333' stroke-width='1.5' fill='none'/%3E%3Cpath d='M48 30 L30 35' stroke='%23333' stroke-width='1' fill='none'/%3E%3C/svg%3E");
+  background-size: cover;
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+/* Journey path styles */
+.journey-path {
+  stroke-dasharray: 1000;
+  stroke-dashoffset: 1000;
+  animation: draw-path 2s ease-out forwards;
+}
+
+@keyframes draw-path {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+/* Node glow animation for active locked milestone */
+@keyframes node-pulse {
+  0%, 100% {
+    filter: drop-shadow(0 0 6px rgba(201, 169, 98, 0.5));
+  }
+  50% {
+    filter: drop-shadow(0 0 12px rgba(201, 169, 98, 0.8));
+  }
+}
+
+.node-active-circle {
+  animation: node-pulse 2.5s ease-in-out infinite;
+}
+
+/* Hover effect for journey path nodes */
+.node-hover-ring {
+  transition: opacity 0.2s ease-out;
+}
+
+g.cursor-pointer:hover .node-hover-ring {
+  opacity: 0.5;
+}
+
+/* Gauge animation */
+@keyframes gauge-fill {
+  from {
+    stroke-dashoffset: 283;
+  }
+}
+
+.gauge-animated {
+  animation: gauge-fill 1.5s ease-out forwards;
+}
+
+/* Button hover effects */
+.btn-primary {
+  @apply relative overflow-hidden;
+}
+
+.btn-primary::before {
+  content: '';
+  @apply absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent;
+  transform: translateX(-100%);
+  transition: transform 0.5s ease;
+}
+
+.btn-primary:hover::before {
+  transform: translateX(100%);
+}
+
+/* Card styles */
+.card-obsidian {
+  @apply bg-obsidian-800/80 border border-obsidian-600/50 rounded-lg backdrop-blur-sm;
+}
+
+/* Input styles */
+.input-obsidian {
+  @apply bg-obsidian-900 border border-obsidian-600 rounded-lg px-4 py-3 text-obsidian-100 placeholder-obsidian-400 focus:outline-none focus:border-gold-500/50 focus:ring-1 focus:ring-gold-500/30 transition-all;
+}
+
+/* Timer styles */
+.timer-digit {
+  @apply font-mono text-4xl font-bold tracking-wider;
+  text-shadow: 0 0 20px rgba(201, 169, 98, 0.5);
+}
