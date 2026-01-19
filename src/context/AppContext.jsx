@@ -23,7 +23,7 @@ const defaultData = {
     email: 'user@example.com',
     avatar: null,
     integrityScore: 100,
-    status: 'Trusted',
+    status: 'Reliable',
     joinedAt: new Date().toISOString(),
   },
   currentGoal: null,
@@ -41,7 +41,7 @@ const demoData = {
     email: 'stevenson@email.com',
     avatar: null,
     integrityScore: 41,
-    status: 'Untrusted',
+    status: 'Inconsistent',
     joinedAt: '2024-01-15',
   },
   currentGoal: {
@@ -177,10 +177,11 @@ const saveToStorage = (key, value) => {
 };
 
 // Get integrity status from score
+// 0-30: Unreliable, 31-70: Inconsistent, 71-100: Reliable
 const getIntegrityStatus = (score) => {
-  if (score >= 70) return 'Trusted';
-  if (score >= 50) return 'Building Trust';
-  return 'Untrusted';
+  if (score > 70) return 'Reliable';
+  if (score > 30) return 'Inconsistent';
+  return 'Unreliable';
 };
 
 export function AppProvider({ children }) {

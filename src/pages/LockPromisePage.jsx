@@ -2,13 +2,13 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { Lock, AlertTriangle, Calendar, Clock } from 'lucide-react';
 import { Button, Card, Textarea } from '../components/ui';
-import { LockAnimation } from '../components/journey';
+import { LockAnimation, IntegrityBadgeInline } from '../components/journey';
 import { useApp } from '../context/AppContext';
 
 export default function LockPromisePage() {
   const navigate = useNavigate();
   const { milestoneId } = useParams();
-  const { milestones, lockPromise, currentLockedMilestone } = useApp();
+  const { milestones, lockPromise, currentLockedMilestone, user } = useApp();
 
   const [milestone, setMilestone] = useState(null);
   const [formData, setFormData] = useState({
@@ -113,6 +113,11 @@ export default function LockPromisePage() {
 
   return (
     <div className="max-w-2xl mx-auto">
+        {/* Integrity Indicator - Top Right */}
+        <div className="flex justify-end mb-4">
+          <IntegrityBadgeInline score={user.integrityScore} />
+        </div>
+
         {/* Header */}
         <div className="text-center mb-8">
           <div className="w-16 h-16 mx-auto mb-6 rounded-full bg-obsidian-800 border border-obsidian-600 flex items-center justify-center">

@@ -1,25 +1,24 @@
 import React, { useState } from 'react';
-import { Shield, AlertTriangle, Check, Lock, User, TrendingUp } from 'lucide-react';
+import { AlertTriangle, Check, Lock, User, TrendingUp } from 'lucide-react';
 import { Card, Badge, Button, Modal } from '../components/ui';
-import { IntegrityGauge } from '../components/journey';
+import { IntegrityShieldBadge } from '../components/journey';
 import { useApp } from '../context/AppContext';
 
 export default function ProfilePage() {
   const { user, failureHistory, milestones, beginRepair, nextPendingMilestone, currentLockedMilestone } = useApp();
   const [showRepairModal, setShowRepairModal] = useState(false);
 
-  const getStatusBadge = () => {
+  // Get badge variant based on new status labels
+  const getStatusBadgeVariant = () => {
     switch (user.status) {
-      case 'Trusted':
-        return { variant: 'trusted', icon: Shield };
-      case 'Building Trust':
-        return { variant: 'building', icon: Shield };
+      case 'Reliable':
+        return 'trusted';
+      case 'Inconsistent':
+        return 'building';
       default:
-        return { variant: 'untrusted', icon: Shield };
+        return 'untrusted';
     }
   };
-
-  const statusBadge = getStatusBadge();
 
   const completedCount = milestones.filter(m => m.status === 'completed').length;
   const brokenCount = milestones.filter(m => m.status === 'broken').length;
@@ -34,11 +33,13 @@ export default function ProfilePage() {
     setShowRepairModal(true);
   };
 
-  const promisesToReach50 = user.integrityScore < 50
-    ? Math.ceil((50 - user.integrityScore) / 10)
+  // Calculate promises needed to reach next integrity level
+  // 0-30: Unreliable, 31-70: Inconsistent, 71-100: Reliable
+  const promisesToReach31 = user.integrityScore <= 30
+    ? Math.ceil((31 - user.integrityScore) / 10)
     : 0;
-  const promisesToReach70 = user.integrityScore < 70
-    ? Math.ceil((70 - user.integrityScore) / 10)
+  const promisesToReach71 = user.integrityScore <= 70
+    ? Math.ceil((71 - user.integrityScore) / 10)
     : 0;
 
   return (
@@ -83,7 +84,7 @@ export default function ProfilePage() {
                 {user.fullName}
               </h2>
               <div className="flex items-center gap-2 mb-2">
-                <Badge variant={statusBadge.variant} icon={statusBadge.icon}>
+                <Badge variant={getStatusBadgeVariant()}>
                   {user.status}
                 </Badge>
               </div>
@@ -91,18 +92,12 @@ export default function ProfilePage() {
             </div>
           </div>
 
-          {/* Integrity Score Section */}
+          {/* Integrity Score Section - Primary Shield Badge Display */}
           <div className="flex flex-col md:flex-row items-center gap-8 mb-8">
             <div className="flex-1">
-              <h3 className="text-obsidian-300 text-sm font-medium mb-1">
-                Integrity Score <span className="text-obsidian-500">{user.integrityScore} / 100</span>
+              <h3 className="text-obsidian-400 text-sm font-medium mb-4">
+                Integrity Level
               </h3>
-              <p className={`text-lg font-semibold mb-2 ${
-                user.integrityScore >= 70 ? 'text-green-400' :
-                user.integrityScore >= 50 ? 'text-yellow-400' : 'text-red-400'
-              }`}>
-                {user.status}
-              </p>
               <p className="text-obsidian-500 text-sm mb-4">
                 {brokenCount > 0
                   ? `${brokenCount} broken promise${brokenCount > 1 ? 's' : ''} recorded`
@@ -121,12 +116,14 @@ export default function ProfilePage() {
               )}
             </div>
 
+            {/* Primary Shield Badge */}
             <div className="flex-shrink-0">
-              <IntegrityGauge
+              <IntegrityShieldBadge
                 score={user.integrityScore}
-                size="lg"
-                animated={true}
-                showLabel={false}
+                size="xl"
+                showScore={true}
+                showLabel={true}
+                showDescription={true}
               />
             </div>
           </div>
@@ -248,11 +245,9 @@ export default function ProfilePage() {
 
           <div className="text-center mb-6">
             <p className="text-obsidian-200 text-lg mb-2">
-              Your current score: <span className={`font-bold ${
-                user.integrityScore >= 70 ? 'text-green-400' :
-                user.integrityScore >= 50 ? 'text-yellow-400' : 'text-red-400'
-              }`}>{user.integrityScore}/100</span>
+              Your current score: <span className="font-bold text-obsidian-100">{user.integrityScore}/100</span>
             </p>
+            <p className="text-obsidian-300 mb-1">{user.status}</p>
             <p className="text-obsidian-400">
               Integrity can only be rebuilt by <strong>keeping future promises</strong>.
             </p>
@@ -272,14 +267,14 @@ export default function ProfilePage() {
             </ul>
           </Card>
 
-          {user.integrityScore < 70 && (
+          {user.integrityScore <= 70 && (
             <Card variant="highlighted" padding="md" className="mb-6">
               <h4 className="text-obsidian-200 font-medium mb-2">Your Path Forward:</h4>
               <ul className="text-obsidian-400 text-sm space-y-1">
-                {user.integrityScore < 50 && (
-                  <li>• Keep <strong className="text-gold-400">{promisesToReach50}</strong> promise{promisesToReach50 > 1 ? 's' : ''} to reach "Building Trust"</li>
+                {user.integrityScore <= 30 && (
+                  <li>• Keep <strong className="text-obsidian-200">{promisesToReach31}</strong> promise{promisesToReach31 > 1 ? 's' : ''} to reach "Inconsistent"</li>
                 )}
-                <li>• Keep <strong className="text-gold-400">{promisesToReach70}</strong> promise{promisesToReach70 > 1 ? 's' : ''} to reach "Trusted" status</li>
+                <li>• Keep <strong className="text-obsidian-200">{promisesToReach71}</strong> promise{promisesToReach71 > 1 ? 's' : ''} to reach "Reliable" status</li>
               </ul>
             </Card>
           )}

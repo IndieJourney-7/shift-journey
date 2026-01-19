@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Lock, Check, AlertTriangle, Bell, ChevronRight, Target, Share2, Copy, CheckCircle, Upload, Image, X, Trophy } from 'lucide-react';
 import { Button, Card, Badge, Modal, Textarea } from '../components/ui';
-import { JourneyPath, MilestoneCard, CountdownTimer } from '../components/journey';
+import { JourneyPath, MilestoneCard, CountdownTimer, IntegrityBadgeInline } from '../components/journey';
 import { useApp } from '../context/AppContext';
 
 export default function DashboardPage() {
@@ -18,6 +18,7 @@ export default function DashboardPage() {
     brokenMilestonesNeedingProof,
     uploadConsequenceProof,
     canFinishGoal,
+    user,
   } = useApp();
 
   // Redirect to goal creation if user hasn't set up a goal yet
@@ -140,10 +141,14 @@ export default function DashboardPage() {
 
   return (
     <div className="space-y-8">
-      {/* Page Title */}
-      <div>
-        <h1 className="text-2xl font-bold text-obsidian-100 mb-1">My Journey</h1>
-        <p className="text-obsidian-400">{currentGoal?.title || 'Your Goal'}</p>
+      {/* Page Title with Integrity Indicator */}
+      <div className="flex items-start justify-between">
+        <div>
+          <h1 className="text-2xl font-bold text-obsidian-100 mb-1">My Journey</h1>
+          <p className="text-obsidian-400">{currentGoal?.title || 'Your Goal'}</p>
+        </div>
+        {/* Small Integrity Indicator */}
+        <IntegrityBadgeInline score={user.integrityScore} />
       </div>
 
       {/* Journey Path Visualization */}
