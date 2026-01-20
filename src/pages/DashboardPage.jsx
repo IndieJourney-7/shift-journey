@@ -140,20 +140,20 @@ export default function DashboardPage() {
     .slice(0, 3);
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-4 sm:space-y-6 lg:space-y-8">
       {/* Page Title with Integrity Indicator */}
-      <div className="flex items-start justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2 sm:gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-obsidian-100 mb-1">My Journey</h1>
-          <p className="text-obsidian-400">{currentGoal?.title || 'Your Goal'}</p>
+          <h1 className="text-xl sm:text-2xl font-bold text-obsidian-100 mb-1">My Journey</h1>
+          <p className="text-obsidian-400 text-sm sm:text-base">{currentGoal?.title || 'Your Goal'}</p>
         </div>
         {/* Small Integrity Indicator */}
         <IntegrityBadgeInline score={user.integrityScore} />
       </div>
 
       {/* Journey Path Visualization */}
-      <Card variant="default" padding="lg">
-        <div className="flex justify-center py-4">
+      <Card variant="default" padding="md" className="sm:p-6 lg:p-8">
+        <div className="flex justify-center py-2 sm:py-4 overflow-x-auto">
           <JourneyPath
             milestones={milestones}
             showGoal={true}
@@ -166,15 +166,15 @@ export default function DashboardPage() {
 
       {/* Goal Ready to Finish Banner */}
       {canFinishGoal && (
-        <Card variant="highlighted" padding="lg" className="border-gold-500/30 bg-gradient-to-br from-gold-500/10 to-obsidian-900">
+        <Card variant="highlighted" padding="md" className="sm:p-6 border-gold-500/30 bg-gradient-to-br from-gold-500/10 to-obsidian-900">
           <div className="text-center">
-            <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-gold-500/20 border-2 border-gold-500/50 flex items-center justify-center">
-              <Trophy className="w-8 h-8 text-gold-400" />
+            <div className="w-12 h-12 sm:w-16 sm:h-16 mx-auto mb-3 sm:mb-4 rounded-full bg-gold-500/20 border-2 border-gold-500/50 flex items-center justify-center">
+              <Trophy className="w-6 h-6 sm:w-8 sm:h-8 text-gold-400" />
             </div>
-            <h2 className="text-xl font-bold text-gold-400 mb-2">
+            <h2 className="text-lg sm:text-xl font-bold text-gold-400 mb-2">
               All Milestones Complete!
             </h2>
-            <p className="text-obsidian-300 mb-6">
+            <p className="text-obsidian-300 text-sm sm:text-base mb-4 sm:mb-6">
               You've resolved all milestones for "{currentGoal?.title}". Finish your goal to reflect on this journey and start your next one.
             </p>
             <Button
@@ -190,19 +190,19 @@ export default function DashboardPage() {
 
       {/* Current Locked Milestone */}
       {currentLockedMilestone && (
-        <Card variant="highlighted" padding="lg">
-          <div className="flex items-start justify-between mb-4">
+        <Card variant="highlighted" padding="md" className="sm:p-6">
+          <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 mb-4">
             <div>
-              <div className="flex items-center gap-2 mb-1">
-                <span className="text-obsidian-400 text-sm">Milestone {currentLockedMilestone.number}</span>
+              <div className="flex flex-wrap items-center gap-2 mb-1">
+                <span className="text-obsidian-400 text-xs sm:text-sm">Milestone {currentLockedMilestone.number}</span>
                 <CountdownTimer
                   deadline={currentLockedMilestone.promise.deadline}
                   size="sm"
                   showLabels={false}
-                  className="text-sm"
+                  className="text-xs sm:text-sm"
                 />
               </div>
-              <h2 className="text-xl font-semibold text-obsidian-100">
+              <h2 className="text-lg sm:text-xl font-semibold text-obsidian-100">
                 {currentLockedMilestone.title}
               </h2>
             </div>
@@ -218,14 +218,14 @@ export default function DashboardPage() {
             </div>
           </div>
 
-          <p className="text-obsidian-300 mb-4">
+          <p className="text-obsidian-300 text-sm sm:text-base mb-3 sm:mb-4">
             {currentLockedMilestone.promise.text}
           </p>
 
-          <p className="text-obsidian-400 text-sm mb-6">
+          <p className="text-obsidian-400 text-xs sm:text-sm mb-4 sm:mb-6">
             Due: {new Date(currentLockedMilestone.promise.deadline).toLocaleString('en-US', {
-              weekday: 'long',
-              month: 'long',
+              weekday: 'short',
+              month: 'short',
               day: 'numeric',
               hour: 'numeric',
               minute: '2-digit',
@@ -234,13 +234,13 @@ export default function DashboardPage() {
           </p>
 
           {/* Countdown with Witness Count */}
-          <div className="mb-6 py-6 border-t border-b border-obsidian-700">
-            <div className="flex items-center justify-center gap-4 mb-4">
-              <p className="text-obsidian-400 text-sm">Time Remaining:</p>
+          <div className="mb-4 sm:mb-6 py-4 sm:py-6 border-t border-b border-obsidian-700">
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-2 sm:gap-4 mb-3 sm:mb-4">
+              <p className="text-obsidian-400 text-xs sm:text-sm">Time Remaining:</p>
               {/* Witness Count - show eye emoji with count */}
               {(currentLockedMilestone.promise?.witnessCount > 0) && (
-                <div className="flex items-center gap-1.5 text-obsidian-400 text-sm">
-                  <span className="text-base">👁️</span>
+                <div className="flex items-center gap-1.5 text-obsidian-400 text-xs sm:text-sm">
+                  <span className="text-sm sm:text-base">👁️</span>
                   <span>{currentLockedMilestone.promise.witnessCount} watching</span>
                 </div>
               )}
@@ -253,7 +253,7 @@ export default function DashboardPage() {
           </div>
 
           {/* Actions */}
-          <div className="flex gap-4">
+          <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
             <Button
               variant="gold"
               className="flex-1"
@@ -276,12 +276,12 @@ export default function DashboardPage() {
 
       {/* No Locked Milestone */}
       {!currentLockedMilestone && nextPendingMilestone && (
-        <Card variant="default" padding="lg" className="text-center">
-          <Lock className="w-12 h-12 text-obsidian-500 mx-auto mb-4" />
-          <h3 className="text-obsidian-200 text-lg font-medium mb-2">
+        <Card variant="default" padding="md" className="sm:p-6 text-center">
+          <Lock className="w-10 h-10 sm:w-12 sm:h-12 text-obsidian-500 mx-auto mb-3 sm:mb-4" />
+          <h3 className="text-obsidian-200 text-base sm:text-lg font-medium mb-2">
             No Active Promise
           </h3>
-          <p className="text-obsidian-400 mb-6">
+          <p className="text-obsidian-400 text-sm sm:text-base mb-4 sm:mb-6">
             You still have time to finish & Milestone {nextPendingMilestone.number}.
           </p>
           <Button
@@ -306,14 +306,14 @@ export default function DashboardPage() {
 
       {/* Consequence Proof Needed Section */}
       {brokenMilestonesNeedingProof.length > 0 && (
-        <Card variant="default" padding="lg" className="border-amber-900/30">
-          <div className="flex items-center gap-2 mb-4">
-            <Upload className="w-5 h-5 text-amber-500" />
-            <h3 className="text-obsidian-200 font-medium">Consequence Proof Needed</h3>
+        <Card variant="default" padding="md" className="sm:p-6 border-amber-900/30">
+          <div className="flex flex-wrap items-center gap-2 mb-3 sm:mb-4">
+            <Upload className="w-4 h-4 sm:w-5 sm:h-5 text-amber-500" />
+            <h3 className="text-obsidian-200 font-medium text-sm sm:text-base">Consequence Proof Needed</h3>
             <Badge variant="warning" size="sm">{brokenMilestonesNeedingProof.length}</Badge>
           </div>
 
-          <p className="text-obsidian-400 text-sm mb-4">
+          <p className="text-obsidian-400 text-xs sm:text-sm mb-3 sm:mb-4">
             You have broken promises with unpaid consequences. Upload proof to recover 5 integrity points per consequence.
           </p>
 
@@ -321,14 +321,14 @@ export default function DashboardPage() {
             {brokenMilestonesNeedingProof.map((milestone) => (
               <div
                 key={milestone.id}
-                className="flex items-center justify-between p-4 rounded-lg bg-obsidian-900/50 border border-amber-900/30"
+                className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 p-3 sm:p-4 rounded-lg bg-obsidian-900/50 border border-amber-900/30"
               >
                 <div className="flex-1">
                   <div className="flex items-center gap-2 mb-1">
-                    <AlertTriangle className="w-4 h-4 text-amber-500" />
-                    <span className="text-obsidian-400 text-sm">Milestone {milestone.number}</span>
+                    <AlertTriangle className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-amber-500" />
+                    <span className="text-obsidian-400 text-xs sm:text-sm">Milestone {milestone.number}</span>
                   </div>
-                  <p className="text-obsidian-200 font-medium mb-1">{milestone.title}</p>
+                  <p className="text-obsidian-200 font-medium text-sm sm:text-base mb-1">{milestone.title}</p>
                   <p className="text-obsidian-500 text-xs">
                     Consequence: "{milestone.promise?.consequence || 'No consequence set'}"
                   </p>
@@ -338,6 +338,7 @@ export default function DashboardPage() {
                   size="sm"
                   icon={Upload}
                   onClick={() => openProofModal(milestone)}
+                  className="w-full sm:w-auto"
                 >
                   Upload Proof
                 </Button>
@@ -370,48 +371,49 @@ export default function DashboardPage() {
 
       {/* Recent Milestones */}
       <div>
-        <div className="flex items-center justify-between mb-4">
-          <h3 className="text-obsidian-200 font-medium">Recent Milestones</h3>
+        <div className="flex items-center justify-between mb-3 sm:mb-4">
+          <h3 className="text-obsidian-200 font-medium text-sm sm:text-base">Recent Milestones</h3>
           <Button variant="ghost" size="sm" onClick={() => navigate('/history')}>
             View All
           </Button>
         </div>
 
-        <div className="space-y-3">
+        <div className="space-y-2 sm:space-y-3">
           {recentMilestones.map((milestone) => (
             <div
               key={milestone.id}
               className={`
-                flex items-center justify-between p-4 rounded-lg border
+                flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-3 p-3 sm:p-4 rounded-lg border
                 ${milestone.status === 'completed'
                   ? 'bg-obsidian-800/50 border-obsidian-600/50'
                   : 'bg-obsidian-800/50 border-red-900/30'
                 }
               `}
             >
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-2 sm:gap-3">
                 {milestone.status === 'completed' ? (
-                  <Check className="w-4 h-4 text-green-500" />
+                  <Check className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-green-500 flex-shrink-0" />
                 ) : (
-                  <AlertTriangle className="w-4 h-4 text-red-500" />
+                  <AlertTriangle className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-red-500 flex-shrink-0" />
                 )}
-                <div>
-                  <span className="text-obsidian-400 text-sm">Milestone {milestone.number}. </span>
-                  <span className="text-obsidian-200">{milestone.title}</span>
+                <div className="min-w-0">
+                  <span className="text-obsidian-400 text-xs sm:text-sm">Milestone {milestone.number}. </span>
+                  <span className="text-obsidian-200 text-sm sm:text-base">{milestone.title}</span>
                 </div>
               </div>
 
               <Badge
                 variant={milestone.status === 'completed' ? 'completed' : 'broken'}
                 size="sm"
+                className="self-start sm:self-auto"
               >
-                {milestone.status === 'completed' ? 'COMPLETED' : 'PROMISE BROKEN'}
+                {milestone.status === 'completed' ? 'COMPLETED' : 'BROKEN'}
               </Badge>
             </div>
           ))}
 
           {recentMilestones.length === 0 && (
-            <p className="text-obsidian-500 text-center py-8">
+            <p className="text-obsidian-500 text-center py-6 sm:py-8 text-sm">
               No completed or broken milestones yet.
             </p>
           )}
@@ -420,27 +422,27 @@ export default function DashboardPage() {
 
       {/* Past Milestones Section */}
       <div>
-        <div className="flex items-center justify-between mb-4">
-          <h3 className="text-obsidian-200 font-medium">Past Milestones</h3>
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-3 sm:mb-4">
+          <h3 className="text-obsidian-200 font-medium text-sm sm:text-base">Past Milestones</h3>
           <div className="flex gap-2">
             <Button variant="ghost" size="sm">Newest</Button>
             <Button variant="ghost" size="sm">Oldest</Button>
           </div>
         </div>
 
-        <div className="space-y-3">
+        <div className="space-y-2 sm:space-y-3">
           {milestones
             .filter(m => ['completed', 'broken'].includes(m.status))
             .map((milestone) => (
               <div
                 key={milestone.id}
-                className="flex items-center justify-between p-4 rounded-lg bg-obsidian-800/50 border border-obsidian-600/50"
+                className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 p-3 sm:p-4 rounded-lg bg-obsidian-800/50 border border-obsidian-600/50"
               >
-                <div>
-                  <span className="text-obsidian-400 text-sm">Milestone {milestone.number}: </span>
-                  <span className="text-obsidian-200">{milestone.title}</span>
+                <div className="min-w-0">
+                  <span className="text-obsidian-400 text-xs sm:text-sm">Milestone {milestone.number}: </span>
+                  <span className="text-obsidian-200 text-sm sm:text-base">{milestone.title}</span>
                   {milestone.reason && (
-                    <p className="text-obsidian-500 text-sm mt-1">
+                    <p className="text-obsidian-500 text-xs sm:text-sm mt-1 truncate">
                       Reason: {milestone.reason}
                     </p>
                   )}
@@ -448,8 +450,9 @@ export default function DashboardPage() {
                 <Badge
                   variant={milestone.status === 'completed' ? 'completed' : 'broken'}
                   size="sm"
+                  className="self-start sm:self-auto flex-shrink-0"
                 >
-                  {milestone.status === 'completed' ? 'COMPLETED' : 'PROMISE BROKEN'}
+                  {milestone.status === 'completed' ? 'COMPLETED' : 'BROKEN'}
                 </Badge>
               </div>
             ))}

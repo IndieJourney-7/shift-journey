@@ -1,5 +1,5 @@
-import React from 'react';
-import { NavLink, useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { NavLink, useNavigate, useLocation } from 'react-router-dom';
 import {
   Lock,
   Target,
@@ -14,12 +14,20 @@ import {
   User,
   Plus,
   ListChecks,
+  Menu,
+  X,
 } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
 
-export default function Sidebar() {
+export default function Sidebar({ isOpen, onClose }) {
   const { currentGoal, canCreateNewGoal, logout } = useApp();
   const navigate = useNavigate();
+  const location = useLocation();
+
+  // Close sidebar on route change (mobile)
+  useEffect(() => {
+    if (onClose) onClose();
+  }, [location.pathname]);
 
   const mainLinks = [
     {
@@ -64,26 +72,49 @@ export default function Sidebar() {
   `;
 
   return (
-    <aside className="w-64 h-screen bg-obsidian-900 border-r border-obsidian-800 flex flex-col fixed left-0 top-0">
-      {/* Logo */}
-      <div className="p-4 border-b border-obsidian-800">
-        <div className="flex items-center gap-2">
-          <div className="w-8 h-8">
-            <svg viewBox="0 0 32 32" className="w-full h-full">
-              <defs>
-                <linearGradient id="sidebarLogoGold" x1="0%" y1="0%" x2="100%" y2="100%">
-                  <stop offset="0%" stopColor="#c9a962" />
-                  <stop offset="100%" stopColor="#d4b978" />
-                </linearGradient>
-              </defs>
-              <circle cx="16" cy="16" r="14" fill="#1a1a1a" stroke="url(#sidebarLogoGold)" strokeWidth="1.5" />
-              <path d="M10 18 Q16 10 22 18" stroke="url(#sidebarLogoGold)" strokeWidth="2" fill="none" />
-              <circle cx="16" cy="12" r="2" fill="url(#sidebarLogoGold)" />
-            </svg>
+    <>
+      {/* Mobile Overlay */}
+      {isOpen && (
+        <div
+          className="fixed inset-0 bg-black/60 z-40 lg:hidden"
+          onClick={onClose}
+        />
+      )}
+
+      <aside className={`
+        w-64 h-screen bg-obsidian-900 border-r border-obsidian-800 flex flex-col fixed left-0 top-0 z-50
+        transform transition-transform duration-300 ease-in-out
+        ${isOpen ? 'translate-x-0' : '-translate-x-full'}
+        lg:translate-x-0
+      `}>
+        {/* Logo */}
+        <div className="p-4 border-b border-obsidian-800">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <div className="w-8 h-8">
+                <svg viewBox="0 0 32 32" className="w-full h-full">
+                  <defs>
+                    <linearGradient id="sidebarLogoGold" x1="0%" y1="0%" x2="100%" y2="100%">
+                      <stop offset="0%" stopColor="#c9a962" />
+                      <stop offset="100%" stopColor="#d4b978" />
+                    </linearGradient>
+                  </defs>
+                  <circle cx="16" cy="16" r="14" fill="#1a1a1a" stroke="url(#sidebarLogoGold)" strokeWidth="1.5" />
+                  <path d="M10 18 Q16 10 22 18" stroke="url(#sidebarLogoGold)" strokeWidth="2" fill="none" />
+                  <circle cx="16" cy="12" r="2" fill="url(#sidebarLogoGold)" />
+                </svg>
+              </div>
+              <span className="text-obsidian-100 font-semibold text-lg">Shift Ascent</span>
+            </div>
+            {/* Close button - mobile only */}
+            <button
+              onClick={onClose}
+              className="lg:hidden p-1 text-obsidian-400 hover:text-obsidian-200"
+            >
+              <X className="w-5 h-5" />
+            </button>
           </div>
-          <span className="text-obsidian-100 font-semibold text-lg">Shift Ascent</span>
         </div>
-      </div>
 
       {/* Main Navigation */}
       <div className="flex-1 overflow-y-auto py-4">
@@ -146,6 +177,7 @@ export default function Sidebar() {
           <span>Log Out</span>
         </button>
       </div>
-    </aside>
+      </aside>
+    </>
   );
 }

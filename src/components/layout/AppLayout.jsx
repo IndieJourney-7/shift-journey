@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Outlet, useNavigate } from 'react-router-dom';
-import { AlertTriangle, X } from 'lucide-react';
+import { AlertTriangle, X, Menu } from 'lucide-react';
 import Sidebar from './Sidebar';
 import { useApp } from '../../context/AppContext';
 import { Modal, Button, Textarea } from '../ui';
@@ -9,6 +9,7 @@ export default function AppLayout() {
   const navigate = useNavigate();
   const { user, expiredPromise, clearExpiredPromise, currentLockedMilestone, getTimeRemaining } = useApp();
   const [reason, setReason] = useState('');
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   // Tab title countdown timer
   useEffect(() => {
@@ -48,23 +49,30 @@ export default function AppLayout() {
 
   return (
     <div className="min-h-screen bg-obsidian-950">
-      <Sidebar />
+      <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
 
       {/* Main Content */}
-      <main className="ml-64 min-h-screen">
+      <main className="lg:ml-64 min-h-screen">
         {/* Header */}
-        <header className="h-16 bg-obsidian-900/50 border-b border-obsidian-800 flex items-center justify-between px-6 sticky top-0 z-10 backdrop-blur-sm">
-          <div className="flex items-center gap-4">
-            <span className="text-obsidian-200">Welcome back, </span>
-            <span className="text-obsidian-100 font-medium">{user?.name || 'User'}</span>
+        <header className="h-14 sm:h-16 bg-obsidian-900/50 border-b border-obsidian-800 flex items-center justify-between px-4 sm:px-6 sticky top-0 z-30 backdrop-blur-sm">
+          <div className="flex items-center gap-3 sm:gap-4">
+            {/* Mobile menu button */}
+            <button
+              onClick={() => setSidebarOpen(true)}
+              className="lg:hidden p-2 -ml-2 text-obsidian-400 hover:text-obsidian-200"
+            >
+              <Menu className="w-5 h-5" />
+            </button>
+            <span className="text-obsidian-200 text-sm sm:text-base hidden sm:inline">Welcome back, </span>
+            <span className="text-obsidian-100 font-medium text-sm sm:text-base truncate max-w-[120px] sm:max-w-none">{user?.name || 'User'}</span>
           </div>
 
-          <div className="flex items-center gap-4">
-            <button className="text-obsidian-400 hover:text-obsidian-200 text-sm transition-colors">
+          <div className="flex items-center gap-2 sm:gap-4">
+            <button className="text-obsidian-400 hover:text-obsidian-200 text-xs sm:text-sm transition-colors hidden sm:block">
               ⌘ Remind me Daily
             </button>
-            <div className="w-8 h-8 rounded-full bg-obsidian-700 border border-obsidian-600 flex items-center justify-center">
-              <span className="text-obsidian-300 text-sm font-medium">
+            <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-obsidian-700 border border-obsidian-600 flex items-center justify-center">
+              <span className="text-obsidian-300 text-xs sm:text-sm font-medium">
                 {user?.name?.charAt(0) || 'U'}
               </span>
             </div>
@@ -72,7 +80,7 @@ export default function AppLayout() {
         </header>
 
         {/* Page Content */}
-        <div className="p-6">
+        <div className="p-4 sm:p-6">
           <Outlet />
         </div>
       </main>

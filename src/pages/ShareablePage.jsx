@@ -86,19 +86,19 @@ function LiveCountdown({ deadline }) {
   const TimeUnit = ({ value, label }) => (
     <div className="text-center">
       <div className={`
-        text-3xl md:text-4xl font-mono font-medium tracking-tight
+        text-2xl sm:text-3xl md:text-4xl font-mono font-medium tracking-tight
         ${timeRemaining.expired ? 'text-obsidian-500' : 'text-obsidian-100'}
       `}>
         {String(value).padStart(2, '0')}
       </div>
-      <div className="text-obsidian-500 text-xs mt-1 uppercase tracking-wider">
+      <div className="text-obsidian-500 text-[10px] sm:text-xs mt-1 uppercase tracking-wider">
         {label}
       </div>
     </div>
   );
 
   const Separator = () => (
-    <div className="text-2xl md:text-3xl font-mono text-obsidian-600 self-start mt-1">:</div>
+    <div className="text-xl sm:text-2xl md:text-3xl font-mono text-obsidian-600 self-start mt-0.5 sm:mt-1">:</div>
   );
 
   if (timeRemaining.expired) {
@@ -208,9 +208,9 @@ export default function ShareablePage() {
 
       {/* Header */}
       <header className="border-b border-obsidian-800 bg-obsidian-900/80">
-        <div className="max-w-xl mx-auto px-4 py-4 flex items-center justify-between">
+        <div className="max-w-xl mx-auto px-3 sm:px-4 py-3 sm:py-4 flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <div className="w-7 h-7">
+            <div className="w-6 h-6 sm:w-7 sm:h-7">
               <svg viewBox="0 0 32 32" className="w-full h-full">
                 <defs>
                   <linearGradient id="shareLogoGold" x1="0%" y1="0%" x2="100%" y2="100%">
@@ -223,12 +223,12 @@ export default function ShareablePage() {
                 <circle cx="16" cy="12" r="2" fill="url(#shareLogoGold)" />
               </svg>
             </div>
-            <span className="text-obsidian-300 text-sm font-medium">Shift Ascent</span>
+            <span className="text-obsidian-300 text-xs sm:text-sm font-medium">Shift Ascent</span>
           </div>
 
           {witnessed && (
-            <div className="flex items-center gap-1.5 text-obsidian-400 text-xs">
-              <Eye className="w-3.5 h-3.5" />
+            <div className="flex items-center gap-1 sm:gap-1.5 text-obsidian-400 text-[10px] sm:text-xs">
+              <Eye className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
               <span>Witnessed</span>
             </div>
           )}
@@ -236,44 +236,44 @@ export default function ShareablePage() {
       </header>
 
       {/* Main Content */}
-      <main className="max-w-xl mx-auto px-4 py-8">
+      <main className="max-w-xl mx-auto px-3 sm:px-4 py-6 sm:py-8">
         {/* User Identity */}
-        <div className="text-center mb-8">
-          <div className="w-14 h-14 mx-auto mb-3 rounded-full bg-obsidian-800 border border-obsidian-700 flex items-center justify-center">
-            <span className="text-xl font-medium text-obsidian-400">
+        <div className="text-center mb-6 sm:mb-8">
+          <div className="w-12 h-12 sm:w-14 sm:h-14 mx-auto mb-2 sm:mb-3 rounded-full bg-obsidian-800 border border-obsidian-700 flex items-center justify-center">
+            <span className="text-lg sm:text-xl font-medium text-obsidian-400">
               {user.fullName.charAt(0).toUpperCase()}
             </span>
           </div>
-          <h1 className="text-lg font-medium text-obsidian-200">
+          <h1 className="text-base sm:text-lg font-medium text-obsidian-200">
             {user.fullName}
           </h1>
-          <p className="text-obsidian-500 text-sm mt-1">
+          <p className="text-obsidian-500 text-xs sm:text-sm mt-1">
             has made a commitment
           </p>
         </div>
 
         {/* Commitment Card */}
-        <Card variant="elevated" padding="lg" className="mb-6">
+        <Card variant="elevated" padding="md" className="sm:p-6 mb-4 sm:mb-6">
           {/* Promise Status Badge */}
-          <div className="flex justify-center mb-6">
+          <div className="flex justify-center mb-4 sm:mb-6">
             <div className={`
-              inline-flex items-center gap-2 px-4 py-2 rounded-md
+              inline-flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-1.5 sm:py-2 rounded-md
               ${statusConfig.bg} border ${statusConfig.border}
             `}>
-              <StatusIcon className={`w-4 h-4 ${statusConfig.text}`} />
-              <span className={`text-sm font-medium tracking-wide ${statusConfig.text}`}>
+              <StatusIcon className={`w-3.5 h-3.5 sm:w-4 sm:h-4 ${statusConfig.text}`} />
+              <span className={`text-xs sm:text-sm font-medium tracking-wide ${statusConfig.text}`}>
                 {statusConfig.label}
               </span>
             </div>
           </div>
 
           {/* Milestone Title */}
-          <div className="text-center mb-6">
-            <h2 className="text-xl font-medium text-obsidian-100 mb-3">
+          <div className="text-center mb-4 sm:mb-6">
+            <h2 className="text-lg sm:text-xl font-medium text-obsidian-100 mb-2 sm:mb-3">
               {milestone.title}
             </h2>
             {milestone.promise?.text && (
-              <p className="text-obsidian-400 text-sm leading-relaxed">
+              <p className="text-obsidian-400 text-xs sm:text-sm leading-relaxed">
                 "{milestone.promise.text}"
               </p>
             )}
@@ -281,8 +281,8 @@ export default function ShareablePage() {
 
           {/* Live Countdown Timer - uses actual milestone deadline */}
           {milestone.status === 'locked' && milestone.promise?.deadline && (
-            <div className="border-t border-obsidian-700 pt-6 mb-6">
-              <p className="text-obsidian-500 text-xs text-center mb-4 uppercase tracking-wider">
+            <div className="border-t border-obsidian-700 pt-4 sm:pt-6 mb-4 sm:mb-6">
+              <p className="text-obsidian-500 text-[10px] sm:text-xs text-center mb-3 sm:mb-4 uppercase tracking-wider">
                 Time Remaining
               </p>
               <LiveCountdown deadline={milestone.promise.deadline} />
@@ -290,11 +290,11 @@ export default function ShareablePage() {
           )}
 
           {/* Integrity Score with Shield Badge */}
-          <div className="border-t border-obsidian-700 pt-6">
+          <div className="border-t border-obsidian-700 pt-4 sm:pt-6">
             <div className="flex items-center justify-center">
               <IntegrityShieldBadge
                 score={user.integrityScore}
-                size="lg"
+                size="md"
                 showScore={true}
                 showLabel={true}
                 showDescription={false}
@@ -310,38 +310,38 @@ export default function ShareablePage() {
               onClick={handleWitness}
               disabled={witnessed}
               className={`
-                inline-flex items-center gap-2 px-6 py-3 rounded-lg
-                border transition-colors
+                inline-flex items-center gap-2 px-4 sm:px-6 py-2.5 sm:py-3 rounded-lg
+                border transition-colors text-sm
                 ${witnessed
                   ? 'bg-obsidian-800 border-obsidian-700 text-obsidian-500 cursor-default'
                   : 'bg-obsidian-800 border-obsidian-600 text-obsidian-200 hover:border-obsidian-500 hover:bg-obsidian-700'
                 }
               `}
             >
-              <span className="text-lg">👁️</span>
-              <span className="text-sm font-medium">
-                {witnessed ? 'You are witnessing this commitment' : 'Witness this commitment'}
+              <span className="text-base sm:text-lg">👁️</span>
+              <span className="text-xs sm:text-sm font-medium">
+                {witnessed ? 'You are witnessing' : 'Witness this commitment'}
               </span>
             </button>
 
             {/* Show witness count */}
             {witnessCount > 0 && (
-              <p className="text-obsidian-500 text-sm mt-3">
-                <span className="text-lg mr-1">👁️</span>
+              <p className="text-obsidian-500 text-xs sm:text-sm mt-2 sm:mt-3">
+                <span className="text-base sm:text-lg mr-1">👁️</span>
                 {witnessCount} {witnessCount === 1 ? 'person is' : 'people are'} watching
               </p>
             )}
 
-            <p className="text-obsidian-600 text-xs mt-3">
+            <p className="text-obsidian-600 text-[10px] sm:text-xs mt-2 sm:mt-3">
               Silent accountability. No comments, just presence.
             </p>
           </div>
         )}
 
         {/* Minimal Footer */}
-        <div className="mt-10 text-center">
+        <div className="mt-8 sm:mt-10 text-center">
           {milestone.promise?.lockedAt && (
-            <p className="text-obsidian-600 text-xs">
+            <p className="text-obsidian-600 text-[10px] sm:text-xs">
               Locked {new Date(milestone.promise.lockedAt).toLocaleDateString('en-US', {
                 month: 'short',
                 day: 'numeric',

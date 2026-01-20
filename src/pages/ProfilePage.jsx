@@ -43,14 +43,14 @@ export default function ProfilePage() {
     : 0;
 
   return (
-    <div className="max-w-2xl mx-auto space-y-8">
+    <div className="max-w-2xl mx-auto space-y-4 sm:space-y-6 lg:space-y-8">
       {/* Header */}
       <div className="text-center">
-        <h1 className="text-2xl font-bold text-obsidian-100 mb-1">Profile</h1>
+        <h1 className="text-xl sm:text-2xl font-bold text-obsidian-100 mb-1">Profile</h1>
       </div>
 
       {/* Profile Card */}
-      <Card variant="elevated" padding="lg" className="relative overflow-hidden">
+      <Card variant="elevated" padding="md" className="sm:p-6 relative overflow-hidden">
         {/* Cracked background effect for low integrity */}
         {user.integrityScore < 50 && (
           <div className="absolute inset-0 pointer-events-none opacity-20">
@@ -68,37 +68,37 @@ export default function ProfilePage() {
 
         <div className="relative z-10">
           {/* Avatar and Basic Info */}
-          <div className="flex items-start gap-6 mb-8">
+          <div className="flex flex-col sm:flex-row items-center sm:items-start gap-4 sm:gap-6 mb-6 sm:mb-8">
             {/* Avatar */}
-            <div className="w-20 h-20 rounded-full bg-obsidian-700 border-2 border-obsidian-600 flex items-center justify-center overflow-hidden">
+            <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-obsidian-700 border-2 border-obsidian-600 flex items-center justify-center overflow-hidden flex-shrink-0">
               {user.avatar ? (
                 <img src={user.avatar} alt={user.name} className="w-full h-full object-cover" />
               ) : (
-                <User className="w-10 h-10 text-obsidian-400" />
+                <User className="w-8 h-8 sm:w-10 sm:h-10 text-obsidian-400" />
               )}
             </div>
 
             {/* Info */}
-            <div className="flex-1">
-              <h2 className="text-2xl font-bold text-obsidian-100 mb-1">
+            <div className="flex-1 text-center sm:text-left">
+              <h2 className="text-xl sm:text-2xl font-bold text-obsidian-100 mb-1">
                 {user.fullName}
               </h2>
-              <div className="flex items-center gap-2 mb-2">
+              <div className="flex items-center justify-center sm:justify-start gap-2 mb-2">
                 <Badge variant={getStatusBadgeVariant()}>
                   {user.status}
                 </Badge>
               </div>
-              <p className="text-obsidian-400 text-sm">{user.email}</p>
+              <p className="text-obsidian-400 text-xs sm:text-sm">{user.email}</p>
             </div>
           </div>
 
           {/* Integrity Score Section - Primary Shield Badge Display */}
-          <div className="flex flex-col md:flex-row items-center gap-8 mb-8">
-            <div className="flex-1">
-              <h3 className="text-obsidian-400 text-sm font-medium mb-4">
+          <div className="flex flex-col items-center gap-4 sm:gap-6 md:flex-row md:gap-8 mb-6 sm:mb-8">
+            <div className="flex-1 text-center md:text-left">
+              <h3 className="text-obsidian-400 text-xs sm:text-sm font-medium mb-2 sm:mb-4">
                 Integrity Level
               </h3>
-              <p className="text-obsidian-500 text-sm mb-4">
+              <p className="text-obsidian-500 text-xs sm:text-sm mb-3 sm:mb-4">
                 {brokenCount > 0
                   ? `${brokenCount} broken promise${brokenCount > 1 ? 's' : ''} recorded`
                   : 'No broken promises recorded'
@@ -107,7 +107,7 @@ export default function ProfilePage() {
               {user.integrityScore < 100 && (
                 <Button
                   variant="secondary"
-                  size="md"
+                  size="sm"
                   onClick={handleBeginRepair}
                   icon={TrendingUp}
                 >
@@ -120,7 +120,7 @@ export default function ProfilePage() {
             <div className="flex-shrink-0">
               <IntegrityShieldBadge
                 score={user.integrityScore}
-                size="xl"
+                size="lg"
                 showScore={true}
                 showLabel={true}
                 showDescription={true}
@@ -131,36 +131,36 @@ export default function ProfilePage() {
       </Card>
 
       {/* Stats */}
-      <div className="grid grid-cols-3 gap-4">
-        <Card variant="default" padding="md" className="text-center">
-          <div className="text-3xl font-bold text-obsidian-200 mb-1">
+      <div className="grid grid-cols-3 gap-2 sm:gap-4">
+        <Card variant="default" padding="sm" className="sm:p-4 text-center">
+          <div className="text-xl sm:text-2xl lg:text-3xl font-bold text-obsidian-200 mb-0.5 sm:mb-1">
             {milestones.length}
           </div>
-          <div className="text-obsidian-500 text-sm">Total Milestones</div>
+          <div className="text-obsidian-500 text-[10px] sm:text-xs lg:text-sm">Total Milestones</div>
         </Card>
-        <Card variant="default" padding="md" className="text-center">
-          <div className="text-3xl font-bold text-green-400 mb-1">
+        <Card variant="default" padding="sm" className="sm:p-4 text-center">
+          <div className="text-xl sm:text-2xl lg:text-3xl font-bold text-green-400 mb-0.5 sm:mb-1">
             {completedCount}
           </div>
-          <div className="text-obsidian-500 text-sm">Promises Kept</div>
+          <div className="text-obsidian-500 text-[10px] sm:text-xs lg:text-sm">Promises Kept</div>
         </Card>
-        <Card variant="default" padding="md" className="text-center">
-          <div className="text-3xl font-bold text-red-400 mb-1">
+        <Card variant="default" padding="sm" className="sm:p-4 text-center">
+          <div className="text-xl sm:text-2xl lg:text-3xl font-bold text-red-400 mb-0.5 sm:mb-1">
             {brokenCount}
           </div>
-          <div className="text-obsidian-500 text-sm">Promises Broken</div>
+          <div className="text-obsidian-500 text-[10px] sm:text-xs lg:text-sm">Promises Broken</div>
         </Card>
       </div>
 
       {/* Failure History */}
-      <Card variant="default" padding="lg">
-        <div className="flex items-center justify-between mb-6">
-          <h3 className="text-lg font-semibold text-obsidian-100">Failure History</h3>
-          <span className="text-obsidian-500 text-sm">{failureHistory.length}</span>
+      <Card variant="default" padding="md" className="sm:p-6">
+        <div className="flex items-center justify-between mb-4 sm:mb-6">
+          <h3 className="text-base sm:text-lg font-semibold text-obsidian-100">Failure History</h3>
+          <span className="text-obsidian-500 text-xs sm:text-sm">{failureHistory.length}</span>
         </div>
 
         {failureHistory.length > 0 ? (
-          <div className="space-y-4">
+          <div className="space-y-3 sm:space-y-4">
             {failureHistory.map((failure, index) => {
               const IconComponent = getIconForMilestone(failure);
               const isBroken = failure.status === 'broken';
@@ -169,27 +169,27 @@ export default function ProfilePage() {
                 <div
                   key={index}
                   className={`
-                    flex items-start gap-4 p-4 rounded-lg border
+                    flex items-start gap-3 sm:gap-4 p-3 sm:p-4 rounded-lg border
                     ${isBroken ? 'bg-obsidian-800/50 border-red-900/30' : 'bg-obsidian-800/50 border-obsidian-700'}
                   `}
                 >
                   <div className={`
-                    w-10 h-10 rounded-lg flex items-center justify-center
+                    w-8 h-8 sm:w-10 sm:h-10 rounded-lg flex items-center justify-center flex-shrink-0
                     ${isBroken ? 'bg-red-900/30' : 'bg-obsidian-700'}
                   `}>
-                    <IconComponent className={`w-5 h-5 ${isBroken ? 'text-red-400' : 'text-obsidian-400'}`} />
+                    <IconComponent className={`w-4 h-4 sm:w-5 sm:h-5 ${isBroken ? 'text-red-400' : 'text-obsidian-400'}`} />
                   </div>
 
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2 mb-1">
-                      <span className="text-obsidian-400 text-sm">
+                  <div className="flex-1 min-w-0">
+                    <div className="flex flex-wrap items-center gap-1 sm:gap-2 mb-1">
+                      <span className="text-obsidian-400 text-xs sm:text-sm">
                         Milestone {failure.milestoneNumber}:
                       </span>
-                      <span className="text-obsidian-200">{failure.title}</span>
+                      <span className="text-obsidian-200 text-sm sm:text-base">{failure.title}</span>
                     </div>
 
                     {failure.reason ? (
-                      <p className="text-obsidian-500 text-sm">{failure.reason}</p>
+                      <p className="text-obsidian-500 text-xs sm:text-sm">{failure.reason}</p>
                     ) : (
                       <Badge variant="broken" size="sm">Promise Broken</Badge>
                     )}
@@ -205,19 +205,19 @@ export default function ProfilePage() {
             })}
           </div>
         ) : (
-          <div className="text-center py-8">
-            <Check className="w-12 h-12 text-green-500 mx-auto mb-4 opacity-50" />
-            <p className="text-obsidian-400">No failures recorded. Keep it up!</p>
+          <div className="text-center py-6 sm:py-8">
+            <Check className="w-10 h-10 sm:w-12 sm:h-12 text-green-500 mx-auto mb-3 sm:mb-4 opacity-50" />
+            <p className="text-obsidian-400 text-sm sm:text-base">No failures recorded. Keep it up!</p>
           </div>
         )}
       </Card>
 
       {/* Account Info */}
-      <Card variant="default" padding="md">
-        <div className="flex items-center justify-between">
+      <Card variant="default" padding="sm" className="sm:p-4">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 sm:gap-4">
           <div>
-            <p className="text-obsidian-400 text-sm">Member since</p>
-            <p className="text-obsidian-200">
+            <p className="text-obsidian-400 text-xs sm:text-sm">Member since</p>
+            <p className="text-obsidian-200 text-sm sm:text-base">
               {new Date(user.joinedAt).toLocaleDateString('en-US', {
                 month: 'long',
                 day: 'numeric',
