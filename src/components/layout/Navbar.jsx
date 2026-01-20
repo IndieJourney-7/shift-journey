@@ -33,7 +33,7 @@ export default function Navbar({ isAuthenticated = false, user = null }) {
               </svg>
             </div>
             <span className="text-obsidian-100 font-semibold text-lg tracking-tight">
-              Shift Journey
+              Shift Ascent
             </span>
           </Link>
 

@@ -12,7 +12,7 @@ export default function AppLayout() {
 
   // Tab title countdown timer
   useEffect(() => {
-    const originalTitle = 'Shift Journey';
+    const originalTitle = 'Shift Ascent';
 
     const updateTabTitle = () => {
       if (!currentLockedMilestone?.promise?.deadline) {
@@ -22,14 +22,14 @@ export default function AppLayout() {
 
       const time = getTimeRemaining();
       if (!time || time.expired) {
-        document.title = '⚠️ EXPIRED | Shift Journey';
+        document.title = '⚠️ EXPIRED | Shift Ascent';
         return;
       }
 
       const h = String(time.hours).padStart(2, '0');
       const m = String(time.minutes).padStart(2, '0');
       const s = String(time.seconds).padStart(2, '0');
-      document.title = `⏱️ ${h}:${m}:${s} | Shift Journey`;
+      document.title = `⏱️ ${h}:${m}:${s} | Shift Ascent`;
     };
 
     updateTabTitle();

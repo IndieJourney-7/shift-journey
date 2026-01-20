@@ -5,8 +5,8 @@ import { Card } from '../components/ui';
 export default function HelpPage() {
   const faqs = [
     {
-      question: 'What is Shift Journey?',
-      answer: 'Shift Journey is a commitment system that helps you break big goals into milestones. Each milestone becomes a locked promise with a deadline. Unlike typical task managers, you cannot delete or edit promises once locked.',
+      question: 'What is Shift Ascent?',
+      answer: 'Shift Ascent is a commitment system that helps you break big goals into milestones. Each milestone becomes a locked promise with a deadline. Unlike typical task managers, you cannot delete or edit promises once locked.',
     },
     {
       question: 'How do I create a goal?',
@@ -22,7 +22,7 @@ export default function HelpPage() {
     },
     {
       question: 'Can I have multiple goals?',
-      answer: 'No. Shift Journey enforces one active goal at a time to help you stay focused. Complete or abandon your current goal before starting a new one.',
+      answer: 'No. Shift Ascent enforces one active goal at a time to help you stay focused. Complete or abandon your current goal before starting a new one.',
     },
     {
       question: 'What are the consequences of breaking a promise?',
@@ -66,14 +66,14 @@ export default function HelpPage() {
           <HelpCircle className="w-8 h-8 text-gold-500" />
         </div>
         <h1 className="text-2xl font-bold text-obsidian-100 mb-2">Help Center</h1>
-        <p className="text-obsidian-400">Learn how to use Shift Journey effectively</p>
+        <p className="text-obsidian-400">Learn how to use Shift Ascent effectively</p>
       </div>
 
       {/* Core Concept */}
       <Card variant="highlighted" padding="lg">
         <h2 className="text-lg font-semibold text-obsidian-100 mb-4">Core Concept</h2>
         <p className="text-obsidian-300 leading-relaxed">
-          Shift Journey is <strong>not</strong> a task manager. It's a commitment system designed for people who need real accountability. The key difference: <strong>you cannot escape your promises</strong>.
+          Shift Ascent is <strong>not</strong> a task manager. It's a commitment system designed for people who need real accountability. The key difference: <strong>you cannot escape your promises</strong>.
         </p>
         <div className="mt-4 grid grid-cols-1 md:grid-cols-3 gap-4">
           <div className="text-center p-4 bg-obsidian-900/50 rounded-lg">

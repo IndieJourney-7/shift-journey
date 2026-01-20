@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useLocation } from 'react-router-dom';
 import { Lock, Check, AlertTriangle, Eye } from 'lucide-react';
 import { Card } from '../components/ui';
 import { IntegrityShieldBadge } from '../components/journey';
+import { OpenGraphMeta, generateOGTitle, generateOGDescription } from '../components/seo';
 import { useApp } from '../context/AppContext';
 
 /**
@@ -127,13 +128,41 @@ function LiveCountdown({ deadline }) {
 
 export default function ShareablePage() {
   const { commitmentId } = useParams();
+  const location = useLocation();
   const { user, currentLockedMilestone, milestones, addWitness } = useApp();
   const [witnessed, setWitnessed] = useState(false);
+  const [ogTimeRemaining, setOgTimeRemaining] = useState({ hours: 0, minutes: 0 });
 
   // Find the milestone by ID from URL, or use current locked milestone
   const milestone = commitmentId
     ? milestones.find(m => m.id === parseInt(commitmentId))
     : currentLockedMilestone;
+
+  // Calculate time remaining for OG meta tags
+  useEffect(() => {
+    if (!milestone?.promise?.deadline) return;
+
+    const calculateTime = () => {
+      const deadline = new Date(milestone.promise.deadline);
+      const now = new Date();
+      const diff = deadline - now;
+
+      if (diff <= 0) {
+        return { expired: true };
+      }
+
+      const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+      const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+      const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+
+      return { days, hours, minutes, expired: false };
+    };
+
+    setOgTimeRemaining(calculateTime());
+    // Update every minute for OG description
+    const interval = setInterval(() => setOgTimeRemaining(calculateTime()), 60000);
+    return () => clearInterval(interval);
+  }, [milestone?.promise?.deadline]);
 
   // Handle witness action - adds to the witness count
   const handleWitness = () => {
@@ -159,8 +188,24 @@ export default function ShareablePage() {
   const StatusIcon = statusConfig.icon;
   const witnessCount = milestone.promise?.witnessCount || 0;
 
+  // Generate OG meta data
+  const ogTitle = generateOGTitle(user.fullName, milestone.title);
+  const ogDescription = generateOGDescription({
+    timeRemaining: ogTimeRemaining,
+    integrityScore: user.integrityScore,
+    status: milestone.status,
+  });
+  const currentUrl = `${window.location.origin}${location.pathname}`;
+
   return (
     <div className="min-h-screen bg-obsidian-950">
+      {/* Open Graph Meta Tags */}
+      <OpenGraphMeta
+        title={ogTitle}
+        description={ogDescription}
+        url={currentUrl}
+      />
+
       {/* Header */}
       <header className="border-b border-obsidian-800 bg-obsidian-900/80">
         <div className="max-w-xl mx-auto px-4 py-4 flex items-center justify-between">
@@ -178,7 +223,7 @@ export default function ShareablePage() {
                 <circle cx="16" cy="12" r="2" fill="url(#shareLogoGold)" />
               </svg>
             </div>
-            <span className="text-obsidian-300 text-sm font-medium">Shift Journey</span>
+            <span className="text-obsidian-300 text-sm font-medium">Shift Ascent</span>
           </div>
 
           {witnessed && (

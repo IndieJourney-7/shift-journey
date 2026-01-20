@@ -299,7 +299,7 @@ export default function SettingsPage() {
               </div>
 
               <p className="text-obsidian-500 text-sm mt-4">
-                Note: Light mode is not available in this version. Shift Journey is designed for the Obsidian dark theme experience.
+                Note: Light mode is not available in this version. Shift Ascent is designed for the Obsidian dark theme experience.
               </p>
             </Card>
           )}

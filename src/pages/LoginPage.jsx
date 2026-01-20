@@ -63,7 +63,7 @@ export default function LoginPage() {
               <circle cx="16" cy="12" r="2" fill="url(#loginLogoGold)" />
             </svg>
           </div>
-          <span className="text-obsidian-100 font-semibold text-xl">Shift Journey</span>
+          <span className="text-obsidian-100 font-semibold text-xl">Shift Ascent</span>
         </Link>
 
         {/* Card */}

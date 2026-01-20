@@ -81,7 +81,7 @@ export default function Sidebar() {
               <circle cx="16" cy="12" r="2" fill="url(#sidebarLogoGold)" />
             </svg>
           </div>
-          <span className="text-obsidian-100 font-semibold text-lg">Shift Journey</span>
+          <span className="text-obsidian-100 font-semibold text-lg">Shift Ascent</span>
         </div>
       </div>
 

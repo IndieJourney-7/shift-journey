@@ -146,7 +146,7 @@ export default function LandingPage() {
               No Escape, Only Progress
             </h2>
             <p className="text-obsidian-400 max-w-2xl mx-auto">
-              Shift Journey locks your goals into a journey with promises you have to keep. Here's how it works.
+              Shift Ascent locks your goals into a journey with promises you have to keep. Here's how it works.
             </p>
           </div>
 
@@ -193,7 +193,7 @@ export default function LandingPage() {
 
           <div className="text-center mt-12">
             <p className="text-obsidian-300 text-lg mb-8">
-              Shift Journey isn't just another task manager. It's a commitment system that won't let you off the hook.
+              Shift Ascent isn't just another task manager. It's a commitment system that won't let you off the hook.
             </p>
             <Link to="/login">
               <Button variant="secondary" size="lg">
@@ -236,10 +236,10 @@ export default function LandingPage() {
                 <path d="M10 18 Q16 10 22 18" stroke="#c9a962" strokeWidth="1.5" fill="none" />
               </svg>
             </div>
-            <span className="text-obsidian-500 text-sm">Shift Journey</span>
+            <span className="text-obsidian-500 text-sm">Shift Ascent</span>
           </div>
           <div className="text-obsidian-600 text-sm">
-            © 2024 Shift Journey. All rights reserved.
+            © 2024 Shift Ascent. All rights reserved.
           </div>
         </div>
       </footer>
