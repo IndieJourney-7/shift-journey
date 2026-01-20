@@ -48,33 +48,35 @@ export default function LandingPage() {
 
             {/* Right: Journey Visualization */}
             <div className="relative">
+              {/* Top Text - Above the journey path */}
+              <div className="hidden lg:block text-right mb-6">
+                <p className="text-obsidian-100 text-sm leading-relaxed">
+                  Break big goals into milestones.
+                  <br />
+                  Make short promises. Lock each one
+                  <br />
+                  in with a <span className="text-white font-medium">consequence</span> if you fail.
+                </p>
+              </div>
+
               {/* Journey Path */}
               <div className="flex justify-center">
                 <JourneyPath milestones={heroMilestones} showGoal={true} />
               </div>
 
-              {/* Current Promise Card */}
-              <div className="absolute left-1/2 top-1/2 transform -translate-x-1/2 translate-y-4 w-72">
-                <div className="bg-obsidian-800/90 border border-obsidian-600 rounded-lg p-4 backdrop-blur-sm shadow-xl">
-                  <div className="text-obsidian-400 text-xs mb-1">Current Promise</div>
-                  <h3 className="text-obsidian-100 font-semibold mb-2">Milestone Promise</h3>
-                  <p className="text-obsidian-300 text-sm mb-2">Write login logic</p>
-                  <p className="text-obsidian-400 text-sm mb-3">Due: Today, 9:00 PM</p>
-                  <div className="text-obsidian-500 text-sm font-medium tracking-wide">
-                    LOCKED
+              {/* Current Promise Card - Below the journey path */}
+              <div className="flex justify-center mt-8">
+                <div className="w-72">
+                  <div className="bg-obsidian-800/90 border border-obsidian-600 rounded-lg p-4 backdrop-blur-sm shadow-xl">
+                    <div className="text-obsidian-400 text-xs mb-1">Current Promise</div>
+                    <h3 className="text-obsidian-100 font-semibold mb-2">Milestone Promise</h3>
+                    <p className="text-obsidian-300 text-sm mb-2">Write login logic</p>
+                    <p className="text-obsidian-400 text-sm mb-3">Due: Today, 9:00 PM</p>
+                    <div className="text-obsidian-500 text-sm font-medium tracking-wide">
+                      LOCKED
+                    </div>
                   </div>
                 </div>
-              </div>
-
-              {/* Side Text */}
-              <div className="hidden lg:block absolute right-0 top-0 max-w-xs text-right">
-                <p className="text-obsidian-400 text-sm leading-relaxed">
-                  Break big goals into milestones.
-                  <br />
-                  Make short promises. Lock each one
-                  <br />
-                  in with a <span className="text-obsidian-200 font-medium">consequence</span> if you fail.
-                </p>
               </div>
             </div>
           </div>
