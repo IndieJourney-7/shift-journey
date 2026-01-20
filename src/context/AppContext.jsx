@@ -403,11 +403,29 @@ export function AppProvider({ children }) {
       deadline: promiseData.deadline,
       consequence: promiseData.consequence,
       lockedAt: new Date().toISOString(),
+      witnessCount: 0, // Track how many people are watching
     };
 
     setMilestones(milestones.map(m =>
       m.id === milestoneId
         ? { ...m, status: 'locked', promise }
+        : m
+    ));
+  };
+
+  // Add a witness to the current locked milestone
+  const addWitness = () => {
+    if (!currentLockedMilestone) return;
+
+    setMilestones(milestones.map(m =>
+      m.id === currentLockedMilestone.id
+        ? {
+            ...m,
+            promise: {
+              ...m.promise,
+              witnessCount: (m.promise?.witnessCount || 0) + 1,
+            },
+          }
         : m
     ));
   };
@@ -695,6 +713,7 @@ export function AppProvider({ children }) {
     updateMilestone,
     deleteMilestone,
     lockPromise,
+    addWitness,
     completeMilestone,
     breakPromise,
     beginRepair,

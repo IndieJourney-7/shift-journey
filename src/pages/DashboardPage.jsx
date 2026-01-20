@@ -233,9 +233,18 @@ export default function DashboardPage() {
             })}
           </p>
 
-          {/* Countdown */}
+          {/* Countdown with Witness Count */}
           <div className="mb-6 py-6 border-t border-b border-obsidian-700">
-            <p className="text-obsidian-400 text-sm text-center mb-4">Time Remaining:</p>
+            <div className="flex items-center justify-center gap-4 mb-4">
+              <p className="text-obsidian-400 text-sm">Time Remaining:</p>
+              {/* Witness Count - show eye emoji with count */}
+              {(currentLockedMilestone.promise?.witnessCount > 0) && (
+                <div className="flex items-center gap-1.5 text-obsidian-400 text-sm">
+                  <span className="text-base">👁️</span>
+                  <span>{currentLockedMilestone.promise.witnessCount} watching</span>
+                </div>
+              )}
+            </div>
             <CountdownTimer
               deadline={currentLockedMilestone.promise.deadline}
               size="lg"

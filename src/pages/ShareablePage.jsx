@@ -3,6 +3,7 @@ import { useParams } from 'react-router-dom';
 import { Lock, Check, AlertTriangle, Eye } from 'lucide-react';
 import { Card } from '../components/ui';
 import { IntegrityShieldBadge } from '../components/journey';
+import { useApp } from '../context/AppContext';
 
 /**
  * Shareable Page - Public witness page for locked milestones
@@ -12,18 +13,6 @@ import { IntegrityShieldBadge } from '../components/journey';
  * - Does NOT show: goal deadline, future milestones, full plan, progress %, failure history
  * - Purpose: Short-term accountability and witness pressure
  */
-
-// Mock data for demonstration - in real app this would come from an API
-const getMockCommitmentData = (id) => ({
-  id,
-  userName: 'Sarah S.',
-  milestoneTitle: 'Complete the investor pitch deck',
-  promiseText: 'I promise to complete and refine the pitch deck before the deadline.',
-  deadline: new Date(Date.now() + 2 * 60 * 60 * 1000 + 15 * 60 * 1000).toISOString(), // 2h 15m from now
-  status: 'locked', // 'locked' | 'completed' | 'broken'
-  integrityScore: 41,
-  lockedAt: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(),
-});
 
 // Get status styling
 const getStatusConfig = (status) => {
@@ -55,7 +44,7 @@ const getStatusConfig = (status) => {
   }
 };
 
-// Live Countdown Timer Component
+// Live Countdown Timer Component - uses actual milestone deadline
 function LiveCountdown({ deadline }) {
   const [timeRemaining, setTimeRemaining] = useState({
     days: 0,
@@ -66,6 +55,8 @@ function LiveCountdown({ deadline }) {
   });
 
   useEffect(() => {
+    if (!deadline) return;
+
     const calculateTimeRemaining = () => {
       const deadlineDate = new Date(deadline);
       const now = new Date();
@@ -136,32 +127,37 @@ function LiveCountdown({ deadline }) {
 
 export default function ShareablePage() {
   const { commitmentId } = useParams();
-  const [commitment, setCommitment] = useState(null);
+  const { user, currentLockedMilestone, milestones, addWitness } = useApp();
   const [witnessed, setWitnessed] = useState(false);
 
-  // Load mock commitment data
-  useEffect(() => {
-    const data = getMockCommitmentData(commitmentId);
-    setCommitment(data);
-  }, [commitmentId]);
+  // Find the milestone by ID from URL, or use current locked milestone
+  const milestone = commitmentId
+    ? milestones.find(m => m.id === parseInt(commitmentId))
+    : currentLockedMilestone;
 
-  // Handle witness action
+  // Handle witness action - adds to the witness count
   const handleWitness = () => {
     if (!witnessed) {
       setWitnessed(true);
+      // Add witness count to the milestone
+      addWitness();
     }
   };
 
-  if (!commitment) {
+  if (!milestone) {
     return (
       <div className="min-h-screen bg-obsidian-950 flex items-center justify-center">
-        <div className="text-obsidian-400">Loading...</div>
+        <div className="text-center">
+          <p className="text-obsidian-400 mb-2">No active commitment found</p>
+          <p className="text-obsidian-600 text-sm">This link may have expired or the commitment was completed.</p>
+        </div>
       </div>
     );
   }
 
-  const statusConfig = getStatusConfig(commitment.status);
+  const statusConfig = getStatusConfig(milestone.status);
   const StatusIcon = statusConfig.icon;
+  const witnessCount = milestone.promise?.witnessCount || 0;
 
   return (
     <div className="min-h-screen bg-obsidian-950">
@@ -200,11 +196,11 @@ export default function ShareablePage() {
         <div className="text-center mb-8">
           <div className="w-14 h-14 mx-auto mb-3 rounded-full bg-obsidian-800 border border-obsidian-700 flex items-center justify-center">
             <span className="text-xl font-medium text-obsidian-400">
-              {commitment.userName.charAt(0).toUpperCase()}
+              {user.fullName.charAt(0).toUpperCase()}
             </span>
           </div>
           <h1 className="text-lg font-medium text-obsidian-200">
-            {commitment.userName}
+            {user.fullName}
           </h1>
           <p className="text-obsidian-500 text-sm mt-1">
             has made a commitment
@@ -229,20 +225,22 @@ export default function ShareablePage() {
           {/* Milestone Title */}
           <div className="text-center mb-6">
             <h2 className="text-xl font-medium text-obsidian-100 mb-3">
-              {commitment.milestoneTitle}
+              {milestone.title}
             </h2>
-            <p className="text-obsidian-400 text-sm leading-relaxed">
-              "{commitment.promiseText}"
-            </p>
+            {milestone.promise?.text && (
+              <p className="text-obsidian-400 text-sm leading-relaxed">
+                "{milestone.promise.text}"
+              </p>
+            )}
           </div>
 
-          {/* Live Countdown Timer - Only show for locked status */}
-          {commitment.status === 'locked' && (
+          {/* Live Countdown Timer - uses actual milestone deadline */}
+          {milestone.status === 'locked' && milestone.promise?.deadline && (
             <div className="border-t border-obsidian-700 pt-6 mb-6">
               <p className="text-obsidian-500 text-xs text-center mb-4 uppercase tracking-wider">
                 Time Remaining
               </p>
-              <LiveCountdown deadline={commitment.deadline} />
+              <LiveCountdown deadline={milestone.promise.deadline} />
             </div>
           )}
 
@@ -250,7 +248,7 @@ export default function ShareablePage() {
           <div className="border-t border-obsidian-700 pt-6">
             <div className="flex items-center justify-center">
               <IntegrityShieldBadge
-                score={commitment.integrityScore}
+                score={user.integrityScore}
                 size="lg"
                 showScore={true}
                 showLabel={true}
@@ -261,7 +259,7 @@ export default function ShareablePage() {
         </Card>
 
         {/* Witness Action */}
-        {commitment.status === 'locked' && (
+        {milestone.status === 'locked' && (
           <div className="text-center">
             <button
               onClick={handleWitness}
@@ -275,11 +273,20 @@ export default function ShareablePage() {
                 }
               `}
             >
-              <Eye className="w-4 h-4" />
+              <span className="text-lg">👁️</span>
               <span className="text-sm font-medium">
                 {witnessed ? 'You are witnessing this commitment' : 'Witness this commitment'}
               </span>
             </button>
+
+            {/* Show witness count */}
+            {witnessCount > 0 && (
+              <p className="text-obsidian-500 text-sm mt-3">
+                <span className="text-lg mr-1">👁️</span>
+                {witnessCount} {witnessCount === 1 ? 'person is' : 'people are'} watching
+              </p>
+            )}
+
             <p className="text-obsidian-600 text-xs mt-3">
               Silent accountability. No comments, just presence.
             </p>
@@ -288,12 +295,14 @@ export default function ShareablePage() {
 
         {/* Minimal Footer */}
         <div className="mt-10 text-center">
-          <p className="text-obsidian-600 text-xs">
-            Locked {new Date(commitment.lockedAt).toLocaleDateString('en-US', {
-              month: 'short',
-              day: 'numeric',
-            })}
-          </p>
+          {milestone.promise?.lockedAt && (
+            <p className="text-obsidian-600 text-xs">
+              Locked {new Date(milestone.promise.lockedAt).toLocaleDateString('en-US', {
+                month: 'short',
+                day: 'numeric',
+              })}
+            </p>
+          )}
         </div>
       </main>
     </div>

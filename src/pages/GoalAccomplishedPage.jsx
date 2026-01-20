@@ -99,11 +99,12 @@ export default function GoalAccomplishedPage() {
 
   return (
     <div className="max-w-3xl mx-auto space-y-8 relative">
-      {/* Celebration Confetti - 3 second burst */}
+      {/* Celebration Confetti - 3 second burst with party emoji and falling threads */}
       <Confetti
         isActive={showConfetti}
         count={80}
         duration={3000}
+        showThreads={true}
       />
 
       {/* Success Overlay */}
