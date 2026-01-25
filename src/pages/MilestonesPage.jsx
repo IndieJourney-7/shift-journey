@@ -7,11 +7,13 @@ import { useApp } from '../context/AppContext';
 
 export default function MilestonesPage() {
   const navigate = useNavigate();
-  const { currentGoal, milestones, addMilestone, updateMilestone, setMilestones, currentLockedMilestone } = useApp();
+  const { currentGoal, milestones, addMilestone, updateMilestone, deleteMilestone, currentLockedMilestone } = useApp();
 
   const [newMilestone, setNewMilestone] = useState('');
   const [editingId, setEditingId] = useState(null);
   const [editValue, setEditValue] = useState('');
+  const [isAdding, setIsAdding] = useState(false);
+  const [error, setError] = useState(null);
 
   // Redirect to goal creation if no goal exists
   useEffect(() => {
@@ -20,16 +22,18 @@ export default function MilestonesPage() {
     }
   }, [currentGoal, navigate]);
 
-  const handleAddMilestone = () => {
-    if (newMilestone.trim()) {
-      addMilestone(newMilestone.trim());
-      setNewMilestone('');
-    }
-  };
+  const handleAddMilestone = async () => {
+    if (!newMilestone.trim() || isAdding) return;
 
-  const handleKeyPress = (e) => {
-    if (e.key === 'Enter') {
-      handleAddMilestone();
+    setIsAdding(true);
+    setError(null);
+    try {
+      await addMilestone(newMilestone.trim());
+      setNewMilestone('');
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setIsAdding(false);
     }
   };
 
@@ -40,23 +44,32 @@ export default function MilestonesPage() {
     setEditValue(milestone.title);
   };
 
-  const handleSaveEdit = (id) => {
-    if (editValue.trim()) {
-      updateMilestone(id, { title: editValue.trim() });
+  const handleSaveEdit = async (id) => {
+    if (!editValue.trim()) {
+      setEditingId(null);
+      setEditValue('');
+      return;
+    }
+
+    try {
+      await updateMilestone(id, { title: editValue.trim() });
+    } catch (err) {
+      setError(err.message);
     }
     setEditingId(null);
     setEditValue('');
   };
 
-  const handleDelete = (id) => {
+  const handleDelete = async (id) => {
     const milestone = milestones.find(m => m.id === id);
     // Can't delete locked, completed, or broken milestones
     if (['locked', 'completed', 'broken'].includes(milestone?.status)) return;
 
-    const filtered = milestones.filter(m => m.id !== id);
-    // Renumber remaining milestones
-    const renumbered = filtered.map((m, index) => ({ ...m, number: index + 1 }));
-    setMilestones(renumbered);
+    try {
+      await deleteMilestone(id);
+    } catch (err) {
+      setError(err.message);
+    }
   };
 
   const handleLockNext = () => {
@@ -84,6 +97,14 @@ export default function MilestonesPage() {
             Break your goal into small, achievable milestones. Each will become a locked promise.
           </p>
         </div>
+
+        {/* Error Message */}
+        {error && (
+          <div className="mb-4 p-3 bg-red-900/30 border border-red-700/50 rounded-lg text-red-400 text-sm">
+            {error}
+            <button onClick={() => setError(null)} className="ml-2 underline">Dismiss</button>
+          </div>
+        )}
 
         {/* Journey Path Preview */}
         {milestones.length > 0 && (
@@ -199,15 +220,16 @@ export default function MilestonesPage() {
                 }}
                 placeholder="Type a milestone and press Enter..."
                 className="flex-1 bg-transparent text-obsidian-200 placeholder-obsidian-500 focus:outline-none"
+                disabled={isAdding}
               />
               <Button
                 type="button"
                 variant="gold"
                 size="sm"
                 onClick={handleAddMilestone}
-                disabled={!newMilestone.trim()}
+                disabled={!newMilestone.trim() || isAdding}
               >
-                Add
+                {isAdding ? 'Adding...' : 'Add'}
               </Button>
             </div>
           </div>

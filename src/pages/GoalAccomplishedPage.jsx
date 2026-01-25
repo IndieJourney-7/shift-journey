@@ -63,7 +63,7 @@ export default function GoalAccomplishedPage() {
   }, [canFinishGoal, isCelebrating, navigate]);
 
   // Handle finishing the goal with celebration
-  const handleFinishGoal = () => {
+  const handleFinishGoal = async () => {
     if (!isReflectionValid) return;
 
     // Store goal data BEFORE completing (so we can show it during celebration)
@@ -78,7 +78,7 @@ export default function GoalAccomplishedPage() {
 
     // Complete the goal immediately but keep celebration for 3 seconds
     try {
-      completeGoal(reflection);
+      await completeGoal(reflection);
       // Navigate to goal creation after 3 second celebration
       setTimeout(() => {
         navigate('/goal/create', { replace: true });

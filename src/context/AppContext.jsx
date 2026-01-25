@@ -1,254 +1,163 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import {
+  anonymousUserService,
+  goalService,
+  milestoneService,
+  pricingService,
+  calendarService,
+  integrityService as dbIntegrityService,
+  integrityHistoryService,
+} from '../services/database';
+import { isSupabaseConfigured } from '../lib/supabase';
+import {
+  INTEGRITY_CONFIG,
+  calculateIntegrityChange,
+  calculateGoalCompletedBonus,
+  getBadgeFromScore,
+  getStatusFromScore,
+} from '../services/integrityService';
 
 const AppContext = createContext();
 
-// Storage keys
-const STORAGE_KEYS = {
-  USER: 'shift_journey_user',
-  GOAL: 'shift_journey_goal',
-  MILESTONES: 'shift_journey_milestones',
-  CALENDAR: 'shift_journey_calendar',
-  FAILURES: 'shift_journey_failures',
-  AUTH: 'shift_journey_auth',
-  HAS_COMPLETED_SETUP: 'shift_journey_has_completed_setup',
-  GOAL_HISTORY: 'shift_journey_goal_history',
-};
-
-// Default data for new users
-const defaultData = {
-  user: {
-    id: 1,
-    name: 'User',
-    fullName: 'New User',
-    email: 'user@example.com',
-    avatar: null,
-    integrityScore: 100,
-    status: 'Reliable',
-    joinedAt: new Date().toISOString(),
-  },
-  currentGoal: null,
-  milestones: [],
-  calendarData: {},
-  failureHistory: [],
-};
-
-// Demo data for demonstration
-const demoData = {
-  user: {
-    id: 1,
-    name: 'Sarah',
-    fullName: 'Sarah Stevenson',
-    email: 'stevenson@email.com',
-    avatar: null,
-    integrityScore: 41,
-    status: 'Inconsistent',
-    joinedAt: '2024-01-15',
-  },
-  currentGoal: {
-    id: 1,
-    title: 'Launch My Startup',
-    description: 'Build and launch my startup MVP',
-    createdAt: '2024-01-20',
-    targetDate: '2024-06-30',
-    status: 'active',
-  },
-  milestones: [
-    {
-      id: 1,
-      goalId: 1,
-      number: 1,
-      title: 'Define MVP features',
-      status: 'completed',
-      completedAt: '2024-01-25',
-      promise: null,
-    },
-    {
-      id: 2,
-      goalId: 1,
-      number: 2,
-      title: 'Design wireframes',
-      status: 'completed',
-      completedAt: '2024-02-01',
-      promise: null,
-    },
-    {
-      id: 3,
-      goalId: 1,
-      number: 3,
-      title: 'Build landing page',
-      status: 'broken',
-      brokenAt: '2024-02-10',
-      reason: 'Priorities shifted, lacked time',
-      promise: {
-        text: 'I promise that I will build the landing page before Feb 10, 8:00 PM.',
-        deadline: '2024-02-10T20:00:00',
-        consequence: 'I accept the consequence.',
-        lockedAt: '2024-02-08T10:00:00',
-      },
-    },
-    {
-      id: 4,
-      goalId: 1,
-      number: 4,
-      title: 'Set up backend server',
-      status: 'broken',
-      brokenAt: '2024-02-15',
-      reason: "Wasn't prepared; need to focus more",
-      promise: {
-        text: 'I promise that I will set up the backend server before Feb 15, 7:00 PM.',
-        deadline: '2024-02-15T19:00:00',
-        consequence: 'I accept the consequence.',
-        lockedAt: '2024-02-12T09:00:00',
-      },
-    },
-    {
-      id: 5,
-      goalId: 1,
-      number: 5,
-      title: 'Prepare investor pitch',
-      status: 'locked',
-      promise: {
-        text: 'I promise that I will write and refine the pitch deck before the deadline.',
-        deadline: new Date(Date.now() + 2 * 60 * 60 * 1000 + 7 * 60 * 1000 + 58 * 1000).toISOString(),
-        consequence: 'I accept the consequence.',
-        lockedAt: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(),
-      },
-    },
-    {
-      id: 6,
-      goalId: 1,
-      number: 6,
-      title: 'Prepare API integrations',
-      status: 'pending',
-      promise: null,
-    },
-  ],
-  calendarData: {
-    '2024-02-01': { worked: true },
-    '2024-02-02': { worked: true },
-    '2024-02-03': { worked: false },
-    '2024-02-04': { worked: true },
-    '2024-02-05': { worked: true },
-    '2024-02-06': { worked: false },
-    '2024-02-07': { worked: true },
-    '2024-02-08': { worked: true },
-    '2024-02-09': { worked: false },
-    '2024-02-10': { worked: false },
-    '2024-02-11': { worked: true },
-    '2024-02-12': { worked: true },
-  },
-  failureHistory: [
-    {
-      milestoneId: 4,
-      milestoneNumber: 4,
-      title: 'Set up backend server',
-      status: 'broken',
-      reason: "Wasn't prepared; need to focus more",
-      brokenAt: '2024-02-15',
-    },
-    {
-      milestoneId: 3,
-      milestoneNumber: 3,
-      title: 'Build landing page',
-      status: 'broken',
-      reason: 'Priorities shifted, lacked time',
-      brokenAt: '2024-02-10',
-    },
-  ],
-};
-
-// Helper to load from localStorage
-const loadFromStorage = (key, fallback) => {
-  try {
-    const stored = localStorage.getItem(key);
-    return stored ? JSON.parse(stored) : fallback;
-  } catch {
-    return fallback;
-  }
-};
-
-// Helper to save to localStorage
-const saveToStorage = (key, value) => {
-  try {
-    localStorage.setItem(key, JSON.stringify(value));
-  } catch (e) {
-    console.error('Failed to save to localStorage:', e);
-  }
-};
-
-// Get integrity status from score
-// 0-30: Unreliable, 31-70: Inconsistent, 71-100: Reliable
+// Get integrity status from score (using service thresholds)
 const getIntegrityStatus = (score) => {
-  if (score > 70) return 'Reliable';
-  if (score > 30) return 'Inconsistent';
-  return 'Unreliable';
+  return getStatusFromScore(score);
 };
 
 export function AppProvider({ children }) {
-  // Initialize state from localStorage or use demo data
-  const [user, setUser] = useState(() =>
-    loadFromStorage(STORAGE_KEYS.USER, demoData.user)
-  );
-  const [currentGoal, setCurrentGoal] = useState(() =>
-    loadFromStorage(STORAGE_KEYS.GOAL, demoData.currentGoal)
-  );
-  const [milestones, setMilestones] = useState(() =>
-    loadFromStorage(STORAGE_KEYS.MILESTONES, demoData.milestones)
-  );
-  const [calendarData, setCalendarData] = useState(() =>
-    loadFromStorage(STORAGE_KEYS.CALENDAR, demoData.calendarData)
-  );
-  const [failureHistory, setFailureHistory] = useState(() =>
-    loadFromStorage(STORAGE_KEYS.FAILURES, demoData.failureHistory)
-  );
-  const [isAuthenticated, setIsAuthenticated] = useState(() =>
-    loadFromStorage(STORAGE_KEYS.AUTH, false)
-  );
-  const [hasCompletedSetup, setHasCompletedSetup] = useState(() =>
-    loadFromStorage(STORAGE_KEYS.HAS_COMPLETED_SETUP, true) // Default true for demo data
-  );
-  const [goalHistory, setGoalHistory] = useState(() =>
-    loadFromStorage(STORAGE_KEYS.GOAL_HISTORY, [])
-  );
+  // Core state
+  const [user, setUser] = useState(null);
+  const [currentGoal, setCurrentGoal] = useState(null);
+  const [milestones, setMilestones] = useState([]);
+  const [goalHistory, setGoalHistory] = useState([]);
 
-  // State for expired promise modal
+  // UI state
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [expiredPromise, setExpiredPromise] = useState(null);
 
-  // Check if user needs to complete setup (create goal)
-  const needsGoalSetup = !currentGoal && hasCompletedSetup === false;
+  // Calendar/Journal state
+  const [calendarData, setCalendarData] = useState({});
 
-  // Persist state changes to localStorage
-  useEffect(() => {
-    saveToStorage(STORAGE_KEYS.USER, user);
-  }, [user]);
+  // =====================================================
+  // INITIALIZATION
+  // =====================================================
 
+  // Initialize user and load data on mount
   useEffect(() => {
-    saveToStorage(STORAGE_KEYS.GOAL, currentGoal);
-  }, [currentGoal]);
+    const initializeApp = async () => {
+      if (!isSupabaseConfigured()) {
+        setError('Database not configured. Please set up Supabase.');
+        setIsLoading(false);
+        return;
+      }
 
-  useEffect(() => {
-    saveToStorage(STORAGE_KEYS.MILESTONES, milestones);
-  }, [milestones]);
+      try {
+        // Get or create anonymous user
+        const dbUser = await anonymousUserService.getOrCreate();
+        if (!dbUser) {
+          setError('Failed to initialize user.');
+          setIsLoading(false);
+          return;
+        }
 
-  useEffect(() => {
-    saveToStorage(STORAGE_KEYS.CALENDAR, calendarData);
-  }, [calendarData]);
+        setUser({
+          id: dbUser.id,
+          name: dbUser.name,
+          integrityScore: dbUser.integrity_score ?? INTEGRITY_CONFIG.INITIAL_SCORE,
+          failureStreak: dbUser.failure_streak ?? 0,
+          status: getIntegrityStatus(dbUser.integrity_score ?? INTEGRITY_CONFIG.INITIAL_SCORE),
+          badge: getBadgeFromScore(dbUser.integrity_score ?? INTEGRITY_CONFIG.INITIAL_SCORE),
+          createdAt: dbUser.created_at,
+        });
 
-  useEffect(() => {
-    saveToStorage(STORAGE_KEYS.FAILURES, failureHistory);
-  }, [failureHistory]);
+        // Load active goal with milestones
+        const activeGoal = await goalService.getActive(dbUser.id);
+        if (activeGoal) {
+          setCurrentGoal({
+            id: activeGoal.id,
+            title: activeGoal.title,
+            description: activeGoal.description,
+            createdAt: activeGoal.created_at,
+            status: activeGoal.status,
+          });
 
-  useEffect(() => {
-    saveToStorage(STORAGE_KEYS.AUTH, isAuthenticated);
-  }, [isAuthenticated]);
+          // Transform milestones from DB format
+          const transformedMilestones = (activeGoal.milestones || []).map(m => ({
+            id: m.id,
+            goalId: m.goal_id,
+            number: m.number,
+            title: m.title,
+            status: m.status,
+            promise: m.promise_text ? {
+              text: m.promise_text,
+              deadline: m.promise_deadline,
+              consequence: m.promise_consequence,
+              lockedAt: m.promise_locked_at,
+              witnessCount: m.witness_count || 0,
+            } : null,
+            completedAt: m.completed_at,
+            brokenAt: m.broken_at,
+            reason: m.broken_reason,
+            shareId: m.share_id,
+          }));
+          setMilestones(transformedMilestones);
+        }
 
-  useEffect(() => {
-    saveToStorage(STORAGE_KEYS.HAS_COMPLETED_SETUP, hasCompletedSetup);
-  }, [hasCompletedSetup]);
+        // Load goal history
+        const completedGoals = await goalService.getCompleted(dbUser.id);
+        const transformedHistory = completedGoals.map(g => ({
+          id: g.id,
+          title: g.title,
+          description: g.description,
+          createdAt: g.created_at,
+          completedAt: g.completed_at,
+          reflection: g.reflection,
+          finalIntegrityScore: g.final_integrity_score,
+          stats: g.stats || {},
+          milestones: (g.milestones || []).map(m => ({
+            id: m.id,
+            number: m.number,
+            title: m.title,
+            status: m.status,
+            completedAt: m.completed_at,
+            brokenAt: m.broken_at,
+            reason: m.broken_reason,
+          })),
+        }));
+        setGoalHistory(transformedHistory);
 
-  useEffect(() => {
-    saveToStorage(STORAGE_KEYS.GOAL_HISTORY, goalHistory);
-  }, [goalHistory]);
+        // Load calendar data
+        try {
+          const calData = await calendarService.getByUserId(dbUser.id);
+          const calendarMap = {};
+          calData.forEach(entry => {
+            calendarMap[entry.date] = {
+              worked: entry.worked,
+              journal: entry.notes,
+            };
+          });
+          setCalendarData(calendarMap);
+        } catch (calErr) {
+          console.warn('Calendar data not available:', calErr);
+          // Calendar table might not exist yet, use empty data
+          setCalendarData({});
+        }
+
+      } catch (err) {
+        console.error('Failed to initialize app:', err);
+        setError('Failed to load data. Please refresh the page.');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    initializeApp();
+  }, []);
+
+  // =====================================================
+  // COMPUTED VALUES
+  // =====================================================
 
   // Get current locked milestone
   const currentLockedMilestone = milestones.find(m => m.status === 'locked');
@@ -259,69 +168,444 @@ export function AppProvider({ children }) {
   // Check if there's an active (locked) promise
   const hasActivePromise = !!currentLockedMilestone;
 
+  // Check if goal can be finished (all milestones resolved)
+  const canFinishGoal = currentGoal && milestones.length > 0 &&
+    !milestones.some(m => m.status === 'pending' || m.status === 'locked');
+
+  // Check if user needs to create a goal
+  const needsGoalSetup = !currentGoal && !isLoading;
+
+  // =====================================================
+  // PROMISE EXPIRATION CHECK
+  // =====================================================
+
   // Auto-expire promise function
-  const autoExpirePromise = useCallback((milestone, reason = 'Deadline passed - promise automatically marked as broken') => {
-    // Update milestone status
-    setMilestones(prev => prev.map(m =>
-      m.id === milestone.id
-        ? { ...m, status: 'broken', brokenAt: new Date().toISOString(), reason, autoExpired: true }
-        : m
-    ));
+  const autoExpirePromise = useCallback(async (milestone) => {
+    if (!user) return;
 
-    // Add to failure history
-    setFailureHistory(prev => [
-      {
+    try {
+      // Update milestone in database
+      await milestoneService.break(milestone.id, 'Deadline passed - promise automatically broken');
+
+      // Update local state
+      setMilestones(prev => prev.map(m =>
+        m.id === milestone.id
+          ? { ...m, status: 'broken', brokenAt: new Date().toISOString(), reason: 'Deadline passed - promise automatically broken' }
+          : m
+      ));
+
+      // Calculate integrity change with streak penalty
+      const integrityResult = calculateIntegrityChange(
+        user.integrityScore,
+        'BROKEN',
+        user.failureStreak || 0
+      );
+
+      // Update integrity in database
+      await dbIntegrityService.updateIntegrity(user.id, integrityResult.newScore, integrityResult.newFailureStreak);
+
+      // Record in history
+      await integrityHistoryService.record({
+        userId: user.id,
+        previousScore: user.integrityScore,
+        newScore: integrityResult.newScore,
+        changeAmount: integrityResult.scoreChange,
+        reason: 'PROMISE_BROKEN',
+        failureStreak: integrityResult.newFailureStreak,
         milestoneId: milestone.id,
-        milestoneNumber: milestone.number,
-        title: milestone.title,
-        status: 'broken',
-        reason,
-        brokenAt: new Date().toISOString(),
-        autoExpired: true,
-      },
-      ...prev,
-    ]);
+        goalId: currentGoal?.id,
+      });
 
-    // Decrease integrity score
-    setUser(prev => {
-      const newScore = Math.max(0, prev.integrityScore - 15);
-      return {
+      // Update local user state
+      setUser(prev => ({
         ...prev,
-        integrityScore: newScore,
-        status: getIntegrityStatus(newScore),
-      };
-    });
+        integrityScore: integrityResult.newScore,
+        failureStreak: integrityResult.newFailureStreak,
+        status: getIntegrityStatus(integrityResult.newScore),
+        badge: getBadgeFromScore(integrityResult.newScore),
+      }));
 
-    // Set expired promise for modal notification
-    setExpiredPromise(milestone);
-  }, []);
+      // Show expired promise notification
+      setExpiredPromise(milestone);
+    } catch (err) {
+      console.error('Failed to auto-expire promise:', err);
+    }
+  }, [user, currentGoal]);
 
-  // Check for expired promises on mount and periodically
+  // Check for expired promises
   useEffect(() => {
-    const checkExpiredPromise = () => {
-      if (!currentLockedMilestone?.promise?.deadline) return;
+    if (!currentLockedMilestone?.promise?.deadline) return;
 
+    const checkExpiredPromise = () => {
       const deadline = new Date(currentLockedMilestone.promise.deadline);
       const now = new Date();
 
       if (now > deadline) {
-        // Deadline has passed - auto-expire
         autoExpirePromise(currentLockedMilestone);
       }
     };
 
-    // Check immediately on mount
     checkExpiredPromise();
-
-    // Check every second for deadline expiration
     const interval = setInterval(checkExpiredPromise, 1000);
 
     return () => clearInterval(interval);
   }, [currentLockedMilestone, autoExpirePromise]);
 
-  // Calculate time remaining for locked milestone
+  // =====================================================
+  // GOAL OPERATIONS
+  // =====================================================
+
+  // Create a new goal
+  const createGoal = async (goalData) => {
+    if (!user) throw new Error('User not initialized');
+    if (hasActivePromise) throw new Error('Cannot create a new goal while you have an active locked promise.');
+
+    try {
+      const dbGoal = await goalService.create({
+        userId: user.id,
+        title: goalData.title,
+        description: goalData.description,
+      });
+
+      const newGoal = {
+        id: dbGoal.id,
+        title: dbGoal.title,
+        description: dbGoal.description,
+        createdAt: dbGoal.created_at,
+        status: dbGoal.status,
+      };
+
+      setCurrentGoal(newGoal);
+      setMilestones([]);
+
+      return newGoal;
+    } catch (err) {
+      console.error('Failed to create goal:', err);
+      throw new Error('Failed to create goal. Please try again.');
+    }
+  };
+
+  // Complete goal with reflection
+  const completeGoal = async (reflection = '') => {
+    if (!currentGoal) throw new Error('No active goal');
+    if (!canFinishGoal) throw new Error('Cannot finish goal - there are still pending or locked milestones.');
+
+    try {
+      const completedMilestones = milestones.filter(m => m.status === 'completed');
+      const brokenMilestones = milestones.filter(m => m.status === 'broken');
+
+      const stats = {
+        totalMilestones: milestones.length,
+        completed: completedMilestones.length,
+        broken: brokenMilestones.length,
+        successRate: milestones.length > 0
+          ? Math.round((completedMilestones.length / milestones.length) * 100)
+          : 0,
+      };
+
+      // Calculate goal completion bonus: +10
+      const integrityResult = calculateGoalCompletedBonus(user.integrityScore);
+
+      // Update integrity in database (keep current streak, just add bonus)
+      await dbIntegrityService.updateIntegrity(user.id, integrityResult.newScore, user.failureStreak || 0);
+
+      // Record in history
+      await integrityHistoryService.record({
+        userId: user.id,
+        previousScore: user.integrityScore,
+        newScore: integrityResult.newScore,
+        changeAmount: integrityResult.scoreChange,
+        reason: 'GOAL_COMPLETED',
+        failureStreak: user.failureStreak || 0,
+        milestoneId: null,
+        goalId: currentGoal.id,
+      });
+
+      // Update goal in database with new integrity score
+      await goalService.complete(currentGoal.id, reflection, integrityResult.newScore, stats);
+
+      // Create archived goal for history
+      const archivedGoal = {
+        ...currentGoal,
+        status: 'completed',
+        completedAt: new Date().toISOString(),
+        reflection,
+        milestones: [...milestones],
+        stats,
+        finalIntegrityScore: integrityResult.newScore,
+      };
+
+      // Update local user state
+      setUser(prev => ({
+        ...prev,
+        integrityScore: integrityResult.newScore,
+        status: getIntegrityStatus(integrityResult.newScore),
+        badge: getBadgeFromScore(integrityResult.newScore),
+      }));
+
+      // Update local state
+      setGoalHistory(prev => [archivedGoal, ...prev]);
+      setCurrentGoal(null);
+      setMilestones([]);
+
+      return archivedGoal;
+    } catch (err) {
+      console.error('Failed to complete goal:', err);
+      throw new Error('Failed to complete goal. Please try again.');
+    }
+  };
+
+  // =====================================================
+  // MILESTONE OPERATIONS
+  // =====================================================
+
+  // Add a new milestone
+  const addMilestone = async (title) => {
+    if (!user || !currentGoal) throw new Error('No active goal');
+
+    try {
+      const nextNumber = milestones.length + 1;
+      const dbMilestone = await milestoneService.create(
+        currentGoal.id,
+        user.id,
+        title,
+        nextNumber
+      );
+
+      const newMilestone = {
+        id: dbMilestone.id,
+        goalId: dbMilestone.goal_id,
+        number: dbMilestone.number,
+        title: dbMilestone.title,
+        status: dbMilestone.status,
+        promise: null,
+      };
+
+      setMilestones(prev => [...prev, newMilestone]);
+      return newMilestone;
+    } catch (err) {
+      console.error('Failed to add milestone:', err);
+      throw new Error('Failed to add milestone. Please try again.');
+    }
+  };
+
+  // Update milestone title (only if pending)
+  const updateMilestone = async (id, updates) => {
+    const milestone = milestones.find(m => m.id === id);
+    if (!milestone) throw new Error('Milestone not found');
+    if (milestone.status !== 'pending') throw new Error('Cannot edit a locked, completed, or broken milestone.');
+
+    try {
+      await milestoneService.updateTitle(id, updates.title);
+      setMilestones(prev => prev.map(m =>
+        m.id === id ? { ...m, ...updates } : m
+      ));
+    } catch (err) {
+      console.error('Failed to update milestone:', err);
+      throw new Error('Failed to update milestone. Please try again.');
+    }
+  };
+
+  // Delete milestone (only if pending)
+  const deleteMilestone = async (id) => {
+    const milestone = milestones.find(m => m.id === id);
+    if (!milestone) throw new Error('Milestone not found');
+    if (milestone.status !== 'pending') throw new Error('Cannot delete a locked, completed, or broken milestone.');
+
+    try {
+      await milestoneService.delete(id);
+
+      // Remove from local state and renumber
+      const filtered = milestones.filter(m => m.id !== id);
+      const renumbered = filtered.map((m, index) => ({ ...m, number: index + 1 }));
+      setMilestones(renumbered);
+
+      // Renumber in database
+      if (currentGoal) {
+        await milestoneService.renumber(currentGoal.id);
+      }
+    } catch (err) {
+      console.error('Failed to delete milestone:', err);
+      throw new Error('Failed to delete milestone. Please try again.');
+    }
+  };
+
+  // Lock a promise
+  const lockPromise = async (milestoneId, promiseData) => {
+    if (hasActivePromise) throw new Error('Cannot lock a new promise while another is active.');
+
+    try {
+      const dbMilestone = await milestoneService.lock(milestoneId, {
+        text: promiseData.text,
+        deadline: promiseData.deadline,
+        consequence: promiseData.consequence,
+      });
+
+      setMilestones(prev => prev.map(m =>
+        m.id === milestoneId
+          ? {
+              ...m,
+              status: 'locked',
+              promise: {
+                text: promiseData.text,
+                deadline: promiseData.deadline,
+                consequence: promiseData.consequence,
+                lockedAt: dbMilestone.promise_locked_at,
+                witnessCount: 0,
+              },
+              shareId: dbMilestone.share_id,
+            }
+          : m
+      ));
+    } catch (err) {
+      console.error('Failed to lock promise:', err);
+      throw new Error('Failed to lock promise. Please try again.');
+    }
+  };
+
+  // Complete milestone (promise kept)
+  const completeMilestone = async (milestoneId) => {
+    const milestone = milestones.find(m => m.id === milestoneId);
+    if (!milestone || milestone.status !== 'locked') {
+      throw new Error('Can only complete a locked milestone.');
+    }
+
+    // Check if deadline has passed
+    if (milestone.promise?.deadline && new Date() > new Date(milestone.promise.deadline)) {
+      throw new Error('Cannot mark as complete - deadline has already passed.');
+    }
+
+    try {
+      await milestoneService.complete(milestoneId);
+
+      setMilestones(prev => prev.map(m =>
+        m.id === milestoneId
+          ? { ...m, status: 'completed', completedAt: new Date().toISOString() }
+          : m
+      ));
+
+      // Calculate integrity change: +2 for kept promise, reset streak
+      const integrityResult = calculateIntegrityChange(
+        user.integrityScore,
+        'KEPT',
+        user.failureStreak || 0
+      );
+
+      // Update integrity in database
+      await dbIntegrityService.updateIntegrity(user.id, integrityResult.newScore, integrityResult.newFailureStreak);
+
+      // Record in history
+      await integrityHistoryService.record({
+        userId: user.id,
+        previousScore: user.integrityScore,
+        newScore: integrityResult.newScore,
+        changeAmount: integrityResult.scoreChange,
+        reason: 'PROMISE_KEPT',
+        failureStreak: integrityResult.newFailureStreak,
+        milestoneId: milestoneId,
+        goalId: currentGoal?.id,
+      });
+
+      // Update local user state
+      setUser(prev => ({
+        ...prev,
+        integrityScore: integrityResult.newScore,
+        failureStreak: integrityResult.newFailureStreak,
+        status: getIntegrityStatus(integrityResult.newScore),
+        badge: getBadgeFromScore(integrityResult.newScore),
+      }));
+    } catch (err) {
+      console.error('Failed to complete milestone:', err);
+      throw new Error('Failed to complete milestone. Please try again.');
+    }
+  };
+
+  // Break promise (mark as failed)
+  const breakPromise = async (milestoneId, reason) => {
+    if (!reason?.trim()) throw new Error('You must explain why you failed.');
+
+    const milestone = milestones.find(m => m.id === milestoneId);
+    if (!milestone || milestone.status !== 'locked') {
+      throw new Error('Can only break a locked milestone.');
+    }
+
+    try {
+      await milestoneService.break(milestoneId, reason);
+
+      setMilestones(prev => prev.map(m =>
+        m.id === milestoneId
+          ? { ...m, status: 'broken', brokenAt: new Date().toISOString(), reason }
+          : m
+      ));
+
+      // Calculate integrity change with streak penalty
+      // -10 (first), -15 (2nd consecutive), -20 (3rd+ consecutive)
+      const integrityResult = calculateIntegrityChange(
+        user.integrityScore,
+        'BROKEN',
+        user.failureStreak || 0
+      );
+
+      // Update integrity in database
+      await dbIntegrityService.updateIntegrity(user.id, integrityResult.newScore, integrityResult.newFailureStreak);
+
+      // Record in history
+      await integrityHistoryService.record({
+        userId: user.id,
+        previousScore: user.integrityScore,
+        newScore: integrityResult.newScore,
+        changeAmount: integrityResult.scoreChange,
+        reason: 'PROMISE_BROKEN',
+        failureStreak: integrityResult.newFailureStreak,
+        milestoneId: milestoneId,
+        goalId: currentGoal?.id,
+      });
+
+      // Update local user state
+      setUser(prev => ({
+        ...prev,
+        integrityScore: integrityResult.newScore,
+        failureStreak: integrityResult.newFailureStreak,
+        status: getIntegrityStatus(integrityResult.newScore),
+        badge: getBadgeFromScore(integrityResult.newScore),
+      }));
+    } catch (err) {
+      console.error('Failed to break promise:', err);
+      throw new Error('Failed to record broken promise. Please try again.');
+    }
+  };
+
+  // Add a witness to current locked milestone
+  const addWitness = async () => {
+    if (!currentLockedMilestone) return;
+
+    try {
+      await milestoneService.addWitness(currentLockedMilestone.id);
+
+      setMilestones(prev => prev.map(m =>
+        m.id === currentLockedMilestone.id
+          ? {
+              ...m,
+              promise: {
+                ...m.promise,
+                witnessCount: (m.promise?.witnessCount || 0) + 1,
+              },
+            }
+          : m
+      ));
+    } catch (err) {
+      console.error('Failed to add witness:', err);
+    }
+  };
+
+  // =====================================================
+  // UTILITY FUNCTIONS
+  // =====================================================
+
+  // Get time remaining for locked milestone
   const getTimeRemaining = () => {
     if (!currentLockedMilestone?.promise?.deadline) return null;
+
     const deadline = new Date(currentLockedMilestone.promise.deadline);
     const now = new Date();
     const diff = deadline - now;
@@ -335,395 +619,185 @@ export function AppProvider({ children }) {
     return { hours, minutes, seconds, expired: false };
   };
 
-  // Create a new goal (only if no active promise)
-  const createGoal = (goalData) => {
-    if (hasActivePromise) {
-      throw new Error('Cannot create a new goal while you have an active locked promise.');
-    }
-
-    const newGoal = {
-      id: Date.now(),
-      ...goalData,
-      createdAt: new Date().toISOString(),
-      status: 'active',
-    };
-    setCurrentGoal(newGoal);
-    setMilestones([]);
-    setHasCompletedSetup(true);
-    return newGoal;
-  };
-
-  // Check if can create new goal
-  const canCreateNewGoal = !hasActivePromise;
-
-  // Add milestone
-  const addMilestone = (title) => {
-    const newMilestone = {
-      id: Date.now(),
-      goalId: currentGoal?.id,
-      number: milestones.length + 1,
-      title,
-      status: 'pending',
-      promise: null,
-    };
-    setMilestones([...milestones, newMilestone]);
-    return newMilestone;
-  };
-
-  // Update milestone (only if pending)
-  const updateMilestone = (id, updates) => {
-    const milestone = milestones.find(m => m.id === id);
-    if (milestone && milestone.status !== 'pending') {
-      throw new Error('Cannot edit a locked, completed, or broken milestone.');
-    }
-    setMilestones(milestones.map(m =>
-      m.id === id ? { ...m, ...updates } : m
-    ));
-  };
-
-  // Delete milestone (only if pending)
-  const deleteMilestone = (id) => {
-    const milestone = milestones.find(m => m.id === id);
-    if (milestone && milestone.status !== 'pending') {
-      throw new Error('Cannot delete a locked, completed, or broken milestone.');
-    }
-    const filtered = milestones.filter(m => m.id !== id);
-    const renumbered = filtered.map((m, index) => ({ ...m, number: index + 1 }));
-    setMilestones(renumbered);
-  };
-
-  // Lock a promise (only if no other promise is locked)
-  const lockPromise = (milestoneId, promiseData) => {
-    if (hasActivePromise) {
-      throw new Error('Cannot lock a new promise while another is active.');
-    }
-
-    const promise = {
-      text: promiseData.text,
-      deadline: promiseData.deadline,
-      consequence: promiseData.consequence,
-      lockedAt: new Date().toISOString(),
-      witnessCount: 0, // Track how many people are watching
-    };
-
-    setMilestones(milestones.map(m =>
-      m.id === milestoneId
-        ? { ...m, status: 'locked', promise }
-        : m
-    ));
-  };
-
-  // Add a witness to the current locked milestone
-  const addWitness = () => {
-    if (!currentLockedMilestone) return;
-
-    setMilestones(milestones.map(m =>
-      m.id === currentLockedMilestone.id
-        ? {
-            ...m,
-            promise: {
-              ...m.promise,
-              witnessCount: (m.promise?.witnessCount || 0) + 1,
-            },
-          }
-        : m
-    ));
-  };
-
-  // Complete milestone (promise kept)
-  const completeMilestone = (milestoneId) => {
-    const milestone = milestones.find(m => m.id === milestoneId);
-    if (!milestone || milestone.status !== 'locked') {
-      throw new Error('Can only complete a locked milestone.');
-    }
-
-    // Check if deadline has passed
-    if (milestone.promise?.deadline && new Date() > new Date(milestone.promise.deadline)) {
-      throw new Error('Cannot mark as complete - deadline has already passed.');
-    }
-
-    setMilestones(milestones.map(m =>
-      m.id === milestoneId
-        ? { ...m, status: 'completed', completedAt: new Date().toISOString() }
-        : m
-    ));
-
-    // Increase integrity score
-    setUser(prev => {
-      const newScore = Math.min(100, prev.integrityScore + 10);
-      return {
-        ...prev,
-        integrityScore: newScore,
-        status: getIntegrityStatus(newScore),
-      };
-    });
-  };
-
-  // Break promise (manual) - accepts structured reflection object
-  const breakPromise = (milestoneId, reflection) => {
-    // Support both string (legacy) and object (structured reflection)
-    const reflectionData = typeof reflection === 'string'
-      ? { whyFailed: reflection, whatWasInControl: '', whatWillChange: '' }
-      : reflection;
-
-    if (!reflectionData.whyFailed?.trim()) {
-      throw new Error('You must explain why you failed.');
-    }
-
-    const milestone = milestones.find(m => m.id === milestoneId);
-    if (!milestone || milestone.status !== 'locked') {
-      throw new Error('Can only break a locked milestone.');
-    }
-
-    setMilestones(milestones.map(m =>
-      m.id === milestoneId
-        ? {
-            ...m,
-            status: 'broken',
-            brokenAt: new Date().toISOString(),
-            reason: reflectionData.whyFailed,
-            reflection: reflectionData,
-          }
-        : m
-    ));
-
-    // Add to failure history with full reflection
-    setFailureHistory(prev => [
-      {
-        milestoneId,
-        milestoneNumber: milestone.number,
-        title: milestone.title,
-        status: 'broken',
-        reason: reflectionData.whyFailed,
-        reflection: reflectionData,
-        brokenAt: new Date().toISOString(),
-      },
-      ...prev,
-    ]);
-
-    // Decrease integrity score
-    setUser(prev => {
-      const newScore = Math.max(0, prev.integrityScore - 15);
-      return {
-        ...prev,
-        integrityScore: newScore,
-        status: getIntegrityStatus(newScore),
-      };
-    });
-  };
-
-  // Upload consequence proof for a broken milestone
-  const uploadConsequenceProof = (milestoneId, proofData) => {
-    const milestone = milestones.find(m => m.id === milestoneId);
-    if (!milestone || milestone.status !== 'broken') {
-      throw new Error('Can only upload proof for broken milestones.');
-    }
-
-    if (!proofData.description?.trim()) {
-      throw new Error('Please describe how you fulfilled the consequence.');
-    }
-
-    const proof = {
-      description: proofData.description,
-      imageData: proofData.imageData || null, // Base64 data URI for image
-      uploadedAt: new Date().toISOString(),
-    };
-
-    // Update milestone with proof
-    setMilestones(milestones.map(m =>
-      m.id === milestoneId
-        ? { ...m, consequenceProof: proof }
-        : m
-    ));
-
-    // Update failure history with proof
-    setFailureHistory(prev => prev.map(f =>
-      f.milestoneId === milestoneId
-        ? { ...f, consequenceProof: proof }
-        : f
-    ));
-
-    // Small integrity recovery for completing consequence (5 points)
-    setUser(prev => {
-      const newScore = Math.min(100, prev.integrityScore + 5);
-      return {
-        ...prev,
-        integrityScore: newScore,
-        status: getIntegrityStatus(newScore),
-      };
-    });
-  };
-
-  // Get broken milestones that need consequence proof
-  const brokenMilestonesNeedingProof = milestones.filter(
-    m => m.status === 'broken' && m.promise?.consequence && !m.consequenceProof
-  );
-
-  // Check if goal can be finished (all milestones resolved - none pending or locked)
-  const canFinishGoal = currentGoal && milestones.length > 0 &&
-    !milestones.some(m => m.status === 'pending' || m.status === 'locked');
-
-  // Complete/finish the current goal and archive it
-  const completeGoal = (reflection = '') => {
-    if (!canFinishGoal) {
-      throw new Error('Cannot finish goal - there are still pending or locked milestones.');
-    }
-
-    const completedMilestones = milestones.filter(m => m.status === 'completed');
-    const brokenMilestones = milestones.filter(m => m.status === 'broken');
-
-    // Calculate journey stats
-    const stats = {
-      totalMilestones: milestones.length,
-      completed: completedMilestones.length,
-      broken: brokenMilestones.length,
-      successRate: milestones.length > 0
-        ? Math.round((completedMilestones.length / milestones.length) * 100)
-        : 0,
-    };
-
-    // Archive the completed goal
-    const archivedGoal = {
-      ...currentGoal,
-      status: 'completed',
-      completedAt: new Date().toISOString(),
-      reflection,
-      milestones: [...milestones],
-      stats,
-      finalIntegrityScore: user.integrityScore,
-    };
-
-    // Add to goal history
-    setGoalHistory(prev => [archivedGoal, ...prev]);
-
-    // Clear current goal and milestones
-    setCurrentGoal(null);
-    setMilestones([]);
-    setHasCompletedSetup(false); // This will prompt for new goal creation
-
-    return archivedGoal;
-  };
-
-  // Begin integrity repair (small recovery for completing promises)
-  const beginRepair = () => {
-    // Integrity can only be repaired by keeping future promises
-    // This function is informational - actual repair happens in completeMilestone
-    return {
-      currentScore: user.integrityScore,
-      message: 'Complete your locked promises to gradually rebuild your integrity.',
-      recoveryPerPromise: 10,
-    };
-  };
-
-  // Toggle calendar day
-  const toggleCalendarDay = (date, worked) => {
-    setCalendarData(prev => ({
-      ...prev,
-      [date]: { worked },
-    }));
-  };
-
   // Clear expired promise notification
   const clearExpiredPromise = () => {
     setExpiredPromise(null);
   };
 
-  // Reset to demo data (for testing)
-  const resetToDemo = () => {
-    setUser(demoData.user);
-    setCurrentGoal(demoData.currentGoal);
-    setMilestones(demoData.milestones);
-    setCalendarData(demoData.calendarData);
-    setFailureHistory(demoData.failureHistory);
-  };
+  // =====================================================
+  // CALENDAR/JOURNAL OPERATIONS
+  // =====================================================
 
-  // Reset all data (danger zone)
-  const resetAllData = () => {
-    if (hasActivePromise) {
-      throw new Error('Cannot reset while you have an active locked promise. You must complete or break it first.');
+  // Toggle calendar day worked status
+  const toggleCalendarDay = async (dateKey, worked) => {
+    if (!user) return;
+
+    // Update local state immediately
+    setCalendarData(prev => ({
+      ...prev,
+      [dateKey]: {
+        ...prev[dateKey],
+        worked,
+      },
+    }));
+
+    // Sync to database
+    try {
+      await calendarService.upsert(user.id, dateKey, worked, calendarData[dateKey]?.journal || null);
+    } catch (err) {
+      console.error('Failed to save calendar data:', err);
+      // Revert on error
+      setCalendarData(prev => ({
+        ...prev,
+        [dateKey]: {
+          ...prev[dateKey],
+          worked: !worked,
+        },
+      }));
     }
-    setUser(defaultData.user);
-    setCurrentGoal(defaultData.currentGoal);
-    setMilestones(defaultData.milestones);
-    setCalendarData(defaultData.calendarData);
-    setFailureHistory(defaultData.failureHistory);
   };
 
-  // Login (for demo/existing users)
-  const login = () => {
-    setIsAuthenticated(true);
+  // Update journal entry for a specific day
+  const updateJournalEntry = async (dateKey, journal) => {
+    if (!user) return;
+
+    // Update local state immediately
+    setCalendarData(prev => ({
+      ...prev,
+      [dateKey]: {
+        ...prev[dateKey],
+        journal,
+      },
+    }));
+
+    // Sync to database
+    try {
+      const worked = calendarData[dateKey]?.worked ?? null;
+      await calendarService.upsert(user.id, dateKey, worked, journal);
+    } catch (err) {
+      console.error('Failed to save journal:', err);
+    }
   };
 
-  // Sign up (for new users - starts with blank slate)
-  const signUp = (userData) => {
-    // Create new user with provided data
-    const newUser = {
-      id: Date.now(),
-      name: userData.name?.split(' ')[0] || 'User',
-      fullName: userData.name || 'New User',
-      email: userData.email || 'user@example.com',
-      avatar: null,
-      integrityScore: 100,
-      status: 'Trusted',
-      joinedAt: new Date().toISOString(),
-    };
-
-    setUser(newUser);
-    setCurrentGoal(null);
-    setMilestones([]);
-    setCalendarData({});
-    setFailureHistory([]);
-    setHasCompletedSetup(false);
-    setIsAuthenticated(true);
+  // Get journal entry for a specific day
+  const getJournalEntry = (dateKey) => {
+    return calendarData[dateKey]?.journal || '';
   };
 
-  // Logout
-  const logout = () => {
-    setIsAuthenticated(false);
+  // Refresh data from database
+  const refreshData = async () => {
+    if (!user) return;
+
+    try {
+      setIsLoading(true);
+
+      // Reload active goal
+      const activeGoal = await goalService.getActive(user.id);
+      if (activeGoal) {
+        setCurrentGoal({
+          id: activeGoal.id,
+          title: activeGoal.title,
+          description: activeGoal.description,
+          createdAt: activeGoal.created_at,
+          status: activeGoal.status,
+        });
+
+        const transformedMilestones = (activeGoal.milestones || []).map(m => ({
+          id: m.id,
+          goalId: m.goal_id,
+          number: m.number,
+          title: m.title,
+          status: m.status,
+          promise: m.promise_text ? {
+            text: m.promise_text,
+            deadline: m.promise_deadline,
+            consequence: m.promise_consequence,
+            lockedAt: m.promise_locked_at,
+            witnessCount: m.witness_count || 0,
+          } : null,
+          completedAt: m.completed_at,
+          brokenAt: m.broken_at,
+          reason: m.broken_reason,
+          shareId: m.share_id,
+        }));
+        setMilestones(transformedMilestones);
+      } else {
+        setCurrentGoal(null);
+        setMilestones([]);
+      }
+
+      // Reload history
+      const completedGoals = await goalService.getCompleted(user.id);
+      const transformedHistory = completedGoals.map(g => ({
+        id: g.id,
+        title: g.title,
+        description: g.description,
+        createdAt: g.created_at,
+        completedAt: g.completed_at,
+        reflection: g.reflection,
+        finalIntegrityScore: g.final_integrity_score,
+        stats: g.stats || {},
+        milestones: (g.milestones || []).map(m => ({
+          id: m.id,
+          number: m.number,
+          title: m.title,
+          status: m.status,
+        })),
+      }));
+      setGoalHistory(transformedHistory);
+
+    } catch (err) {
+      console.error('Failed to refresh data:', err);
+    } finally {
+      setIsLoading(false);
+    }
   };
+
+  // =====================================================
+  // CONTEXT VALUE
+  // =====================================================
 
   const value = {
     // State
     user,
-    setUser,
     currentGoal,
-    setCurrentGoal,
     milestones,
-    setMilestones,
-    calendarData,
-    failureHistory,
-    isAuthenticated,
+    goalHistory,
+    isLoading,
+    error,
+    expiredPromise,
+
+    // Computed
     currentLockedMilestone,
     nextPendingMilestone,
     hasActivePromise,
-    canCreateNewGoal,
-    expiredPromise,
-    needsGoalSetup,
-    hasCompletedSetup,
-    brokenMilestonesNeedingProof,
     canFinishGoal,
-    goalHistory,
+    needsGoalSetup,
+    isAuthenticated: !!user, // For compatibility
 
-    // Functions
-    getTimeRemaining,
-    uploadConsequenceProof,
-    completeGoal,
+    // Goal operations
     createGoal,
+    completeGoal,
+
+    // Milestone operations
     addMilestone,
     updateMilestone,
     deleteMilestone,
     lockPromise,
-    addWitness,
     completeMilestone,
     breakPromise,
-    beginRepair,
-    toggleCalendarDay,
+    addWitness,
+
+    // Utility
+    getTimeRemaining,
     clearExpiredPromise,
-    resetToDemo,
-    resetAllData,
-    login,
-    signUp,
-    logout,
+    refreshData,
+
+    // Calendar/Journal
+    calendarData,
+    toggleCalendarDay,
+    updateJournalEntry,
+    getJournalEntry,
   };
 
   return (

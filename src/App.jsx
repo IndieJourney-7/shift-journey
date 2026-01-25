@@ -4,37 +4,83 @@ import { AppProvider, useApp } from './context/AppContext';
 import { AppLayout } from './components/layout';
 import {
   LandingPage,
-  LoginPage,
   GoalCreationPage,
   MilestonesPage,
   LockPromisePage,
   DashboardPage,
-  CalendarPage,
+  HistoryPage,
   ProfilePage,
   SettingsPage,
-  HistoryPage,
   HelpPage,
   ShareablePage,
   GoalAccomplishedPage,
+  PricingPage,
+  AdminPage,
+  MilestoneSystemPage,
+  PublicProfilePage,
+  CalendarPage,
 } from './pages';
 
-// Protected Route wrapper
-function ProtectedRoute({ children }) {
-  const { isAuthenticated } = useApp();
-
-  if (!isAuthenticated) {
-    return <Navigate to="/login" replace />;
-  }
-
-  return children;
+// Loading screen component
+function LoadingScreen() {
+  return (
+    <div className="min-h-screen bg-obsidian-950 flex items-center justify-center">
+      <div className="text-center">
+        <div className="w-12 h-12 border-4 border-gold-500/30 border-t-gold-500 rounded-full animate-spin mx-auto mb-4" />
+        <p className="text-obsidian-400">Loading your journey...</p>
+      </div>
+    </div>
+  );
 }
 
-// Public Route wrapper (redirects to dashboard if authenticated)
-function PublicRoute({ children }) {
-  const { isAuthenticated } = useApp();
+// Error screen component
+function ErrorScreen({ message }) {
+  return (
+    <div className="min-h-screen bg-obsidian-950 flex items-center justify-center">
+      <div className="text-center max-w-md mx-auto p-6">
+        <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-red-900/30 flex items-center justify-center">
+          <span className="text-3xl">!</span>
+        </div>
+        <h1 className="text-xl font-bold text-obsidian-100 mb-2">Something went wrong</h1>
+        <p className="text-obsidian-400 mb-4">{message}</p>
+        <button
+          onClick={() => window.location.reload()}
+          className="px-4 py-2 bg-gold-500 text-obsidian-950 rounded-lg font-medium hover:bg-gold-400 transition-colors"
+        >
+          Refresh Page
+        </button>
+      </div>
+    </div>
+  );
+}
 
-  if (isAuthenticated) {
-    return <Navigate to="/dashboard" replace />;
+// Main route handler - redirects based on app state
+function MainRouteHandler() {
+  const { currentGoal, isLoading, needsGoalSetup } = useApp();
+
+  if (isLoading) {
+    return <LoadingScreen />;
+  }
+
+  // If no goal exists, redirect to goal creation
+  if (needsGoalSetup) {
+    return <Navigate to="/goal/create" replace />;
+  }
+
+  // If goal exists, go to dashboard
+  return <Navigate to="/dashboard" replace />;
+}
+
+// Protected app routes wrapper
+function AppRouteWrapper({ children }) {
+  const { isLoading, error } = useApp();
+
+  if (isLoading) {
+    return <LoadingScreen />;
+  }
+
+  if (error) {
+    return <ErrorScreen message={error} />;
   }
 
   return children;
@@ -43,48 +89,46 @@ function PublicRoute({ children }) {
 function AppRoutes() {
   return (
     <Routes>
-      {/* Public Routes */}
-      <Route
-        path="/"
-        element={
-          <PublicRoute>
-            <LandingPage />
-          </PublicRoute>
-        }
-      />
-      <Route
-        path="/login"
-        element={
-          <PublicRoute>
-            <LoginPage />
-          </PublicRoute>
-        }
-      />
+      {/* Main entry point - redirects based on state */}
+      <Route path="/" element={<MainRouteHandler />} />
 
       {/* Public Shareable Commitment Page - No login required */}
       <Route path="/c/:commitmentId" element={<ShareablePage />} />
 
-      {/* Protected Routes with App Layout */}
+      {/* Public Profile Badge Page - Shareable badges */}
+      <Route path="/p/:userId" element={<PublicProfilePage />} />
+
+      {/* Pricing Page - Public */}
+      <Route path="/pricing" element={<PricingPage />} />
+
+      {/* Admin Dashboard */}
+      <Route path="/admin" element={<AdminPage />} />
+
+      {/* Landing Page (for marketing) */}
+      <Route path="/welcome" element={<LandingPage />} />
+
+      {/* App Routes with Layout */}
       <Route
         element={
-          <ProtectedRoute>
+          <AppRouteWrapper>
             <AppLayout />
-          </ProtectedRoute>
+          </AppRouteWrapper>
         }
       >
         <Route path="/dashboard" element={<DashboardPage />} />
         <Route path="/goal/create" element={<GoalCreationPage />} />
         <Route path="/milestones" element={<MilestonesPage />} />
         <Route path="/lock-promise/:milestoneId" element={<LockPromisePage />} />
+        <Route path="/history" element={<HistoryPage />} />
         <Route path="/calendar" element={<CalendarPage />} />
         <Route path="/profile" element={<ProfilePage />} />
         <Route path="/settings" element={<SettingsPage />} />
-        <Route path="/history" element={<HistoryPage />} />
         <Route path="/help" element={<HelpPage />} />
         <Route path="/goal-accomplished" element={<GoalAccomplishedPage />} />
+        <Route path="/milestone-system" element={<MilestoneSystemPage />} />
       </Route>
 
-      {/* Catch all - redirect to landing */}
+      {/* Catch all - redirect to main */}
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   );

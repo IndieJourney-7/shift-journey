@@ -1,6 +1,6 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Lock, Check, AlertTriangle, Bell, ChevronRight, Target, Share2, Copy, CheckCircle, Upload, Image, X, Trophy } from 'lucide-react';
+import { Lock, Check, AlertTriangle, ChevronRight, Target, Share2, Copy, CheckCircle, Trophy } from 'lucide-react';
 import { Button, Card, Badge, Modal, Textarea } from '../components/ui';
 import { JourneyPath, MilestoneCard, CountdownTimer, IntegrityBadgeInline } from '../components/journey';
 import { useApp } from '../context/AppContext';
@@ -15,10 +15,9 @@ export default function DashboardPage() {
     completeMilestone,
     breakPromise,
     needsGoalSetup,
-    brokenMilestonesNeedingProof,
-    uploadConsequenceProof,
     canFinishGoal,
     user,
+    isLoading,
   } = useApp();
 
   // Redirect to goal creation if user hasn't set up a goal yet
@@ -31,15 +30,9 @@ export default function DashboardPage() {
   const [showCompleteModal, setShowCompleteModal] = useState(false);
   const [showBreakModal, setShowBreakModal] = useState(false);
   const [showShareModal, setShowShareModal] = useState(false);
-  const [showProofModal, setShowProofModal] = useState(false);
-  const [selectedBrokenMilestone, setSelectedBrokenMilestone] = useState(null);
   const [linkCopied, setLinkCopied] = useState(false);
-
-  // Consequence proof state
-  const [proofDescription, setProofDescription] = useState('');
-  const [proofImage, setProofImage] = useState(null);
-  const [proofImagePreview, setProofImagePreview] = useState(null);
-  const fileInputRef = useRef(null);
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [actionError, setActionError] = useState(null);
 
   // Structured failure reflection state
   const [reflection, setReflection] = useState({
@@ -62,18 +55,34 @@ export default function DashboardPage() {
     setTimeout(() => setLinkCopied(false), 2000);
   };
 
-  const handleComplete = () => {
-    if (currentLockedMilestone) {
-      completeMilestone(currentLockedMilestone.id);
+  const handleComplete = async () => {
+    if (!currentLockedMilestone) return;
+
+    setIsProcessing(true);
+    setActionError(null);
+    try {
+      await completeMilestone(currentLockedMilestone.id);
       setShowCompleteModal(false);
+    } catch (err) {
+      setActionError(err.message);
+    } finally {
+      setIsProcessing(false);
     }
   };
 
-  const handleBreak = () => {
-    if (currentLockedMilestone && reflection.whyFailed.trim()) {
-      breakPromise(currentLockedMilestone.id, reflection);
+  const handleBreak = async () => {
+    if (!currentLockedMilestone || !reflection.whyFailed.trim()) return;
+
+    setIsProcessing(true);
+    setActionError(null);
+    try {
+      await breakPromise(currentLockedMilestone.id, reflection.whyFailed);
       setReflection({ whyFailed: '', whatWasInControl: '', whatWillChange: '' });
       setShowBreakModal(false);
+    } catch (err) {
+      setActionError(err.message);
+    } finally {
+      setIsProcessing(false);
     }
   };
 
@@ -82,56 +91,6 @@ export default function DashboardPage() {
   };
 
   const isReflectionComplete = reflection.whyFailed.trim() && reflection.whatWasInControl.trim() && reflection.whatWillChange.trim();
-
-  // Consequence proof handlers
-  const openProofModal = (milestone) => {
-    setSelectedBrokenMilestone(milestone);
-    setProofDescription('');
-    setProofImage(null);
-    setProofImagePreview(null);
-    setShowProofModal(true);
-  };
-
-  const handleImageSelect = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      // Check file size (max 5MB)
-      if (file.size > 5 * 1024 * 1024) {
-        alert('Image must be less than 5MB');
-        return;
-      }
-
-      // Read file as base64
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setProofImage(reader.result);
-        setProofImagePreview(reader.result);
-      };
-      reader.readAsDataURL(file);
-    }
-  };
-
-  const clearProofImage = () => {
-    setProofImage(null);
-    setProofImagePreview(null);
-    if (fileInputRef.current) {
-      fileInputRef.current.value = '';
-    }
-  };
-
-  const handleSubmitProof = () => {
-    if (selectedBrokenMilestone && proofDescription.trim()) {
-      uploadConsequenceProof(selectedBrokenMilestone.id, {
-        description: proofDescription,
-        imageData: proofImage,
-      });
-      setShowProofModal(false);
-      setSelectedBrokenMilestone(null);
-      setProofDescription('');
-      setProofImage(null);
-      setProofImagePreview(null);
-    }
-  };
 
   const completedMilestones = milestones.filter(m => m.status === 'completed');
   const brokenMilestones = milestones.filter(m => m.status === 'broken');
@@ -302,71 +261,6 @@ export default function DashboardPage() {
             You still have time left to finish & Milestone {nextPendingMilestone.number}.
           </p>
         </div>
-      )}
-
-      {/* Consequence Proof Needed Section */}
-      {brokenMilestonesNeedingProof.length > 0 && (
-        <Card variant="default" padding="md" className="sm:p-6 border-amber-900/30">
-          <div className="flex flex-wrap items-center gap-2 mb-3 sm:mb-4">
-            <Upload className="w-4 h-4 sm:w-5 sm:h-5 text-amber-500" />
-            <h3 className="text-obsidian-200 font-medium text-sm sm:text-base">Consequence Proof Needed</h3>
-            <Badge variant="warning" size="sm">{brokenMilestonesNeedingProof.length}</Badge>
-          </div>
-
-          <p className="text-obsidian-400 text-xs sm:text-sm mb-3 sm:mb-4">
-            You have broken promises with unpaid consequences. Upload proof to recover 5 integrity points per consequence.
-          </p>
-
-          <div className="space-y-3">
-            {brokenMilestonesNeedingProof.map((milestone) => (
-              <div
-                key={milestone.id}
-                className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 p-3 sm:p-4 rounded-lg bg-obsidian-900/50 border border-amber-900/30"
-              >
-                <div className="flex-1">
-                  <div className="flex items-center gap-2 mb-1">
-                    <AlertTriangle className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-amber-500" />
-                    <span className="text-obsidian-400 text-xs sm:text-sm">Milestone {milestone.number}</span>
-                  </div>
-                  <p className="text-obsidian-200 font-medium text-sm sm:text-base mb-1">{milestone.title}</p>
-                  <p className="text-obsidian-500 text-xs">
-                    Consequence: "{milestone.promise?.consequence || 'No consequence set'}"
-                  </p>
-                </div>
-                <Button
-                  variant="secondary"
-                  size="sm"
-                  icon={Upload}
-                  onClick={() => openProofModal(milestone)}
-                  className="w-full sm:w-auto"
-                >
-                  Upload Proof
-                </Button>
-              </div>
-            ))}
-          </div>
-        </Card>
-      )}
-
-      {/* Notifications Section */}
-      {brokenMilestones.length > 0 && (
-        <Card variant="default" padding="md">
-          <div className="flex items-center gap-2 mb-4">
-            <Bell className="w-4 h-4 text-obsidian-400" />
-            <h3 className="text-obsidian-200 font-medium">Notifications</h3>
-            <span className="text-obsidian-500 text-sm">From Milestone {brokenMilestones[brokenMilestones.length - 1]?.number} and ago</span>
-          </div>
-
-          <div className="flex items-start gap-3 p-3 bg-obsidian-900/50 rounded-lg border border-red-900/30">
-            <div className="w-2 h-2 mt-2 rounded-full bg-red-500" />
-            <div>
-              <p className="text-red-400 font-medium text-sm">Promise Broken</p>
-              <p className="text-obsidian-400 text-sm">
-                "{brokenMilestones[brokenMilestones.length - 1]?.reason || 'No reason provided'}"
-              </p>
-            </div>
-          </div>
-        </Card>
       )}
 
       {/* Recent Milestones */}
@@ -663,131 +557,6 @@ export default function DashboardPage() {
               onClick={() => setShowShareModal(false)}
             >
               Close
-            </Button>
-          </div>
-        </div>
-      </Modal>
-
-      {/* Consequence Proof Upload Modal */}
-      <Modal
-        isOpen={showProofModal}
-        onClose={() => {
-          setShowProofModal(false);
-          setSelectedBrokenMilestone(null);
-          setProofDescription('');
-          clearProofImage();
-        }}
-        title="Upload Consequence Proof"
-        size="md"
-      >
-        <div>
-          <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-amber-900/30 border border-amber-700/50 flex items-center justify-center">
-            <Upload className="w-8 h-8 text-amber-500" />
-          </div>
-
-          {/* Milestone Info */}
-          {selectedBrokenMilestone && (
-            <div className="bg-obsidian-900/50 border border-obsidian-700 rounded-lg p-4 mb-6">
-              <div className="flex items-center gap-2 mb-2">
-                <AlertTriangle className="w-4 h-4 text-red-500" />
-                <span className="text-obsidian-400 text-sm">Milestone {selectedBrokenMilestone.number}</span>
-              </div>
-              <p className="text-obsidian-200 font-medium mb-2">{selectedBrokenMilestone.title}</p>
-              <div className="pt-2 border-t border-obsidian-700">
-                <p className="text-obsidian-400 text-xs mb-1">Your consequence:</p>
-                <p className="text-amber-400 text-sm">
-                  "{selectedBrokenMilestone.promise?.consequence || 'No consequence set'}"
-                </p>
-              </div>
-            </div>
-          )}
-
-          {/* Description */}
-          <div className="mb-5">
-            <label className="block text-obsidian-200 text-sm font-medium mb-2">
-              How did you fulfill the consequence? <span className="text-red-400">*</span>
-            </label>
-            <p className="text-obsidian-500 text-xs mb-2">
-              Describe what you did to honor your commitment to the consequence.
-            </p>
-            <Textarea
-              placeholder="I deleted my social media accounts for 24 hours as promised..."
-              value={proofDescription}
-              onChange={(e) => setProofDescription(e.target.value)}
-              rows={3}
-            />
-          </div>
-
-          {/* Image Upload */}
-          <div className="mb-6">
-            <label className="block text-obsidian-200 text-sm font-medium mb-2">
-              Upload proof image (optional)
-            </label>
-            <p className="text-obsidian-500 text-xs mb-3">
-              Add a screenshot, photo, or other visual evidence. Max 5MB.
-            </p>
-
-            <input
-              type="file"
-              ref={fileInputRef}
-              accept="image/*"
-              onChange={handleImageSelect}
-              className="hidden"
-            />
-
-            {!proofImagePreview ? (
-              <button
-                onClick={() => fileInputRef.current?.click()}
-                className="w-full p-6 rounded-lg border-2 border-dashed border-obsidian-600 hover:border-obsidian-500 transition-colors flex flex-col items-center gap-2"
-              >
-                <Image className="w-8 h-8 text-obsidian-500" />
-                <span className="text-obsidian-400 text-sm">Click to upload image</span>
-                <span className="text-obsidian-600 text-xs">PNG, JPG, GIF up to 5MB</span>
-              </button>
-            ) : (
-              <div className="relative">
-                <img
-                  src={proofImagePreview}
-                  alt="Proof preview"
-                  className="w-full max-h-48 object-contain rounded-lg border border-obsidian-600"
-                />
-                <button
-                  onClick={clearProofImage}
-                  className="absolute top-2 right-2 p-1 rounded-full bg-obsidian-900/80 hover:bg-red-900/80 transition-colors"
-                >
-                  <X className="w-4 h-4 text-obsidian-300" />
-                </button>
-              </div>
-            )}
-          </div>
-
-          {/* Recovery Info */}
-          <div className="p-3 bg-green-900/20 border border-green-800/30 rounded-lg mb-6">
-            <p className="text-green-400 text-xs text-center">
-              Submitting proof will recover 5 integrity points and mark this consequence as fulfilled.
-            </p>
-          </div>
-
-          <div className="flex gap-3">
-            <Button
-              variant="secondary"
-              className="flex-1"
-              onClick={() => {
-                setShowProofModal(false);
-                setSelectedBrokenMilestone(null);
-                setProofDescription('');
-                clearProofImage();
-              }}
-            >
-              Cancel
-            </Button>
-            <Button
-              variant="gold"
-              className="flex-1"
-              onClick={handleSubmitProof}
-              disabled={!proofDescription.trim()}
-            >
-              Submit Proof
             </Button>
           </div>
         </div>

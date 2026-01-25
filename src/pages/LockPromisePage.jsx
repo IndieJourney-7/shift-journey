@@ -22,7 +22,8 @@ export default function LockPromisePage() {
   const [errors, setErrors] = useState({});
 
   useEffect(() => {
-    const found = milestones.find(m => m.id === parseInt(milestoneId));
+    // Handle both UUID strings and old integer IDs
+    const found = milestones.find(m => String(m.id) === String(milestoneId));
     if (found) {
       setMilestone(found);
       setFormData(prev => ({
@@ -34,7 +35,7 @@ export default function LockPromisePage() {
 
   // Redirect if there's already a locked milestone
   useEffect(() => {
-    if (currentLockedMilestone && currentLockedMilestone.id !== parseInt(milestoneId)) {
+    if (currentLockedMilestone && String(currentLockedMilestone.id) !== String(milestoneId)) {
       navigate('/dashboard');
     }
   }, [currentLockedMilestone, milestoneId, navigate]);
@@ -76,14 +77,17 @@ export default function LockPromisePage() {
 
     const deadline = new Date(`${formData.deadline}T${formData.deadlineTime}`);
 
-    lockPromise(parseInt(milestoneId), {
-      text: formData.promiseText,
-      deadline: deadline.toISOString(),
-      consequence: formData.consequence,
-    });
-
-    setIsLocking(false);
-    navigate('/dashboard');
+    try {
+      await lockPromise(milestone.id, {
+        text: formData.promiseText,
+        deadline: deadline.toISOString(),
+        consequence: formData.consequence,
+      });
+      navigate('/dashboard');
+    } catch (err) {
+      setErrors({ submit: err.message });
+      setIsLocking(false);
+    }
   };
 
   if (!milestone) {

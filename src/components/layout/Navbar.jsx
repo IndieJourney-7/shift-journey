@@ -8,10 +8,10 @@ export default function Navbar({ isAuthenticated = false, user = null }) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const navLinks = [
-    { label: 'Features', href: '#features' },
-    { label: 'How It Works', href: '#how-it-works' },
-    { label: 'Pricing', href: '#pricing' },
-    { label: 'Log In', href: '/login' },
+    { label: 'Features', href: '#features', isAnchor: true },
+    { label: 'How It Works', href: '#how-it-works', isAnchor: true },
+    { label: 'Pricing', href: '/pricing', isAnchor: false },
+    { label: 'Log In', href: '/login', isAnchor: false },
   ];
 
   return (
@@ -41,15 +41,25 @@ export default function Navbar({ isAuthenticated = false, user = null }) {
           {/* Navigation Links (Desktop) */}
           {!isAuthenticated && (
             <div className="hidden md:flex items-center gap-6 lg:gap-8">
-              {navLinks.map((link) => (
-                <a
-                  key={link.label}
-                  href={link.href}
-                  className="text-obsidian-400 hover:text-obsidian-200 text-sm font-medium transition-colors"
-                >
-                  {link.label}
-                </a>
-              ))}
+              {navLinks.map((link) =>
+                link.isAnchor ? (
+                  <a
+                    key={link.label}
+                    href={link.href}
+                    className="text-obsidian-400 hover:text-obsidian-200 text-sm font-medium transition-colors"
+                  >
+                    {link.label}
+                  </a>
+                ) : (
+                  <Link
+                    key={link.label}
+                    to={link.href}
+                    className="text-obsidian-400 hover:text-obsidian-200 text-sm font-medium transition-colors"
+                  >
+                    {link.label}
+                  </Link>
+                )
+              )}
             </div>
           )}
 
@@ -98,16 +108,27 @@ export default function Navbar({ isAuthenticated = false, user = null }) {
         {!isAuthenticated && mobileMenuOpen && (
           <div className="md:hidden border-t border-obsidian-800 py-4">
             <div className="flex flex-col gap-2">
-              {navLinks.map((link) => (
-                <a
-                  key={link.label}
-                  href={link.href}
-                  onClick={() => setMobileMenuOpen(false)}
-                  className="text-obsidian-400 hover:text-obsidian-200 text-sm font-medium transition-colors px-2 py-2"
-                >
-                  {link.label}
-                </a>
-              ))}
+              {navLinks.map((link) =>
+                link.isAnchor ? (
+                  <a
+                    key={link.label}
+                    href={link.href}
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="text-obsidian-400 hover:text-obsidian-200 text-sm font-medium transition-colors px-2 py-2"
+                  >
+                    {link.label}
+                  </a>
+                ) : (
+                  <Link
+                    key={link.label}
+                    to={link.href}
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="text-obsidian-400 hover:text-obsidian-200 text-sm font-medium transition-colors px-2 py-2"
+                  >
+                    {link.label}
+                  </Link>
+                )
+              )}
             </div>
           </div>
         )}

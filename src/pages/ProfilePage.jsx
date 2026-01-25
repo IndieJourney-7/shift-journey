@@ -1,16 +1,21 @@
 import React, { useState } from 'react';
-import { AlertTriangle, Check, Lock, User, TrendingUp } from 'lucide-react';
+import { AlertTriangle, Check, Lock, User, TrendingUp, Share2 } from 'lucide-react';
 import { Card, Badge, Button, Modal } from '../components/ui';
 import { IntegrityShieldBadge } from '../components/journey';
+import { IntegrityBadgeCard, ShareableBadgeImage } from '../components/badges';
 import { useApp } from '../context/AppContext';
 
 export default function ProfilePage() {
-  const { user, failureHistory, milestones, beginRepair, nextPendingMilestone, currentLockedMilestone } = useApp();
+  const { user, milestones, nextPendingMilestone, currentLockedMilestone, currentGoal } = useApp();
   const [showRepairModal, setShowRepairModal] = useState(false);
+  const [showShareModal, setShowShareModal] = useState(false);
+
+  // Derive failure history from broken milestones
+  const failureHistory = milestones.filter(m => m.status === 'broken');
 
   // Get badge variant based on new status labels
   const getStatusBadgeVariant = () => {
-    switch (user.status) {
+    switch (user?.status) {
       case 'Reliable':
         return 'trusted';
       case 'Inconsistent':
@@ -21,7 +26,18 @@ export default function ProfilePage() {
   };
 
   const completedCount = milestones.filter(m => m.status === 'completed').length;
-  const brokenCount = milestones.filter(m => m.status === 'broken').length;
+  const brokenCount = failureHistory.length;
+
+  // Stats for badge sharing
+  const badgeStats = {
+    totalKept: completedCount,
+    totalBroken: brokenCount,
+    currentStreak: 0, // Calculate from consecutive completed
+    goalsCompleted: 0,
+    totalWitnesses: milestones.reduce((acc, m) => acc + (m.promise?.witnessCount || 0), 0),
+  };
+
+  const profileUrl = `${window.location.origin}/p/${user?.id}`;
 
   const getIconForMilestone = (milestone) => {
     if (milestone.status === 'broken') return AlertTriangle;
@@ -29,18 +45,29 @@ export default function ProfilePage() {
   };
 
   const handleBeginRepair = () => {
-    const repairInfo = beginRepair();
     setShowRepairModal(true);
   };
 
   // Calculate promises needed to reach next integrity level
   // 0-30: Unreliable, 31-70: Inconsistent, 71-100: Reliable
-  const promisesToReach31 = user.integrityScore <= 30
-    ? Math.ceil((31 - user.integrityScore) / 10)
+  const integrityScore = user?.integrityScore || 50;
+  const promisesToReach31 = integrityScore <= 30
+    ? Math.ceil((31 - integrityScore) / 10)
     : 0;
-  const promisesToReach71 = user.integrityScore <= 70
-    ? Math.ceil((71 - user.integrityScore) / 10)
+  const promisesToReach71 = integrityScore <= 70
+    ? Math.ceil((71 - integrityScore) / 10)
     : 0;
+
+  if (!user) {
+    return (
+      <div className="flex items-center justify-center min-h-[50vh]">
+        <div className="text-center">
+          <div className="w-12 h-12 border-4 border-gold-500/30 border-t-gold-500 rounded-full animate-spin mx-auto mb-4" />
+          <p className="text-obsidian-400">Loading profile...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-2xl mx-auto space-y-4 sm:space-y-6 lg:space-y-8">
@@ -52,7 +79,7 @@ export default function ProfilePage() {
       {/* Profile Card */}
       <Card variant="elevated" padding="md" className="sm:p-6 relative overflow-hidden">
         {/* Cracked background effect for low integrity */}
-        {user.integrityScore < 50 && (
+        {integrityScore < 50 && (
           <div className="absolute inset-0 pointer-events-none opacity-20">
             <svg className="w-full h-full" preserveAspectRatio="none">
               <defs>
@@ -81,14 +108,14 @@ export default function ProfilePage() {
             {/* Info */}
             <div className="flex-1 text-center sm:text-left">
               <h2 className="text-xl sm:text-2xl font-bold text-obsidian-100 mb-1">
-                {user.fullName}
+                {user.name || 'Anonymous User'}
               </h2>
               <div className="flex items-center justify-center sm:justify-start gap-2 mb-2">
                 <Badge variant={getStatusBadgeVariant()}>
                   {user.status}
                 </Badge>
               </div>
-              <p className="text-obsidian-400 text-xs sm:text-sm">{user.email}</p>
+              <p className="text-obsidian-400 text-xs sm:text-sm">Building integrity through kept promises</p>
             </div>
           </div>
 
@@ -104,22 +131,32 @@ export default function ProfilePage() {
                   : 'No broken promises recorded'
                 }
               </p>
-              {user.integrityScore < 100 && (
+              <div className="flex flex-wrap gap-2">
+                {integrityScore < 100 && (
+                  <Button
+                    variant="secondary"
+                    size="sm"
+                    onClick={handleBeginRepair}
+                    icon={TrendingUp}
+                  >
+                    Begin Repair
+                  </Button>
+                )}
                 <Button
-                  variant="secondary"
+                  variant="gold"
                   size="sm"
-                  onClick={handleBeginRepair}
-                  icon={TrendingUp}
+                  onClick={() => setShowShareModal(true)}
+                  icon={Share2}
                 >
-                  Begin Repair
+                  Share Badge
                 </Button>
-              )}
+              </div>
             </div>
 
             {/* Primary Shield Badge */}
             <div className="flex-shrink-0">
               <IntegrityShieldBadge
-                score={user.integrityScore}
+                score={integrityScore}
                 size="lg"
                 showScore={true}
                 showLabel={true}
@@ -163,27 +200,20 @@ export default function ProfilePage() {
           <div className="space-y-3 sm:space-y-4">
             {failureHistory.map((failure, index) => {
               const IconComponent = getIconForMilestone(failure);
-              const isBroken = failure.status === 'broken';
 
               return (
                 <div
-                  key={index}
-                  className={`
-                    flex items-start gap-3 sm:gap-4 p-3 sm:p-4 rounded-lg border
-                    ${isBroken ? 'bg-obsidian-800/50 border-red-900/30' : 'bg-obsidian-800/50 border-obsidian-700'}
-                  `}
+                  key={failure.id || index}
+                  className="flex items-start gap-3 sm:gap-4 p-3 sm:p-4 rounded-lg border bg-obsidian-800/50 border-red-900/30"
                 >
-                  <div className={`
-                    w-8 h-8 sm:w-10 sm:h-10 rounded-lg flex items-center justify-center flex-shrink-0
-                    ${isBroken ? 'bg-red-900/30' : 'bg-obsidian-700'}
-                  `}>
-                    <IconComponent className={`w-4 h-4 sm:w-5 sm:h-5 ${isBroken ? 'text-red-400' : 'text-obsidian-400'}`} />
+                  <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg flex items-center justify-center flex-shrink-0 bg-red-900/30">
+                    <IconComponent className="w-4 h-4 sm:w-5 sm:h-5 text-red-400" />
                   </div>
 
                   <div className="flex-1 min-w-0">
                     <div className="flex flex-wrap items-center gap-1 sm:gap-2 mb-1">
                       <span className="text-obsidian-400 text-xs sm:text-sm">
-                        Milestone {failure.milestoneNumber}:
+                        Milestone {failure.number}:
                       </span>
                       <span className="text-obsidian-200 text-sm sm:text-base">{failure.title}</span>
                     </div>
@@ -194,10 +224,10 @@ export default function ProfilePage() {
                       <Badge variant="broken" size="sm">Promise Broken</Badge>
                     )}
 
-                    {failure.autoExpired && (
-                      <Badge variant="default" size="sm" className="ml-2 mt-1">
-                        Auto-expired
-                      </Badge>
+                    {failure.brokenAt && (
+                      <p className="text-obsidian-600 text-xs mt-1">
+                        {new Date(failure.brokenAt).toLocaleDateString()}
+                      </p>
                     )}
                   </div>
                 </div>
@@ -218,11 +248,11 @@ export default function ProfilePage() {
           <div>
             <p className="text-obsidian-400 text-xs sm:text-sm">Member since</p>
             <p className="text-obsidian-200 text-sm sm:text-base">
-              {new Date(user.joinedAt).toLocaleDateString('en-US', {
+              {user.createdAt ? new Date(user.createdAt).toLocaleDateString('en-US', {
                 month: 'long',
                 day: 'numeric',
                 year: 'numeric',
-              })}
+              }) : 'Today'}
             </p>
           </div>
           <Button variant="ghost" size="sm">
@@ -245,7 +275,7 @@ export default function ProfilePage() {
 
           <div className="text-center mb-6">
             <p className="text-obsidian-200 text-lg mb-2">
-              Your current score: <span className="font-bold text-obsidian-100">{user.integrityScore}/100</span>
+              Your current score: <span className="font-bold text-obsidian-100">{integrityScore}/100</span>
             </p>
             <p className="text-obsidian-300 mb-1">{user.status}</p>
             <p className="text-obsidian-400">
@@ -267,14 +297,14 @@ export default function ProfilePage() {
             </ul>
           </Card>
 
-          {user.integrityScore <= 70 && (
+          {integrityScore <= 70 && (
             <Card variant="highlighted" padding="md" className="mb-6">
               <h4 className="text-obsidian-200 font-medium mb-2">Your Path Forward:</h4>
               <ul className="text-obsidian-400 text-sm space-y-1">
-                {user.integrityScore <= 30 && (
-                  <li>• Keep <strong className="text-obsidian-200">{promisesToReach31}</strong> promise{promisesToReach31 > 1 ? 's' : ''} to reach "Inconsistent"</li>
+                {integrityScore <= 30 && (
+                  <li>Keep <strong className="text-obsidian-200">{promisesToReach31}</strong> promise{promisesToReach31 > 1 ? 's' : ''} to reach "Inconsistent"</li>
                 )}
-                <li>• Keep <strong className="text-obsidian-200">{promisesToReach71}</strong> promise{promisesToReach71 > 1 ? 's' : ''} to reach "Reliable" status</li>
+                <li>Keep <strong className="text-obsidian-200">{promisesToReach71}</strong> promise{promisesToReach71 > 1 ? 's' : ''} to reach "Reliable" status</li>
               </ul>
             </Card>
           )}
@@ -301,6 +331,39 @@ export default function ProfilePage() {
               I Understand
             </Button>
           </div>
+        </div>
+      </Modal>
+
+      {/* Share Badge Modal */}
+      <Modal
+        isOpen={showShareModal}
+        onClose={() => setShowShareModal(false)}
+        title="Share Your Integrity Badge"
+        size="lg"
+      >
+        <div className="space-y-6">
+          {/* Badge Preview Card */}
+          <IntegrityBadgeCard
+            score={integrityScore}
+            stats={badgeStats}
+            username={user.name || 'User'}
+            showProgress={false}
+            showStats={true}
+            variant="compact"
+          />
+
+          {/* Shareable Image Generator */}
+          <ShareableBadgeImage
+            score={integrityScore}
+            username={user.name || 'User'}
+            stats={badgeStats}
+            goal={currentGoal}
+            milestone={currentLockedMilestone}
+            profileUrl={profileUrl}
+            onDownload={() => {
+              console.log('Badge downloaded');
+            }}
+          />
         </div>
       </Modal>
     </div>

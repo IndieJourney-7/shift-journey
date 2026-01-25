@@ -189,10 +189,11 @@ export default function ShareablePage() {
   const witnessCount = milestone.promise?.witnessCount || 0;
 
   // Generate OG meta data
-  const ogTitle = generateOGTitle(user.fullName, milestone.title);
+  const userName = user?.name || 'User';
+  const ogTitle = generateOGTitle(userName, milestone.title);
   const ogDescription = generateOGDescription({
     timeRemaining: ogTimeRemaining,
-    integrityScore: user.integrityScore,
+    integrityScore: user?.integrityScore || 50,
     status: milestone.status,
   });
   const currentUrl = `${window.location.origin}${location.pathname}`;
@@ -241,11 +242,11 @@ export default function ShareablePage() {
         <div className="text-center mb-6 sm:mb-8">
           <div className="w-12 h-12 sm:w-14 sm:h-14 mx-auto mb-2 sm:mb-3 rounded-full bg-obsidian-800 border border-obsidian-700 flex items-center justify-center">
             <span className="text-lg sm:text-xl font-medium text-obsidian-400">
-              {user.fullName.charAt(0).toUpperCase()}
+              {userName.charAt(0).toUpperCase()}
             </span>
           </div>
           <h1 className="text-base sm:text-lg font-medium text-obsidian-200">
-            {user.fullName}
+            {userName}
           </h1>
           <p className="text-obsidian-500 text-xs sm:text-sm mt-1">
             has made a commitment

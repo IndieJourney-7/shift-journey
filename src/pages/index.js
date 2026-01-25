@@ -11,3 +11,7 @@ export { default as HistoryPage } from './HistoryPage';
 export { default as HelpPage } from './HelpPage';
 export { default as ShareablePage } from './ShareablePage';
 export { default as GoalAccomplishedPage } from './GoalAccomplishedPage';
+export { default as PricingPage } from './PricingPage';
+export { default as AdminPage } from './AdminPage';
+export { default as MilestoneSystemPage } from './MilestoneSystemPage';
+export { default as PublicProfilePage } from './PublicProfilePage';

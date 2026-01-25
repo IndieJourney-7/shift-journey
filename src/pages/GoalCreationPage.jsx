@@ -22,6 +22,7 @@ export default function GoalCreationPage() {
   });
 
   const [errors, setErrors] = useState({});
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -36,18 +37,22 @@ export default function GoalCreationPage() {
     if (!formData.title.trim()) {
       newErrors.title = 'Goal title is required';
     }
-    if (!formData.targetDate) {
-      newErrors.targetDate = 'Target date is required';
-    }
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    if (validateForm()) {
-      createGoal(formData);
+    if (!validateForm()) return;
+
+    setIsSubmitting(true);
+    try {
+      await createGoal(formData);
       navigate('/milestones');
+    } catch (err) {
+      setErrors({ submit: err.message });
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -119,6 +124,12 @@ export default function GoalCreationPage() {
               </div>
             </div>
 
+            {errors.submit && (
+              <div className="p-3 bg-red-900/30 border border-red-700/50 rounded-lg text-red-400 text-sm">
+                {errors.submit}
+              </div>
+            )}
+
             <div className="pt-4">
               <Button
                 type="submit"
@@ -127,8 +138,9 @@ export default function GoalCreationPage() {
                 className="w-full"
                 icon={ChevronRight}
                 iconPosition="right"
+                disabled={isSubmitting}
               >
-                Continue to Milestones
+                {isSubmitting ? 'Creating Goal...' : 'Continue to Milestones'}
               </Button>
             </div>
           </form>

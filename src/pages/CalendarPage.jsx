@@ -1,11 +1,14 @@
 import React, { useState } from 'react';
-import { ChevronLeft, ChevronRight, Check, X } from 'lucide-react';
-import { Button, Card } from '../components/ui';
+import { ChevronLeft, ChevronRight, Check, X, BookOpen, Pencil, Flame } from 'lucide-react';
+import { Button, Card, Modal } from '../components/ui';
 import { useApp } from '../context/AppContext';
 
 export default function CalendarPage() {
-  const { calendarData, toggleCalendarDay, currentLockedMilestone } = useApp();
+  const { calendarData, toggleCalendarDay, updateJournalEntry, currentLockedMilestone } = useApp();
   const [currentDate, setCurrentDate] = useState(new Date());
+  const [selectedDay, setSelectedDay] = useState(null);
+  const [journalText, setJournalText] = useState('');
+  const [showJournalModal, setShowJournalModal] = useState(false);
 
   const year = currentDate.getFullYear();
   const month = currentDate.getMonth();
@@ -37,11 +40,26 @@ export default function CalendarPage() {
     const today = new Date();
     const clickedDate = new Date(year, month, day);
 
-    // Can only mark past days or today
+    // Can only interact with past days or today
     if (clickedDate > today) return;
 
-    const currentStatus = calendarData[dateKey]?.worked;
-    toggleCalendarDay(dateKey, !currentStatus);
+    // Open journal modal for this day
+    setSelectedDay(day);
+    setJournalText(calendarData[dateKey]?.journal || '');
+    setShowJournalModal(true);
+  };
+
+  const handleToggleWorked = (worked) => {
+    if (!selectedDay) return;
+    const dateKey = formatDateKey(selectedDay);
+    toggleCalendarDay(dateKey, worked);
+  };
+
+  const handleSaveJournal = () => {
+    if (!selectedDay) return;
+    const dateKey = formatDateKey(selectedDay);
+    updateJournalEntry(dateKey, journalText);
+    setShowJournalModal(false);
   };
 
   const getDayStatus = (day) => {
@@ -61,11 +79,45 @@ export default function CalendarPage() {
     return checkDate < today;
   };
 
+  const isFuture = (day) => {
+    const today = new Date();
+    today.setHours(23, 59, 59, 999);
+    const checkDate = new Date(year, month, day);
+    return checkDate > today;
+  };
+
   // Calculate stats
   const workedDays = Object.values(calendarData).filter(d => d.worked).length;
   const missedDays = Object.values(calendarData).filter(d => d.worked === false).length;
   const totalTrackedDays = workedDays + missedDays;
   const consistencyRate = totalTrackedDays > 0 ? Math.round((workedDays / totalTrackedDays) * 100) : 0;
+  const journalEntries = Object.values(calendarData).filter(d => d.journal && d.journal.trim()).length;
+
+  // Calculate current streak
+  const calculateStreak = () => {
+    let streak = 0;
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    for (let i = 0; i <= 365; i++) {
+      const checkDate = new Date(today);
+      checkDate.setDate(today.getDate() - i);
+      const dateKey = `${checkDate.getFullYear()}-${String(checkDate.getMonth() + 1).padStart(2, '0')}-${String(checkDate.getDate()).padStart(2, '0')}`;
+
+      const dayData = calendarData[dateKey];
+      if (dayData?.worked === true) {
+        streak++;
+      } else if (dayData?.worked === false) {
+        break;
+      } else if (i > 0) {
+        // Skip days with no data (except today)
+        break;
+      }
+    }
+    return streak;
+  };
+
+  const currentStreak = calculateStreak();
 
   // Generate calendar grid
   const calendarDays = [];
@@ -80,37 +132,60 @@ export default function CalendarPage() {
     calendarDays.push(day);
   }
 
+  // Journal prompts for reflection
+  const journalPrompts = [
+    "What did you accomplish today?",
+    "What challenges did you face?",
+    "What will you do differently tomorrow?",
+    "How did you feel about your progress?",
+    "What are you grateful for today?",
+  ];
+
+  const getRandomPrompt = () => {
+    return journalPrompts[Math.floor(Math.random() * journalPrompts.length)];
+  };
+
+  const selectedDateKey = selectedDay ? formatDateKey(selectedDay) : null;
+  const selectedDayData = selectedDateKey ? calendarData[selectedDateKey] : null;
+
   return (
-    <div className="space-y-8">
+    <div className="space-y-6 sm:space-y-8">
       {/* Header */}
       <div>
-        <h1 className="text-2xl font-bold text-obsidian-100 mb-1">Calendar Evidence</h1>
-        <p className="text-obsidian-400">Track your daily progress towards your milestones</p>
+        <h1 className="text-xl sm:text-2xl font-bold text-obsidian-100 mb-1">Daily Journal</h1>
+        <p className="text-obsidian-400 text-sm sm:text-base">Track your daily progress and reflect on your journey</p>
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-3 gap-4">
-        <Card variant="default" padding="md" className="text-center">
-          <div className="text-3xl font-bold text-green-400 mb-1">{workedDays}</div>
-          <div className="text-obsidian-400 text-sm">Days Worked</div>
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
+        <Card variant="default" padding="sm" className="sm:p-4 text-center">
+          <div className="text-2xl sm:text-3xl font-bold text-green-400 mb-1">{workedDays}</div>
+          <div className="text-obsidian-400 text-xs sm:text-sm">Days Worked</div>
         </Card>
-        <Card variant="default" padding="md" className="text-center">
-          <div className="text-3xl font-bold text-red-400 mb-1">{missedDays}</div>
-          <div className="text-obsidian-400 text-sm">Days Missed</div>
+        <Card variant="default" padding="sm" className="sm:p-4 text-center">
+          <div className="text-2xl sm:text-3xl font-bold text-red-400 mb-1">{missedDays}</div>
+          <div className="text-obsidian-400 text-xs sm:text-sm">Days Missed</div>
         </Card>
-        <Card variant="default" padding="md" className="text-center">
-          <div className="text-3xl font-bold text-gold-400 mb-1">{consistencyRate}%</div>
-          <div className="text-obsidian-400 text-sm">Consistency</div>
+        <Card variant="default" padding="sm" className="sm:p-4 text-center">
+          <div className="flex items-center justify-center gap-1">
+            <Flame className="w-5 h-5 sm:w-6 sm:h-6 text-amber-400" />
+            <span className="text-2xl sm:text-3xl font-bold text-amber-400">{currentStreak}</span>
+          </div>
+          <div className="text-obsidian-400 text-xs sm:text-sm">Day Streak</div>
+        </Card>
+        <Card variant="default" padding="sm" className="sm:p-4 text-center">
+          <div className="text-2xl sm:text-3xl font-bold text-gold-400 mb-1">{consistencyRate}%</div>
+          <div className="text-obsidian-400 text-xs sm:text-sm">Consistency</div>
         </Card>
       </div>
 
       {/* Current Milestone Info */}
       {currentLockedMilestone && (
-        <Card variant="highlighted" padding="md">
+        <Card variant="highlighted" padding="sm" className="sm:p-4">
           <div className="flex items-center justify-between">
             <div>
-              <span className="text-obsidian-400 text-sm">Currently tracking: </span>
-              <span className="text-obsidian-200 font-medium">
+              <span className="text-obsidian-400 text-xs sm:text-sm">Currently tracking: </span>
+              <span className="text-obsidian-200 font-medium text-sm sm:text-base">
                 Milestone {currentLockedMilestone.number}: {currentLockedMilestone.title}
               </span>
             </div>
@@ -119,13 +194,13 @@ export default function CalendarPage() {
       )}
 
       {/* Calendar */}
-      <Card variant="elevated" padding="lg">
+      <Card variant="elevated" padding="md" className="sm:p-6">
         {/* Month Navigation */}
-        <div className="flex items-center justify-between mb-6">
+        <div className="flex items-center justify-between mb-4 sm:mb-6">
           <Button variant="ghost" size="sm" onClick={previousMonth}>
             <ChevronLeft className="w-5 h-5" />
           </Button>
-          <h2 className="text-xl font-semibold text-obsidian-100">
+          <h2 className="text-lg sm:text-xl font-semibold text-obsidian-100">
             {monthNames[month]} {year}
           </h2>
           <Button variant="ghost" size="sm" onClick={nextMonth}>
@@ -134,11 +209,11 @@ export default function CalendarPage() {
         </div>
 
         {/* Day Names */}
-        <div className="grid grid-cols-7 gap-2 mb-2">
+        <div className="grid grid-cols-7 gap-1 sm:gap-2 mb-2">
           {dayNames.map((day) => (
             <div
               key={day}
-              className="text-center text-obsidian-500 text-sm font-medium py-2"
+              className="text-center text-obsidian-500 text-xs sm:text-sm font-medium py-1 sm:py-2"
             >
               {day}
             </div>
@@ -146,7 +221,7 @@ export default function CalendarPage() {
         </div>
 
         {/* Calendar Grid */}
-        <div className="grid grid-cols-7 gap-2">
+        <div className="grid grid-cols-7 gap-1 sm:gap-2">
           {calendarDays.map((day, index) => {
             if (day === null) {
               return <div key={`empty-${index}`} className="aspect-square" />;
@@ -155,7 +230,9 @@ export default function CalendarPage() {
             const status = getDayStatus(day);
             const isTodayDate = isToday(day);
             const isPastDate = isPast(day);
+            const isFutureDate = isFuture(day);
             const canClick = isPastDate || isTodayDate;
+            const hasJournal = status?.journal && status.journal.trim();
 
             return (
               <button
@@ -164,16 +241,16 @@ export default function CalendarPage() {
                 disabled={!canClick}
                 className={`
                   aspect-square rounded-lg border flex flex-col items-center justify-center
-                  transition-all relative
+                  transition-all relative p-1
                   ${isTodayDate ? 'border-gold-500/50 ring-1 ring-gold-500/30' : 'border-obsidian-700'}
                   ${status?.worked === true ? 'bg-green-900/30 border-green-700/50' : ''}
                   ${status?.worked === false ? 'bg-red-900/30 border-red-700/50' : ''}
-                  ${!status && canClick ? 'bg-obsidian-800/50 hover:bg-obsidian-700/50 cursor-pointer' : ''}
-                  ${!canClick ? 'bg-obsidian-900/30 cursor-not-allowed opacity-50' : ''}
+                  ${!status?.worked && canClick ? 'bg-obsidian-800/50 hover:bg-obsidian-700/50 cursor-pointer' : ''}
+                  ${isFutureDate ? 'bg-obsidian-900/30 cursor-not-allowed opacity-50' : ''}
                 `}
               >
                 <span className={`
-                  text-sm font-medium
+                  text-xs sm:text-sm font-medium
                   ${isTodayDate ? 'text-gold-400' : 'text-obsidian-300'}
                   ${status?.worked === true ? 'text-green-400' : ''}
                   ${status?.worked === false ? 'text-red-400' : ''}
@@ -181,42 +258,199 @@ export default function CalendarPage() {
                   {day}
                 </span>
 
-                {status?.worked === true && (
-                  <Check className="w-4 h-4 text-green-500 absolute bottom-1" />
-                )}
-                {status?.worked === false && (
-                  <X className="w-4 h-4 text-red-500 absolute bottom-1" />
-                )}
+                {/* Status icons */}
+                <div className="flex items-center gap-0.5 mt-0.5">
+                  {status?.worked === true && (
+                    <Check className="w-3 h-3 sm:w-4 sm:h-4 text-green-500" />
+                  )}
+                  {status?.worked === false && (
+                    <X className="w-3 h-3 sm:w-4 sm:h-4 text-red-500" />
+                  )}
+                  {hasJournal && (
+                    <BookOpen className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-blue-400" />
+                  )}
+                </div>
               </button>
             );
           })}
         </div>
 
         {/* Legend */}
-        <div className="flex items-center justify-center gap-6 mt-6 pt-4 border-t border-obsidian-700">
-          <div className="flex items-center gap-2">
-            <div className="w-4 h-4 rounded bg-green-900/50 border border-green-700/50 flex items-center justify-center">
-              <Check className="w-3 h-3 text-green-500" />
+        <div className="flex flex-wrap items-center justify-center gap-3 sm:gap-6 mt-4 sm:mt-6 pt-4 border-t border-obsidian-700">
+          <div className="flex items-center gap-1.5 sm:gap-2">
+            <div className="w-3 h-3 sm:w-4 sm:h-4 rounded bg-green-900/50 border border-green-700/50 flex items-center justify-center">
+              <Check className="w-2 h-2 sm:w-3 sm:h-3 text-green-500" />
             </div>
-            <span className="text-obsidian-400 text-sm">Worked</span>
+            <span className="text-obsidian-400 text-xs sm:text-sm">Worked</span>
           </div>
-          <div className="flex items-center gap-2">
-            <div className="w-4 h-4 rounded bg-red-900/50 border border-red-700/50 flex items-center justify-center">
-              <X className="w-3 h-3 text-red-500" />
+          <div className="flex items-center gap-1.5 sm:gap-2">
+            <div className="w-3 h-3 sm:w-4 sm:h-4 rounded bg-red-900/50 border border-red-700/50 flex items-center justify-center">
+              <X className="w-2 h-2 sm:w-3 sm:h-3 text-red-500" />
             </div>
-            <span className="text-obsidian-400 text-sm">Not Worked</span>
+            <span className="text-obsidian-400 text-xs sm:text-sm">Missed</span>
           </div>
-          <div className="flex items-center gap-2">
-            <div className="w-4 h-4 rounded bg-obsidian-800/50 border border-obsidian-700" />
-            <span className="text-obsidian-400 text-sm">Not Tracked</span>
+          <div className="flex items-center gap-1.5 sm:gap-2">
+            <div className="w-3 h-3 sm:w-4 sm:h-4 rounded bg-obsidian-700 flex items-center justify-center">
+              <BookOpen className="w-2 h-2 sm:w-3 sm:h-3 text-blue-400" />
+            </div>
+            <span className="text-obsidian-400 text-xs sm:text-sm">Has Journal</span>
           </div>
         </div>
       </Card>
 
       {/* Instructions */}
-      <div className="text-center text-obsidian-500 text-sm">
-        Click on past days to mark whether you worked towards your milestone or not.
+      <div className="text-center text-obsidian-500 text-xs sm:text-sm">
+        Tap any day to mark your progress and add a reflection.
       </div>
+
+      {/* Journal Entries Preview */}
+      {journalEntries > 0 && (
+        <Card variant="default" padding="md" className="sm:p-6">
+          <h3 className="text-base sm:text-lg font-semibold text-obsidian-100 mb-4 flex items-center gap-2">
+            <BookOpen className="w-4 h-4 sm:w-5 sm:h-5 text-blue-400" />
+            Recent Reflections
+          </h3>
+          <div className="space-y-3">
+            {Object.entries(calendarData)
+              .filter(([_, data]) => data.journal && data.journal.trim())
+              .sort(([a], [b]) => new Date(b) - new Date(a))
+              .slice(0, 3)
+              .map(([dateKey, data]) => (
+                <div key={dateKey} className="p-3 bg-obsidian-800/50 rounded-lg border border-obsidian-700">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-obsidian-400 text-xs sm:text-sm">
+                      {new Date(dateKey + 'T00:00:00').toLocaleDateString('en-US', {
+                        weekday: 'short',
+                        month: 'short',
+                        day: 'numeric',
+                      })}
+                    </span>
+                    {data.worked === true && (
+                      <span className="text-green-400 text-xs flex items-center gap-1">
+                        <Check className="w-3 h-3" /> Worked
+                      </span>
+                    )}
+                    {data.worked === false && (
+                      <span className="text-red-400 text-xs flex items-center gap-1">
+                        <X className="w-3 h-3" /> Missed
+                      </span>
+                    )}
+                  </div>
+                  <p className="text-obsidian-200 text-sm line-clamp-2">{data.journal}</p>
+                </div>
+              ))}
+          </div>
+        </Card>
+      )}
+
+      {/* Journal Modal */}
+      <Modal
+        isOpen={showJournalModal}
+        onClose={() => setShowJournalModal(false)}
+        title={selectedDay ? `${monthNames[month]} ${selectedDay}, ${year}` : 'Journal Entry'}
+        size="md"
+      >
+        <div className="space-y-6">
+          {/* Work Status Toggle */}
+          <div>
+            <label className="text-obsidian-300 text-sm font-medium mb-3 block">
+              Did you work towards your goal today?
+            </label>
+            <div className="flex gap-3">
+              <button
+                onClick={() => handleToggleWorked(true)}
+                className={`
+                  flex-1 p-4 rounded-xl border-2 transition-all flex flex-col items-center gap-2
+                  ${selectedDayData?.worked === true
+                    ? 'bg-green-900/30 border-green-500 text-green-400'
+                    : 'bg-obsidian-800/50 border-obsidian-700 text-obsidian-400 hover:border-obsidian-600'
+                  }
+                `}
+              >
+                <Check className="w-8 h-8" />
+                <span className="font-medium">Yes, I worked!</span>
+              </button>
+              <button
+                onClick={() => handleToggleWorked(false)}
+                className={`
+                  flex-1 p-4 rounded-xl border-2 transition-all flex flex-col items-center gap-2
+                  ${selectedDayData?.worked === false
+                    ? 'bg-red-900/30 border-red-500 text-red-400'
+                    : 'bg-obsidian-800/50 border-obsidian-700 text-obsidian-400 hover:border-obsidian-600'
+                  }
+                `}
+              >
+                <X className="w-8 h-8" />
+                <span className="font-medium">No, I missed it</span>
+              </button>
+            </div>
+          </div>
+
+          {/* Journal Entry */}
+          <div>
+            <div className="flex items-center justify-between mb-2">
+              <label className="text-obsidian-300 text-sm font-medium flex items-center gap-2">
+                <Pencil className="w-4 h-4" />
+                Daily Reflection
+              </label>
+              <button
+                onClick={() => setJournalText(prev => prev ? prev : getRandomPrompt())}
+                className="text-xs text-blue-400 hover:text-blue-300 transition-colors"
+              >
+                Get prompt
+              </button>
+            </div>
+            <textarea
+              value={journalText}
+              onChange={(e) => setJournalText(e.target.value)}
+              placeholder="Write a short reflection about your day..."
+              rows={4}
+              className="w-full px-4 py-3 bg-obsidian-800 border border-obsidian-700 rounded-xl
+                text-obsidian-100 placeholder-obsidian-500 resize-none
+                focus:border-gold-500/50 focus:ring-1 focus:ring-gold-500/20 focus:outline-none
+                transition-colors"
+            />
+            <p className="text-obsidian-500 text-xs mt-2">
+              {journalText.length} characters
+            </p>
+          </div>
+
+          {/* Prompts */}
+          <div className="p-3 bg-obsidian-800/50 rounded-lg border border-obsidian-700">
+            <p className="text-obsidian-400 text-xs mb-2">Quick prompts:</p>
+            <div className="flex flex-wrap gap-2">
+              {['What went well?', 'What was hard?', 'Tomorrow I will...'].map((prompt) => (
+                <button
+                  key={prompt}
+                  onClick={() => setJournalText(prev => prev ? `${prev}\n\n${prompt} ` : `${prompt} `)}
+                  className="text-xs px-2 py-1 bg-obsidian-700 text-obsidian-300 rounded-md
+                    hover:bg-obsidian-600 transition-colors"
+                >
+                  {prompt}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Actions */}
+          <div className="flex gap-3">
+            <Button
+              variant="secondary"
+              className="flex-1"
+              onClick={() => setShowJournalModal(false)}
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="gold"
+              className="flex-1"
+              onClick={handleSaveJournal}
+            >
+              Save Entry
+            </Button>
+          </div>
+        </div>
+      </Modal>
     </div>
   );
 }
