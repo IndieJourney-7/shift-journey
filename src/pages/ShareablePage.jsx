@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useLocation } from 'react-router-dom';
-import { Lock, Check, AlertTriangle, Eye } from 'lucide-react';
+import { Lock, Check, AlertTriangle, Eye, Loader2 } from 'lucide-react';
 import { Card } from '../components/ui';
 import { IntegrityShieldBadge } from '../components/journey';
 import { OpenGraphMeta, generateOGTitle, generateOGDescription } from '../components/seo';
-import { useApp } from '../context/AppContext';
+import { milestoneService } from '../services/database';
 
 /**
  * Shareable Page - Public witness page for locked milestones
@@ -129,14 +129,65 @@ function LiveCountdown({ deadline }) {
 export default function ShareablePage() {
   const { commitmentId } = useParams();
   const location = useLocation();
-  const { user, currentLockedMilestone, milestones, addWitness } = useApp();
   const [witnessed, setWitnessed] = useState(false);
   const [ogTimeRemaining, setOgTimeRemaining] = useState({ hours: 0, minutes: 0 });
+  const [milestone, setMilestone] = useState(null);
+  const [milestoneUser, setMilestoneUser] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-  // Find the milestone by ID from URL, or use current locked milestone
-  const milestone = commitmentId
-    ? milestones.find(m => m.id === parseInt(commitmentId))
-    : currentLockedMilestone;
+  // Fetch milestone data from database using share_id
+  useEffect(() => {
+    const fetchMilestone = async () => {
+      if (!commitmentId) {
+        setError('No commitment ID provided');
+        setIsLoading(false);
+        return;
+      }
+
+      try {
+        setIsLoading(true);
+        const data = await milestoneService.getByShareId(commitmentId);
+
+        if (!data) {
+          setError('Commitment not found');
+          setIsLoading(false);
+          return;
+        }
+
+        // Transform the data
+        setMilestone({
+          id: data.id,
+          title: data.title,
+          status: data.status,
+          promise: data.promise_text ? {
+            text: data.promise_text,
+            deadline: data.promise_deadline,
+            consequence: data.promise_consequence,
+            lockedAt: data.promise_locked_at,
+            witnessCount: data.witness_count || 0,
+          } : null,
+          goalTitle: data.goals?.title,
+        });
+
+        // Set user info from the joined data
+        if (data.users) {
+          setMilestoneUser({
+            name: data.users.name || 'User',
+            integrityScore: data.users.integrity_score ?? 100,
+          });
+        }
+
+        setIsLoading(false);
+      } catch (err) {
+        console.error('Failed to fetch milestone:', err);
+        setError('Failed to load commitment');
+        setIsLoading(false);
+      }
+    };
+
+    fetchMilestone();
+  }, [commitmentId]);
 
   // Calculate time remaining for OG meta tags
   useEffect(() => {
@@ -165,24 +216,52 @@ export default function ShareablePage() {
   }, [milestone?.promise?.deadline]);
 
   // Handle witness action - adds to the witness count
-  const handleWitness = () => {
-    if (!witnessed) {
+  const handleWitness = async () => {
+    if (!witnessed && milestone) {
       setWitnessed(true);
-      // Add witness count to the milestone
-      addWitness();
+      // Add witness count to the milestone in database
+      try {
+        await milestoneService.addWitness(milestone.id);
+        // Update local state
+        setMilestone(prev => ({
+          ...prev,
+          promise: {
+            ...prev.promise,
+            witnessCount: (prev.promise?.witnessCount || 0) + 1,
+          },
+        }));
+      } catch (err) {
+        console.error('Failed to add witness:', err);
+      }
     }
   };
 
-  if (!milestone) {
+  // Loading state
+  if (isLoading) {
     return (
       <div className="min-h-screen bg-obsidian-950 flex items-center justify-center">
         <div className="text-center">
-          <p className="text-obsidian-400 mb-2">No active commitment found</p>
+          <Loader2 className="w-8 h-8 text-obsidian-400 animate-spin mx-auto mb-3" />
+          <p className="text-obsidian-400">Loading commitment...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Error or not found state
+  if (error || !milestone) {
+    return (
+      <div className="min-h-screen bg-obsidian-950 flex items-center justify-center">
+        <div className="text-center">
+          <p className="text-obsidian-400 mb-2">{error || 'No active commitment found'}</p>
           <p className="text-obsidian-600 text-sm">This link may have expired or the commitment was completed.</p>
         </div>
       </div>
     );
   }
+
+  // Use milestoneUser for display
+  const user = milestoneUser || { name: 'User', integrityScore: 50 };
 
   const statusConfig = getStatusConfig(milestone.status);
   const StatusIcon = statusConfig.icon;
