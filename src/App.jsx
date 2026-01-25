@@ -4,6 +4,8 @@ import { AppProvider, useApp } from './context/AppContext';
 import { AppLayout } from './components/layout';
 import {
   LandingPage,
+  LoginPage,
+  AuthCallbackPage,
   GoalCreationPage,
   MilestonesPage,
   LockPromisePage,
@@ -106,6 +108,10 @@ function AppRoutes() {
 
       {/* Landing Page (for marketing) */}
       <Route path="/welcome" element={<LandingPage />} />
+
+      {/* Auth Pages - Public */}
+      <Route path="/login" element={<LoginPage />} />
+      <Route path="/auth/callback" element={<AuthCallbackPage />} />
 
       {/* App Routes with Layout */}
       <Route

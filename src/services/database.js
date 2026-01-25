@@ -971,6 +971,13 @@ export const authService = {
   },
 
   /**
+   * Sign in with Google (shortcut)
+   */
+  async signInWithGoogle() {
+    return this.signInWithProvider('google');
+  },
+
+  /**
    * Sign out
    */
   async signOut() {
@@ -987,6 +994,89 @@ export const authService = {
     if (!isSupabaseConfigured()) return { data: { subscription: { unsubscribe: () => {} } } };
 
     return supabase.auth.onAuthStateChange(callback);
+  },
+
+  /**
+   * Get or create user from Supabase Auth user
+   * Links to existing anonymous user if device_id matches
+   */
+  async getOrCreateAuthUser(authUser) {
+    if (!isSupabaseConfigured() || !authUser) return null;
+
+    const deviceId = getDeviceId();
+
+    // First, check if user already exists by auth_id
+    const { data: existingAuthUser, error: authError } = await supabase
+      .from('users')
+      .select('*')
+      .eq('auth_id', authUser.id)
+      .single();
+
+    if (existingAuthUser) {
+      return existingAuthUser;
+    }
+
+    // Check if anonymous user exists with this device_id
+    const { data: anonymousUser, error: anonError } = await supabase
+      .from('users')
+      .select('*')
+      .eq('device_id', deviceId)
+      .single();
+
+    if (anonymousUser) {
+      // Link anonymous account to Google account
+      const { data: linkedUser, error: linkError } = await supabase
+        .from('users')
+        .update({
+          auth_id: authUser.id,
+          email: authUser.email,
+          name: authUser.user_metadata?.full_name || authUser.user_metadata?.name || anonymousUser.name,
+          avatar_url: authUser.user_metadata?.avatar_url || authUser.user_metadata?.picture,
+          auth_provider: 'google',
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', anonymousUser.id)
+        .select()
+        .single();
+
+      if (linkError) throw linkError;
+      return linkedUser;
+    }
+
+    // No existing user - create new one
+    const { data: newUser, error: createError } = await supabase
+      .from('users')
+      .insert({
+        device_id: deviceId,
+        auth_id: authUser.id,
+        email: authUser.email,
+        name: authUser.user_metadata?.full_name || authUser.user_metadata?.name || 'User',
+        avatar_url: authUser.user_metadata?.avatar_url || authUser.user_metadata?.picture,
+        auth_provider: 'google',
+        integrity_score: 100,
+        failure_streak: 0,
+      })
+      .select()
+      .single();
+
+    if (createError) throw createError;
+    return newUser;
+  },
+
+  /**
+   * Get user by auth_id (for authenticated users)
+   */
+  async getUserByAuthId(authId) {
+    if (!isSupabaseConfigured()) return null;
+
+    const { data, error } = await supabase
+      .from('users')
+      .select('*')
+      .eq('auth_id', authId)
+      .single();
+
+    if (error && error.code !== 'PGRST116') throw error;
+    return data;
   },
 };
 

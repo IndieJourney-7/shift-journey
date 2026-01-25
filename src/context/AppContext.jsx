@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import {
   anonymousUserService,
+  authService,
   goalService,
   milestoneService,
   pricingService,
@@ -27,6 +28,7 @@ const getIntegrityStatus = (score) => {
 export function AppProvider({ children }) {
   // Core state
   const [user, setUser] = useState(null);
+  const [authUser, setAuthUser] = useState(null); // Supabase auth user (Google)
   const [currentGoal, setCurrentGoal] = useState(null);
   const [milestones, setMilestones] = useState([]);
   const [goalHistory, setGoalHistory] = useState([]);
@@ -43,6 +45,97 @@ export function AppProvider({ children }) {
   // INITIALIZATION
   // =====================================================
 
+  // Helper to load user data
+  const loadUserData = async (dbUser) => {
+    setUser({
+      id: dbUser.id,
+      name: dbUser.name,
+      email: dbUser.email,
+      avatarUrl: dbUser.avatar_url,
+      authProvider: dbUser.auth_provider || 'anonymous',
+      integrityScore: dbUser.integrity_score ?? INTEGRITY_CONFIG.INITIAL_SCORE,
+      failureStreak: dbUser.failure_streak ?? 0,
+      status: getIntegrityStatus(dbUser.integrity_score ?? INTEGRITY_CONFIG.INITIAL_SCORE),
+      badge: getBadgeFromScore(dbUser.integrity_score ?? INTEGRITY_CONFIG.INITIAL_SCORE),
+      createdAt: dbUser.created_at,
+    });
+
+    // Load active goal with milestones
+    const activeGoal = await goalService.getActive(dbUser.id);
+    if (activeGoal) {
+      setCurrentGoal({
+        id: activeGoal.id,
+        title: activeGoal.title,
+        description: activeGoal.description,
+        createdAt: activeGoal.created_at,
+        status: activeGoal.status,
+      });
+
+      // Transform milestones from DB format
+      const transformedMilestones = (activeGoal.milestones || []).map(m => ({
+        id: m.id,
+        goalId: m.goal_id,
+        number: m.number,
+        title: m.title,
+        status: m.status,
+        promise: m.promise_text ? {
+          text: m.promise_text,
+          deadline: m.promise_deadline,
+          consequence: m.promise_consequence,
+          lockedAt: m.promise_locked_at,
+          witnessCount: m.witness_count || 0,
+        } : null,
+        completedAt: m.completed_at,
+        brokenAt: m.broken_at,
+        reason: m.broken_reason,
+        shareId: m.share_id,
+      }));
+      setMilestones(transformedMilestones);
+    } else {
+      setCurrentGoal(null);
+      setMilestones([]);
+    }
+
+    // Load goal history
+    const completedGoals = await goalService.getCompleted(dbUser.id);
+    const transformedHistory = completedGoals.map(g => ({
+      id: g.id,
+      title: g.title,
+      description: g.description,
+      createdAt: g.created_at,
+      completedAt: g.completed_at,
+      reflection: g.reflection,
+      finalIntegrityScore: g.final_integrity_score,
+      stats: g.stats || {},
+      milestones: (g.milestones || []).map(m => ({
+        id: m.id,
+        number: m.number,
+        title: m.title,
+        status: m.status,
+        completedAt: m.completed_at,
+        brokenAt: m.broken_at,
+        reason: m.broken_reason,
+      })),
+    }));
+    setGoalHistory(transformedHistory);
+
+    // Load calendar data
+    try {
+      const calData = await calendarService.getByUserId(dbUser.id);
+      const calendarMap = {};
+      calData.forEach(entry => {
+        calendarMap[entry.date] = {
+          worked: entry.worked,
+          journal: entry.notes,
+        };
+      });
+      setCalendarData(calendarMap);
+    } catch (calErr) {
+      console.warn('Calendar data not available:', calErr);
+      setCalendarData({});
+    }
+  };
+
   // Initialize user and load data on mount
   useEffect(() => {
     const initializeApp = async () => {
@@ -53,96 +146,26 @@ export function AppProvider({ children }) {
       }
 
       try {
-        // Get or create anonymous user
-        const dbUser = await anonymousUserService.getOrCreate();
+        // First, check if user is signed in with Google
+        const session = await authService.getSession();
+
+        let dbUser;
+        if (session?.user) {
+          // User is signed in with Google - get or link their account
+          setAuthUser(session.user);
+          dbUser = await authService.getOrCreateAuthUser(session.user);
+        } else {
+          // No auth session - use anonymous user
+          dbUser = await anonymousUserService.getOrCreate();
+        }
+
         if (!dbUser) {
           setError('Failed to initialize user.');
           setIsLoading(false);
           return;
         }
 
-        setUser({
-          id: dbUser.id,
-          name: dbUser.name,
-          integrityScore: dbUser.integrity_score ?? INTEGRITY_CONFIG.INITIAL_SCORE,
-          failureStreak: dbUser.failure_streak ?? 0,
-          status: getIntegrityStatus(dbUser.integrity_score ?? INTEGRITY_CONFIG.INITIAL_SCORE),
-          badge: getBadgeFromScore(dbUser.integrity_score ?? INTEGRITY_CONFIG.INITIAL_SCORE),
-          createdAt: dbUser.created_at,
-        });
-
-        // Load active goal with milestones
-        const activeGoal = await goalService.getActive(dbUser.id);
-        if (activeGoal) {
-          setCurrentGoal({
-            id: activeGoal.id,
-            title: activeGoal.title,
-            description: activeGoal.description,
-            createdAt: activeGoal.created_at,
-            status: activeGoal.status,
-          });
-
-          // Transform milestones from DB format
-          const transformedMilestones = (activeGoal.milestones || []).map(m => ({
-            id: m.id,
-            goalId: m.goal_id,
-            number: m.number,
-            title: m.title,
-            status: m.status,
-            promise: m.promise_text ? {
-              text: m.promise_text,
-              deadline: m.promise_deadline,
-              consequence: m.promise_consequence,
-              lockedAt: m.promise_locked_at,
-              witnessCount: m.witness_count || 0,
-            } : null,
-            completedAt: m.completed_at,
-            brokenAt: m.broken_at,
-            reason: m.broken_reason,
-            shareId: m.share_id,
-          }));
-          setMilestones(transformedMilestones);
-        }
-
-        // Load goal history
-        const completedGoals = await goalService.getCompleted(dbUser.id);
-        const transformedHistory = completedGoals.map(g => ({
-          id: g.id,
-          title: g.title,
-          description: g.description,
-          createdAt: g.created_at,
-          completedAt: g.completed_at,
-          reflection: g.reflection,
-          finalIntegrityScore: g.final_integrity_score,
-          stats: g.stats || {},
-          milestones: (g.milestones || []).map(m => ({
-            id: m.id,
-            number: m.number,
-            title: m.title,
-            status: m.status,
-            completedAt: m.completed_at,
-            brokenAt: m.broken_at,
-            reason: m.broken_reason,
-          })),
-        }));
-        setGoalHistory(transformedHistory);
-
-        // Load calendar data
-        try {
-          const calData = await calendarService.getByUserId(dbUser.id);
-          const calendarMap = {};
-          calData.forEach(entry => {
-            calendarMap[entry.date] = {
-              worked: entry.worked,
-              journal: entry.notes,
-            };
-          });
-          setCalendarData(calendarMap);
-        } catch (calErr) {
-          console.warn('Calendar data not available:', calErr);
-          // Calendar table might not exist yet, use empty data
-          setCalendarData({});
-        }
+        await loadUserData(dbUser);
 
       } catch (err) {
         console.error('Failed to initialize app:', err);
@@ -154,6 +177,52 @@ export function AppProvider({ children }) {
 
     initializeApp();
   }, []);
+
+  // Listen for auth state changes (sign in/out)
+  useEffect(() => {
+    if (!isSupabaseConfigured()) return;
+
+    const { data: { subscription } } = authService.onAuthStateChange(async (event, session) => {
+      if (event === 'SIGNED_IN' && session?.user) {
+        // User just signed in - reload their data
+        setAuthUser(session.user);
+        try {
+          const dbUser = await authService.getOrCreateAuthUser(session.user);
+          if (dbUser) {
+            await loadUserData(dbUser);
+          }
+        } catch (err) {
+          console.error('Failed to load user after sign in:', err);
+        }
+      } else if (event === 'SIGNED_OUT') {
+        // User signed out - switch back to anonymous
+        setAuthUser(null);
+        try {
+          const dbUser = await anonymousUserService.getOrCreate();
+          if (dbUser) {
+            await loadUserData(dbUser);
+          }
+        } catch (err) {
+          console.error('Failed to load anonymous user:', err);
+        }
+      }
+    });
+
+    return () => {
+      subscription?.unsubscribe();
+    };
+  }, []);
+
+  // Sign out function
+  const signOut = async () => {
+    try {
+      await authService.signOut();
+      // Auth state change listener will handle the rest
+    } catch (err) {
+      console.error('Failed to sign out:', err);
+      throw new Error('Failed to sign out. Please try again.');
+    }
+  };
 
   // =====================================================
   // COMPUTED VALUES
@@ -760,6 +829,7 @@ export function AppProvider({ children }) {
   const value = {
     // State
     user,
+    authUser,
     currentGoal,
     milestones,
     goalHistory,
@@ -773,7 +843,11 @@ export function AppProvider({ children }) {
     hasActivePromise,
     canFinishGoal,
     needsGoalSetup,
-    isAuthenticated: !!user, // For compatibility
+    isAuthenticated: !!user, // Has a user account (anonymous or Google)
+    isSignedIn: !!authUser, // Signed in with Google
+
+    // Auth operations
+    signOut,
 
     // Goal operations
     createGoal,

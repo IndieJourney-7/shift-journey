@@ -1,56 +1,40 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { Lock, Mail, User, ChevronRight } from 'lucide-react';
-import { Button, Card, Input } from '../components/ui';
-import { useApp } from '../context/AppContext';
+import { Loader2 } from 'lucide-react';
+import { authService } from '../services/database';
 
+/**
+ * Login Page - Google OAuth sign-in
+ * Optional sign-in for cross-device sync
+ */
 export default function LoginPage() {
   const navigate = useNavigate();
-  const { login, signUp, currentGoal } = useApp();
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState(null);
 
-  const [isSignUp, setIsSignUp] = useState(false);
-  const [formData, setFormData] = useState({
-    name: '',
-    email: '',
-    password: '',
-  });
-
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
-  };
-
-  const handleSubmit = (e) => {
-    e.preventDefault();
-
-    if (isSignUp) {
-      // Sign up: create new user and redirect to goal creation
-      signUp({
-        name: formData.name,
-        email: formData.email,
-      });
-      navigate('/goal/create');
-    } else {
-      // Login: use existing data (demo) and go to dashboard
-      login();
-      // If user has a goal, go to dashboard; otherwise go to goal creation
-      if (currentGoal) {
-        navigate('/dashboard');
-      } else {
-        navigate('/goal/create');
-      }
+  const handleGoogleSignIn = async () => {
+    try {
+      setIsLoading(true);
+      setError(null);
+      await authService.signInWithGoogle();
+      // Redirect happens automatically via OAuth flow
+    } catch (err) {
+      console.error('Google sign-in failed:', err);
+      setError('Failed to sign in with Google. Please try again.');
+      setIsLoading(false);
     }
   };
 
-  return (
-    <div className="min-h-screen bg-obsidian-950 noise-bg flex items-center justify-center p-4">
-      {/* Background gradient */}
-      <div className="absolute inset-0 gradient-radial opacity-30" />
+  const handleContinueAnonymously = () => {
+    navigate('/');
+  };
 
-      <div className="w-full max-w-md relative z-10">
+  return (
+    <div className="min-h-screen bg-obsidian-950 flex items-center justify-center px-4">
+      <div className="w-full max-w-sm">
         {/* Logo */}
-        <Link to="/" className="flex items-center justify-center gap-2 mb-8">
-          <div className="w-10 h-10">
+        <Link to="/" className="block text-center mb-8">
+          <div className="w-16 h-16 mx-auto mb-4">
             <svg viewBox="0 0 32 32" className="w-full h-full">
               <defs>
                 <linearGradient id="loginLogoGold" x1="0%" y1="0%" x2="100%" y2="100%">
@@ -63,93 +47,101 @@ export default function LoginPage() {
               <circle cx="16" cy="12" r="2" fill="url(#loginLogoGold)" />
             </svg>
           </div>
-          <span className="text-obsidian-100 font-semibold text-xl">Shift Ascent</span>
+          <h1 className="text-2xl font-bold text-obsidian-100">Shift Ascent</h1>
+          <p className="text-obsidian-400 text-sm mt-2">Your word is your identity</p>
         </Link>
 
-        {/* Card */}
-        <Card variant="elevated" padding="lg">
-          <div className="text-center mb-6">
-            <h1 className="text-2xl font-bold text-obsidian-100 mb-2">
-              {isSignUp ? 'Start Your Journey' : 'Welcome Back'}
-            </h1>
-            <p className="text-obsidian-400">
-              {isSignUp
-                ? 'Create an account to begin your commitment journey'
-                : 'Sign in to continue your journey'
-              }
-            </p>
-          </div>
+        {/* Sign In Card */}
+        <div className="bg-obsidian-900 border border-obsidian-800 rounded-xl p-6">
+          <h2 className="text-lg font-medium text-obsidian-100 text-center mb-2">
+            Welcome
+          </h2>
+          <p className="text-obsidian-400 text-sm text-center mb-6">
+            Sign in to sync your progress across devices
+          </p>
 
-          <form onSubmit={handleSubmit} className="space-y-4">
-            {isSignUp && (
-              <div className="relative">
-                <User className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-obsidian-500" />
-                <Input
-                  type="text"
-                  name="name"
-                  placeholder="Full Name"
-                  value={formData.name}
-                  onChange={handleChange}
-                  className="pl-10"
+          {/* Error Message */}
+          {error && (
+            <div className="bg-red-900/30 border border-red-800 rounded-lg p-3 mb-4">
+              <p className="text-red-400 text-sm text-center">{error}</p>
+            </div>
+          )}
+
+          {/* Google Sign In Button */}
+          <button
+            onClick={handleGoogleSignIn}
+            disabled={isLoading}
+            className="w-full flex items-center justify-center gap-3 px-4 py-3 bg-white hover:bg-gray-100 text-gray-800 font-medium rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {isLoading ? (
+              <Loader2 className="w-5 h-5 animate-spin" />
+            ) : (
+              <svg className="w-5 h-5" viewBox="0 0 24 24">
+                <path
+                  fill="#4285F4"
+                  d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
                 />
-              </div>
+                <path
+                  fill="#34A853"
+                  d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
+                />
+                <path
+                  fill="#FBBC05"
+                  d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"
+                />
+                <path
+                  fill="#EA4335"
+                  d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
+                />
+              </svg>
             )}
+            <span>{isLoading ? 'Signing in...' : 'Continue with Google'}</span>
+          </button>
 
-            <div className="relative">
-              <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-obsidian-500" />
-              <Input
-                type="email"
-                name="email"
-                placeholder="Email"
-                value={formData.email}
-                onChange={handleChange}
-                className="pl-10"
-              />
-            </div>
-
-            <div className="relative">
-              <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-obsidian-500" />
-              <Input
-                type="password"
-                name="password"
-                placeholder="Password"
-                value={formData.password}
-                onChange={handleChange}
-                className="pl-10"
-              />
-            </div>
-
-            <Button
-              type="submit"
-              variant="gold"
-              size="lg"
-              className="w-full"
-              icon={ChevronRight}
-              iconPosition="right"
-            >
-              {isSignUp ? 'Create Account' : 'Sign In'}
-            </Button>
-          </form>
-
-          <div className="mt-6 text-center">
-            <p className="text-obsidian-500 text-sm">
-              {isSignUp ? 'Already have an account?' : "Don't have an account?"}{' '}
-              <button
-                onClick={() => setIsSignUp(!isSignUp)}
-                className="text-gold-500 hover:text-gold-400 font-medium"
-              >
-                {isSignUp ? 'Sign In' : 'Sign Up'}
-              </button>
-            </p>
+          {/* Divider */}
+          <div className="flex items-center gap-3 my-6">
+            <div className="flex-1 h-px bg-obsidian-700" />
+            <span className="text-obsidian-500 text-xs">or</span>
+            <div className="flex-1 h-px bg-obsidian-700" />
           </div>
-        </Card>
 
-        {/* Info note */}
-        <p className="text-center text-obsidian-600 text-sm mt-6">
-          {isSignUp
-            ? 'Create an account to start your journey with a fresh slate.'
-            : 'Sign in to continue with demo data, or sign up to start fresh.'
-          }
+          {/* Continue Without Signing In */}
+          <button
+            onClick={handleContinueAnonymously}
+            className="w-full px-4 py-3 text-obsidian-300 hover:text-obsidian-100 border border-obsidian-700 hover:border-obsidian-600 rounded-lg transition-colors text-sm font-medium"
+          >
+            Continue without signing in
+          </button>
+        </div>
+
+        {/* Benefits */}
+        <div className="mt-6 space-y-3">
+          <p className="text-obsidian-500 text-xs text-center">
+            Why sign in?
+          </p>
+          <div className="grid grid-cols-2 gap-3 text-xs">
+            <div className="flex items-center gap-2 text-obsidian-400">
+              <span className="text-green-500">✓</span>
+              <span>Sync across devices</span>
+            </div>
+            <div className="flex items-center gap-2 text-obsidian-400">
+              <span className="text-green-500">✓</span>
+              <span>Never lose progress</span>
+            </div>
+            <div className="flex items-center gap-2 text-obsidian-400">
+              <span className="text-green-500">✓</span>
+              <span>Backup your data</span>
+            </div>
+            <div className="flex items-center gap-2 text-obsidian-400">
+              <span className="text-green-500">✓</span>
+              <span>Secure & private</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Footer */}
+        <p className="text-obsidian-600 text-xs text-center mt-8">
+          By signing in, you agree to our Terms of Service and Privacy Policy
         </p>
       </div>
     </div>

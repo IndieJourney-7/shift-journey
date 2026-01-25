@@ -20,7 +20,7 @@ import {
 import { useApp } from '../../context/AppContext';
 
 export default function Sidebar({ isOpen, onClose }) {
-  const { currentGoal, canCreateNewGoal, logout } = useApp();
+  const { currentGoal, canCreateNewGoal, user, isSignedIn, signOut } = useApp();
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -58,9 +58,17 @@ export default function Sidebar({ isOpen, onClose }) {
     { icon: Settings, label: 'Settings', href: '/settings' },
   ];
 
-  const handleLogout = () => {
-    logout();
-    navigate('/');
+  const handleSignOut = async () => {
+    try {
+      await signOut();
+      navigate('/');
+    } catch (err) {
+      console.error('Sign out failed:', err);
+    }
+  };
+
+  const handleSignIn = () => {
+    navigate('/login');
   };
 
   const linkClasses = ({ isActive }) => `
@@ -167,15 +175,50 @@ export default function Sidebar({ isOpen, onClose }) {
         </nav>
       </div>
 
-      {/* Logout */}
+      {/* User Section & Auth */}
       <div className="p-3 border-t border-obsidian-800">
-        <button
-          onClick={handleLogout}
-          className="flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium text-obsidian-400 hover:text-obsidian-200 hover:bg-obsidian-800/50 transition-all w-full"
-        >
-          <LogOut className="w-4 h-4" />
-          <span>Log Out</span>
-        </button>
+        {/* User Info (if signed in with Google) */}
+        {isSignedIn && user && (
+          <div className="flex items-center gap-3 px-4 py-2.5 mb-2">
+            {user.avatarUrl ? (
+              <img
+                src={user.avatarUrl}
+                alt={user.name}
+                className="w-8 h-8 rounded-full border border-obsidian-600"
+              />
+            ) : (
+              <div className="w-8 h-8 rounded-full bg-obsidian-700 border border-obsidian-600 flex items-center justify-center">
+                <span className="text-obsidian-300 text-sm font-medium">
+                  {user.name?.charAt(0) || 'U'}
+                </span>
+              </div>
+            )}
+            <div className="flex-1 min-w-0">
+              <p className="text-obsidian-200 text-sm font-medium truncate">{user.name}</p>
+              {user.email && (
+                <p className="text-obsidian-500 text-xs truncate">{user.email}</p>
+              )}
+            </div>
+          </div>
+        )}
+
+        {isSignedIn ? (
+          <button
+            onClick={handleSignOut}
+            className="flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium text-obsidian-400 hover:text-obsidian-200 hover:bg-obsidian-800/50 transition-all w-full"
+          >
+            <LogOut className="w-4 h-4" />
+            <span>Sign Out</span>
+          </button>
+        ) : (
+          <button
+            onClick={handleSignIn}
+            className="flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium text-gold-500 hover:text-gold-400 hover:bg-obsidian-800/50 transition-all w-full"
+          >
+            <User className="w-4 h-4" />
+            <span>Sign In with Google</span>
+          </button>
+        )}
       </div>
       </aside>
     </>

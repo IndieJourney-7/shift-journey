@@ -15,3 +15,4 @@ export { default as PricingPage } from './PricingPage';
 export { default as AdminPage } from './AdminPage';
 export { default as MilestoneSystemPage } from './MilestoneSystemPage';
 export { default as PublicProfilePage } from './PublicProfilePage';
+export { default as AuthCallbackPage } from './AuthCallbackPage';
