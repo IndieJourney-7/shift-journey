@@ -6,7 +6,7 @@ import { IntegrityBadgeCard, ShareableBadgeImage } from '../components/badges';
 import { useApp } from '../context/AppContext';
 
 export default function ProfilePage() {
-  const { user, milestones, nextPendingMilestone, currentLockedMilestone, currentGoal } = useApp();
+  const { user, milestones, nextPendingMilestone, currentLockedMilestone, currentGoal, goalHistory } = useApp();
   const [showRepairModal, setShowRepairModal] = useState(false);
   const [showShareModal, setShowShareModal] = useState(false);
 
@@ -28,12 +28,32 @@ export default function ProfilePage() {
   const completedCount = milestones.filter(m => m.status === 'completed').length;
   const brokenCount = failureHistory.length;
 
+  // Calculate current streak (consecutive kept promises from most recent)
+  const calculateStreak = () => {
+    const resolvedMilestones = milestones
+      .filter(m => m.status === 'completed' || m.status === 'broken')
+      .sort((a, b) => new Date(b.completedAt || b.brokenAt) - new Date(a.completedAt || a.brokenAt));
+
+    let streak = 0;
+    for (const m of resolvedMilestones) {
+      if (m.status === 'completed') {
+        streak++;
+      } else {
+        break;
+      }
+    }
+    return streak;
+  };
+
+  const currentStreak = calculateStreak();
+  const goalsCompletedCount = goalHistory?.length || 0;
+
   // Stats for badge sharing
   const badgeStats = {
     totalKept: completedCount,
     totalBroken: brokenCount,
-    currentStreak: 0, // Calculate from consecutive completed
-    goalsCompleted: 0,
+    currentStreak: currentStreak,
+    goalsCompleted: goalsCompletedCount,
     totalWitnesses: milestones.reduce((acc, m) => acc + (m.promise?.witnessCount || 0), 0),
   };
 

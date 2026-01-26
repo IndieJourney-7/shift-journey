@@ -1,5 +1,5 @@
 import React from 'react';
-import { Shield, Flame, Target, Users, TrendingUp } from 'lucide-react';
+import { Shield, Flame, Target, Users, TrendingUp, Trophy } from 'lucide-react';
 import { getIntegrityTier, getNextTier, getPromisesToNextTier, getTierProgress } from '../../lib/badgeDefinitions';
 
 // Shield visual component based on tier
@@ -137,6 +137,7 @@ export default function IntegrityBadgeCard({
     totalBroken = 0,
     currentStreak = 0,
     totalWitnesses = 0,
+    goalsCompleted = 0,
   } = stats;
 
   if (variant === 'minimal') {
@@ -210,22 +211,22 @@ export default function IntegrityBadgeCard({
               color="text-green-400"
             />
             <StatItem
-              icon={Flame}
-              value={currentStreak}
-              label="Streak"
-              color="text-amber-400"
-            />
-            <StatItem
               icon={Shield}
               value={totalBroken}
               label="Broken"
               color="text-red-400"
             />
             <StatItem
-              icon={Users}
-              value={totalWitnesses}
-              label="Witnesses"
-              color="text-blue-400"
+              icon={Flame}
+              value={currentStreak}
+              label="Streak"
+              color="text-amber-400"
+            />
+            <StatItem
+              icon={Trophy}
+              value={goalsCompleted}
+              label="Goals"
+              color="text-purple-400"
             />
           </div>
         )}

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Lock, Check, AlertTriangle, ChevronRight, Target, Share2, Copy, CheckCircle, Trophy } from 'lucide-react';
+import { Lock, Check, AlertTriangle, ChevronRight, Target, Share2, Copy, CheckCircle, Trophy, Upload, Camera } from 'lucide-react';
 import { Button, Card, Badge, Modal, Textarea } from '../components/ui';
 import { JourneyPath, MilestoneCard, CountdownTimer, IntegrityBadgeInline } from '../components/journey';
 import { useApp } from '../context/AppContext';
@@ -39,7 +39,10 @@ export default function DashboardPage() {
     whyFailed: '',
     whatWasInControl: '',
     whatWillChange: '',
+    consequenceProof: '', // Description of how they completed the consequence
   });
+  const [consequenceProofImage, setConsequenceProofImage] = useState(null);
+  const [consequenceProofPreview, setConsequenceProofPreview] = useState(null);
 
   // Generate shareable link for current locked milestone
   const getShareableLink = () => {
@@ -71,13 +74,26 @@ export default function DashboardPage() {
   };
 
   const handleBreak = async () => {
-    if (!currentLockedMilestone || !reflection.whyFailed.trim()) return;
+    if (!currentLockedMilestone || !isReflectionComplete) return;
 
     setIsProcessing(true);
     setActionError(null);
     try {
-      await breakPromise(currentLockedMilestone.id, reflection.whyFailed);
-      setReflection({ whyFailed: '', whatWasInControl: '', whatWillChange: '' });
+      // Build structured reflection with all fields
+      let fullReason = `WHY I FAILED:\n${reflection.whyFailed}\n\n`;
+      fullReason += `WHAT WAS IN MY CONTROL:\n${reflection.whatWasInControl}\n\n`;
+      fullReason += `WHAT I WILL CHANGE:\n${reflection.whatWillChange}`;
+
+      // Add consequence proof if there was a custom consequence
+      if (hasCustomConsequence && reflection.consequenceProof.trim()) {
+        fullReason += `\n\nCONSEQUENCE COMMITTED:\n"${currentLockedMilestone.promise.consequence}"\n\n`;
+        fullReason += `HOW I COMPLETED IT:\n${reflection.consequenceProof}`;
+      }
+
+      await breakPromise(currentLockedMilestone.id, fullReason);
+      setReflection({ whyFailed: '', whatWasInControl: '', whatWillChange: '', consequenceProof: '' });
+      setConsequenceProofImage(null);
+      setConsequenceProofPreview(null);
       setShowBreakModal(false);
     } catch (err) {
       setActionError(err.message);
@@ -90,7 +106,27 @@ export default function DashboardPage() {
     setReflection(prev => ({ ...prev, [field]: value }));
   };
 
-  const isReflectionComplete = reflection.whyFailed.trim() && reflection.whatWasInControl.trim() && reflection.whatWillChange.trim();
+  const handleConsequenceImageUpload = (e) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setConsequenceProofImage(file);
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setConsequenceProofPreview(reader.result);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  // Check if consequence was set (not just default)
+  const hasCustomConsequence = currentLockedMilestone?.promise?.consequence &&
+    currentLockedMilestone.promise.consequence !== 'I accept the consequence.';
+
+  // Reflection is complete when all fields are filled, plus consequence proof if there was a custom consequence
+  const isReflectionComplete = reflection.whyFailed.trim() &&
+    reflection.whatWasInControl.trim() &&
+    reflection.whatWillChange.trim() &&
+    (!hasCustomConsequence || reflection.consequenceProof.trim());
 
   const completedMilestones = milestones.filter(m => m.status === 'completed');
   const brokenMilestones = milestones.filter(m => m.status === 'broken');
@@ -225,7 +261,10 @@ export default function DashboardPage() {
               variant="danger"
               className="flex-1"
               icon={AlertTriangle}
-              onClick={() => setShowBreakModal(true)}
+              onClick={() => {
+                setActionError(null);
+                setShowBreakModal(true);
+              }}
             >
               Promise Broken
             </Button>
@@ -438,7 +477,7 @@ export default function DashboardPage() {
           </div>
 
           {/* Question 3: What will you change? */}
-          <div className="mb-6">
+          <div className="mb-5">
             <label className="block text-obsidian-200 text-sm font-medium mb-2">
               3. What will you change next time? <span className="text-red-400">*</span>
             </label>
@@ -453,6 +492,73 @@ export default function DashboardPage() {
             />
           </div>
 
+          {/* Consequence Proof Section - Only show if custom consequence was set */}
+          {hasCustomConsequence && (
+            <div className="mb-5 p-4 bg-obsidian-800/50 border border-obsidian-600 rounded-lg">
+              <label className="block text-obsidian-200 text-sm font-medium mb-2">
+                4. Your Consequence <span className="text-red-400">*</span>
+              </label>
+              <div className="p-3 bg-obsidian-900/50 border border-obsidian-700 rounded-lg mb-3">
+                <p className="text-obsidian-300 text-sm italic">
+                  "{currentLockedMilestone?.promise?.consequence}"
+                </p>
+              </div>
+              <p className="text-obsidian-500 text-xs mb-3">
+                You committed to this consequence. Describe how you completed it.
+              </p>
+              <Textarea
+                placeholder="I completed my consequence by..."
+                value={reflection.consequenceProof}
+                onChange={(e) => handleReflectionChange('consequenceProof', e.target.value)}
+                rows={2}
+              />
+
+              {/* Optional: Image Upload */}
+              <div className="mt-3">
+                <label className="block text-obsidian-400 text-xs mb-2">
+                  Upload proof (optional)
+                </label>
+                <div className="flex items-center gap-3">
+                  <label className="flex items-center gap-2 px-3 py-2 bg-obsidian-700 hover:bg-obsidian-600 border border-obsidian-600 rounded-lg cursor-pointer transition-colors">
+                    <Camera className="w-4 h-4 text-obsidian-400" />
+                    <span className="text-obsidian-300 text-xs">Upload Photo</span>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={handleConsequenceImageUpload}
+                      className="hidden"
+                    />
+                  </label>
+                  {consequenceProofPreview && (
+                    <div className="relative">
+                      <img
+                        src={consequenceProofPreview}
+                        alt="Proof"
+                        className="w-12 h-12 object-cover rounded-lg border border-obsidian-600"
+                      />
+                      <button
+                        onClick={() => {
+                          setConsequenceProofImage(null);
+                          setConsequenceProofPreview(null);
+                        }}
+                        className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 text-white rounded-full text-xs"
+                      >
+                        ×
+                      </button>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Error Message */}
+          {actionError && (
+            <div className="p-3 bg-red-900/30 border border-red-700/50 rounded-lg mb-4">
+              <p className="text-red-400 text-sm text-center">{actionError}</p>
+            </div>
+          )}
+
           {/* Warning */}
           <div className="p-3 bg-red-900/20 border border-red-800/30 rounded-lg mb-6">
             <p className="text-red-400 text-xs text-center">
@@ -465,7 +571,9 @@ export default function DashboardPage() {
               variant="secondary"
               className="flex-1"
               onClick={() => {
-                setReflection({ whyFailed: '', whatWasInControl: '', whatWillChange: '' });
+                setReflection({ whyFailed: '', whatWasInControl: '', whatWillChange: '', consequenceProof: '' });
+                setConsequenceProofImage(null);
+                setConsequenceProofPreview(null);
                 setShowBreakModal(false);
               }}
             >
@@ -475,9 +583,9 @@ export default function DashboardPage() {
               variant="danger"
               className="flex-1"
               onClick={handleBreak}
-              disabled={!isReflectionComplete}
+              disabled={!isReflectionComplete || isProcessing}
             >
-              Submit & Break Promise
+              {isProcessing ? 'Submitting...' : 'Submit & Break Promise'}
             </Button>
           </div>
         </div>

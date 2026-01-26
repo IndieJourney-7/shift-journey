@@ -38,6 +38,7 @@ export default function ShareableBadgeImage({
     totalKept = 0,
     totalBroken = 0,
     currentStreak = 0,
+    goalsCompleted = 0,
   } = stats;
 
   // Calculate time remaining for milestone
@@ -305,13 +306,14 @@ export default function ShareableBadgeImage({
     currentY = 420;
     const statsData = [
       { value: totalKept, label: 'Kept', color: '#22c55e' },
-      { value: currentStreak, label: 'Streak', color: '#f59e0b' },
       { value: totalBroken, label: 'Broken', color: '#ef4444' },
+      { value: currentStreak, label: 'Streak', color: '#f59e0b' },
+      { value: goalsCompleted, label: 'Goals', color: '#a855f7' },
     ];
 
-    const statBoxWidth = 130;
+    const statBoxWidth = 110;
     const statBoxHeight = 85;
-    const statGap = 25;
+    const statGap = 15;
 
     statsData.forEach((stat, i) => {
       const boxX = textX + i * (statBoxWidth + statGap);
