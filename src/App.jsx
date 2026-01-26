@@ -21,6 +21,7 @@ import {
   MilestoneSystemPage,
   PublicProfilePage,
   CalendarPage,
+  WaitlistPage,
 } from './pages';
 
 // Loading screen component
@@ -132,6 +133,7 @@ function AppRoutes() {
         <Route path="/help" element={<HelpPage />} />
         <Route path="/goal-accomplished" element={<GoalAccomplishedPage />} />
         <Route path="/milestone-system" element={<MilestoneSystemPage />} />
+        <Route path="/waitlist" element={<WaitlistPage />} />
       </Route>
 
       {/* Catch all - redirect to main */}

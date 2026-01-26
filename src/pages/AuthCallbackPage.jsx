@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Loader2, CheckCircle, XCircle } from 'lucide-react';
 import { authService } from '../services/database';
@@ -11,26 +11,18 @@ export default function AuthCallbackPage() {
   const navigate = useNavigate();
   const [status, setStatus] = useState('processing'); // processing, success, error
   const [error, setError] = useState(null);
+  const handledRef = useRef(false); // Prevent duplicate handling
 
   useEffect(() => {
-    const handleCallback = async () => {
+    let errorTimeout = null;
+
+    const handleSuccess = async (user) => {
+      if (handledRef.current) return;
+      handledRef.current = true;
+
       try {
-        // Get the session from the URL hash (Supabase puts auth data there)
-        const { data: { session }, error: sessionError } = await authService.getSession();
-
-        if (sessionError) {
-          throw sessionError;
-        }
-
-        if (!session?.user) {
-          // No session yet, wait for it
-          // Supabase may need a moment to process the OAuth callback
-          return;
-        }
-
         // Link/create user in our users table
-        await authService.getOrCreateAuthUser(session.user);
-
+        await authService.getOrCreateAuthUser(user);
         setStatus('success');
 
         // Redirect to app after a brief delay
@@ -39,34 +31,64 @@ export default function AuthCallbackPage() {
         }, 1000);
       } catch (err) {
         console.error('Auth callback error:', err);
-        setError(err.message || 'Authentication failed');
+        handledRef.current = false;
+        setError(err.message || 'Failed to complete sign-in');
         setStatus('error');
+      }
+    };
+
+    const handleCallback = async () => {
+      try {
+        // Get the session from the URL hash (Supabase puts auth data there)
+        const { data: { session }, error: sessionError } = await authService.getSession();
+
+        if (sessionError) {
+          // Don't throw immediately - wait a bit for auth state change listener
+          console.warn('Session error:', sessionError);
+          return;
+        }
+
+        if (session?.user) {
+          await handleSuccess(session.user);
+        }
+        // If no session yet, the auth state change listener will handle it
+      } catch (err) {
+        console.error('Auth callback error:', err);
+        // Delay error display to give auth state change listener a chance
+        errorTimeout = setTimeout(() => {
+          if (!handledRef.current) {
+            setError(err.message || 'Authentication failed');
+            setStatus('error');
+          }
+        }, 2000);
       }
     };
 
     handleCallback();
 
-    // Also listen for auth state changes in case the callback takes a moment
+    // Listen for auth state changes - this is more reliable than getSession for OAuth callbacks
     const { data: { subscription } } = authService.onAuthStateChange(async (event, session) => {
       if (event === 'SIGNED_IN' && session?.user) {
-        try {
-          await authService.getOrCreateAuthUser(session.user);
-          setStatus('success');
-          setTimeout(() => {
-            navigate('/app', { replace: true });
-          }, 1000);
-        } catch (err) {
-          console.error('Auth callback error:', err);
-          setError(err.message || 'Authentication failed');
-          setStatus('error');
-        }
+        // Clear any pending error timeout
+        if (errorTimeout) clearTimeout(errorTimeout);
+        await handleSuccess(session.user);
       }
     });
 
+    // Fallback timeout - if nothing happens after 10 seconds, show error
+    const fallbackTimeout = setTimeout(() => {
+      if (!handledRef.current && status === 'processing') {
+        setError('Authentication timed out. Please try again.');
+        setStatus('error');
+      }
+    }, 10000);
+
     return () => {
       subscription?.unsubscribe();
+      if (errorTimeout) clearTimeout(errorTimeout);
+      clearTimeout(fallbackTimeout);
     };
-  }, [navigate]);
+  }, [navigate, status]);
 
   const handleRetry = () => {
     navigate('/login', { replace: true });

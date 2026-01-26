@@ -12,6 +12,7 @@ export default function GoalAccomplishedPage() {
     user,
     canFinishGoal,
     completeGoal,
+    goalHistory,
   } = useApp();
 
   const [reflection, setReflection] = useState('');
@@ -76,12 +77,20 @@ export default function GoalAccomplishedPage() {
     setShowConfetti(true);
     setShowSuccessOverlay(true);
 
+    // Check if this is the user's first goal completion (before completing)
+    const isFirstGoal = !goalHistory || goalHistory.length === 0;
+
     // Complete the goal immediately but keep celebration for 3 seconds
     try {
       await completeGoal(reflection);
-      // Navigate to goal creation after 3 second celebration
+      // Navigate after 3 second celebration
+      // Show waitlist for first goal, otherwise go to goal creation
       setTimeout(() => {
-        navigate('/goal/create', { replace: true });
+        if (isFirstGoal) {
+          navigate('/waitlist', { replace: true });
+        } else {
+          navigate('/goal/create', { replace: true });
+        }
       }, 3000);
     } catch (error) {
       console.error('Failed to complete goal:', error);

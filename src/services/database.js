@@ -870,6 +870,57 @@ export const calendarService = {
 };
 
 // =====================================================
+// WAITLIST
+// =====================================================
+
+export const waitlistService = {
+  /**
+   * Add entry to waitlist
+   */
+  async add({ userId, email, notes, goalsCompleted, integrityScore }) {
+    if (!isSupabaseConfigured()) return null;
+
+    const { data, error } = await supabase
+      .from('waitlist')
+      .upsert(
+        {
+          user_id: userId || null,
+          email,
+          notes: notes || null,
+          source: 'goal_completion',
+          goals_completed: goalsCompleted || 1,
+          integrity_score: integrityScore || null,
+        },
+        {
+          onConflict: 'email',
+          ignoreDuplicates: false,
+        }
+      )
+      .select()
+      .single();
+
+    if (error) throw error;
+    return data;
+  },
+
+  /**
+   * Check if email is already on waitlist
+   */
+  async exists(email) {
+    if (!isSupabaseConfigured()) return false;
+
+    const { data, error } = await supabase
+      .from('waitlist')
+      .select('id')
+      .eq('email', email)
+      .single();
+
+    if (error && error.code !== 'PGRST116') throw error;
+    return !!data;
+  },
+};
+
+// =====================================================
 // PUBLIC DATA (For shareable pages)
 // =====================================================
 

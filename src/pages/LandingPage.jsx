@@ -300,17 +300,17 @@ export default function LandingPage() {
           </div>
 
           <div className="text-center mt-8 sm:mt-10">
-            <div className="inline-flex items-center gap-4 text-sm">
-              <div className="flex items-center gap-2">
-                <div className="w-3 h-3 rounded-full bg-gray-500" />
+            <div className="flex flex-wrap items-center justify-center gap-3 sm:gap-4 text-xs sm:text-sm">
+              <div className="flex items-center gap-1.5 sm:gap-2">
+                <div className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full bg-gray-500" />
                 <span className="text-obsidian-500">0-30: Unreliable</span>
               </div>
-              <div className="flex items-center gap-2">
-                <div className="w-3 h-3 rounded-full bg-gray-400" />
+              <div className="flex items-center gap-1.5 sm:gap-2">
+                <div className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full bg-gray-400" />
                 <span className="text-obsidian-400">31-70: Inconsistent</span>
               </div>
-              <div className="flex items-center gap-2">
-                <div className="w-3 h-3 rounded-full bg-gold-500" />
+              <div className="flex items-center gap-1.5 sm:gap-2">
+                <div className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full bg-gold-500" />
                 <span className="text-gold-500">71-100: Reliable</span>
               </div>
             </div>

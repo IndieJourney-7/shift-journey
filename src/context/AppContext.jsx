@@ -701,6 +701,9 @@ export function AppProvider({ children }) {
   const toggleCalendarDay = async (dateKey, worked) => {
     if (!user) return;
 
+    // Get current journal value before updating state
+    const currentJournal = calendarData[dateKey]?.journal || null;
+
     // Update local state immediately
     setCalendarData(prev => ({
       ...prev,
@@ -712,7 +715,7 @@ export function AppProvider({ children }) {
 
     // Sync to database
     try {
-      await calendarService.upsert(user.id, dateKey, worked, calendarData[dateKey]?.journal || null);
+      await calendarService.upsert(user.id, dateKey, worked, currentJournal);
     } catch (err) {
       console.error('Failed to save calendar data:', err);
       // Revert on error
@@ -730,19 +733,22 @@ export function AppProvider({ children }) {
   const updateJournalEntry = async (dateKey, journal) => {
     if (!user) return;
 
-    // Update local state immediately
-    setCalendarData(prev => ({
-      ...prev,
-      [dateKey]: {
-        ...prev[dateKey],
-        journal,
-      },
-    }));
+    // Get current worked value before updating state (use functional update to get latest)
+    let currentWorked = null;
+    setCalendarData(prev => {
+      currentWorked = prev[dateKey]?.worked ?? null;
+      return {
+        ...prev,
+        [dateKey]: {
+          ...prev[dateKey],
+          journal,
+        },
+      };
+    });
 
-    // Sync to database
+    // Sync to database - preserve the worked status
     try {
-      const worked = calendarData[dateKey]?.worked ?? null;
-      await calendarService.upsert(user.id, dateKey, worked, journal);
+      await calendarService.upsert(user.id, dateKey, currentWorked, journal);
     } catch (err) {
       console.error('Failed to save journal:', err);
     }

@@ -16,3 +16,4 @@ export { default as AdminPage } from './AdminPage';
 export { default as MilestoneSystemPage } from './MilestoneSystemPage';
 export { default as PublicProfilePage } from './PublicProfilePage';
 export { default as AuthCallbackPage } from './AuthCallbackPage';
+export { default as WaitlistPage } from './WaitlistPage';

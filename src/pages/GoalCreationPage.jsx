@@ -57,16 +57,16 @@ export default function GoalCreationPage() {
   };
 
   return (
-    <div className="max-w-2xl mx-auto">
+    <div className="max-w-2xl mx-auto px-1 sm:px-0">
         {/* Header */}
-        <div className="text-center mb-8">
-          <div className="w-16 h-16 mx-auto mb-6 rounded-full bg-obsidian-800 border border-obsidian-600 flex items-center justify-center">
-            <Target className="w-8 h-8 text-gold-500" />
+        <div className="text-center mb-6 sm:mb-8">
+          <div className="w-12 h-12 sm:w-16 sm:h-16 mx-auto mb-4 sm:mb-6 rounded-full bg-obsidian-800 border border-obsidian-600 flex items-center justify-center">
+            <Target className="w-6 h-6 sm:w-8 sm:h-8 text-gold-500" />
           </div>
-          <h1 className="text-3xl font-bold text-obsidian-100 mb-3">
+          <h1 className="text-2xl sm:text-3xl font-bold text-obsidian-100 mb-2 sm:mb-3">
             Set Your Goal
           </h1>
-          <p className="text-obsidian-400">
+          <p className="text-obsidian-400 text-sm sm:text-base">
             Define one clear goal. You can only have one active goal at a time.
           </p>
         </div>
@@ -147,9 +147,9 @@ export default function GoalCreationPage() {
         </Card>
 
         {/* Info Box */}
-        <div className="mt-8 p-4 bg-obsidian-900/50 border border-obsidian-700 rounded-lg">
-          <h3 className="text-obsidian-200 font-medium mb-2">Remember:</h3>
-          <ul className="text-obsidian-400 text-sm space-y-1">
+        <div className="mt-6 sm:mt-8 p-3 sm:p-4 bg-obsidian-900/50 border border-obsidian-700 rounded-lg">
+          <h3 className="text-obsidian-200 font-medium mb-2 text-sm sm:text-base">Remember:</h3>
+          <ul className="text-obsidian-400 text-xs sm:text-sm space-y-1">
             <li>• One active goal keeps you focused</li>
             <li>• You'll break this goal into milestones next</li>
             <li>• Each milestone becomes a locked promise</li>
