@@ -33,9 +33,9 @@ export default function AuthCallbackPage() {
 
         setStatus('success');
 
-        // Redirect to dashboard after a brief delay
+        // Redirect to app after a brief delay
         setTimeout(() => {
-          navigate('/dashboard', { replace: true });
+          navigate('/app', { replace: true });
         }, 1000);
       } catch (err) {
         console.error('Auth callback error:', err);
@@ -53,7 +53,7 @@ export default function AuthCallbackPage() {
           await authService.getOrCreateAuthUser(session.user);
           setStatus('success');
           setTimeout(() => {
-            navigate('/dashboard', { replace: true });
+            navigate('/app', { replace: true });
           }, 1000);
         } catch (err) {
           console.error('Auth callback error:', err);
@@ -73,7 +73,7 @@ export default function AuthCallbackPage() {
   };
 
   const handleContinueAnonymously = () => {
-    navigate('/', { replace: true });
+    navigate('/app', { replace: true });
   };
 
   return (

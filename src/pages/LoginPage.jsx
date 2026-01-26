@@ -26,7 +26,7 @@ export default function LoginPage() {
   };
 
   const handleContinueAnonymously = () => {
-    navigate('/');
+    navigate('/app');
   };
 
   return (

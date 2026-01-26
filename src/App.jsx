@@ -56,8 +56,8 @@ function ErrorScreen({ message }) {
   );
 }
 
-// Main route handler - redirects based on app state
-function MainRouteHandler() {
+// App entry handler - redirects signed-in users to dashboard, others see app
+function AppEntryHandler() {
   const { currentGoal, isLoading, needsGoalSetup } = useApp();
 
   if (isLoading) {
@@ -91,8 +91,11 @@ function AppRouteWrapper({ children }) {
 function AppRoutes() {
   return (
     <Routes>
-      {/* Main entry point - redirects based on state */}
-      <Route path="/" element={<MainRouteHandler />} />
+      {/* Landing Page - First thing users see */}
+      <Route path="/" element={<LandingPage />} />
+
+      {/* App entry - redirects to dashboard or goal creation */}
+      <Route path="/app" element={<AppEntryHandler />} />
 
       {/* Public Shareable Commitment Page - No login required */}
       <Route path="/c/:commitmentId" element={<ShareablePage />} />
@@ -105,9 +108,6 @@ function AppRoutes() {
 
       {/* Admin Dashboard */}
       <Route path="/admin" element={<AdminPage />} />
-
-      {/* Landing Page (for marketing) */}
-      <Route path="/welcome" element={<LandingPage />} />
 
       {/* Auth Pages - Public */}
       <Route path="/login" element={<LoginPage />} />
