@@ -59,13 +59,19 @@ function ErrorScreen({ message }) {
 
 // App entry handler - redirects signed-in users to dashboard, others see app
 function AppEntryHandler() {
-  const { currentGoal, isLoading, needsGoalSetup } = useApp();
+  const { currentGoal, isLoading, needsGoalSetup, goalHistory } = useApp();
 
   if (isLoading) {
     return <LoadingScreen />;
   }
 
-  // If no goal exists, redirect to goal creation
+  // If user has completed a goal but has no current goal, redirect to history
+  const hasCompletedGoal = goalHistory && goalHistory.length > 0;
+  if (hasCompletedGoal && !currentGoal) {
+    return <Navigate to="/history" replace />;
+  }
+
+  // If no goal exists and no history, redirect to goal creation
   if (needsGoalSetup) {
     return <Navigate to="/goal/create" replace />;
   }

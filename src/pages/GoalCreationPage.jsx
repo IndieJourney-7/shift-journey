@@ -1,12 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Target, Calendar, ChevronRight, AlertTriangle } from 'lucide-react';
+import { Target, Calendar, ChevronRight, AlertTriangle, Trophy, Lock } from 'lucide-react';
 import { Button, Card, Input, Textarea } from '../components/ui';
 import { useApp } from '../context/AppContext';
 
 export default function GoalCreationPage() {
   const navigate = useNavigate();
-  const { createGoal, currentGoal, hasActivePromise, canCreateNewGoal } = useApp();
+  const { createGoal, currentGoal, hasActivePromise, goalHistory } = useApp();
+
+  // Check if user has already completed a goal (one goal limit for now)
+  const hasCompletedGoal = goalHistory && goalHistory.length > 0;
 
   // If user has an active goal with locked promise, redirect to dashboard
   useEffect(() => {
@@ -55,6 +58,56 @@ export default function GoalCreationPage() {
       setIsSubmitting(false);
     }
   };
+
+  // If user has already completed a goal, show the "limit reached" message
+  if (hasCompletedGoal && !currentGoal) {
+    return (
+      <div className="max-w-2xl mx-auto px-4 py-8 sm:py-12">
+        <div className="text-center">
+          <div className="w-20 h-20 mx-auto mb-6 rounded-full bg-gold-500/20 border-2 border-gold-500/50 flex items-center justify-center">
+            <Trophy className="w-10 h-10 text-gold-400" />
+          </div>
+          <h1 className="text-2xl sm:text-3xl font-bold text-obsidian-100 mb-3">
+            You've Completed Your Journey!
+          </h1>
+          <p className="text-obsidian-400 mb-6 max-w-md mx-auto">
+            You've successfully completed your first goal on Shift Ascent.
+            We're working on adding more features for your next journey.
+          </p>
+
+          <Card variant="default" padding="lg" className="mb-6 text-left">
+            <div className="flex items-start gap-3 mb-4">
+              <Lock className="w-5 h-5 text-gold-500 mt-0.5" />
+              <div>
+                <h3 className="text-obsidian-200 font-medium mb-1">Coming Soon</h3>
+                <p className="text-obsidian-400 text-sm">
+                  Multiple goals, team challenges, and advanced tracking features are in development.
+                </p>
+              </div>
+            </div>
+            <p className="text-obsidian-500 text-xs">
+              Join our waitlist to be notified when new features launch.
+            </p>
+          </Card>
+
+          <div className="flex flex-col sm:flex-row gap-3 justify-center">
+            <Button
+              variant="secondary"
+              onClick={() => navigate('/history')}
+            >
+              View Your Journey
+            </Button>
+            <Button
+              variant="gold"
+              onClick={() => navigate('/waitlist')}
+            >
+              Join Waitlist
+            </Button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-2xl mx-auto px-1 sm:px-0">

@@ -39,14 +39,8 @@ export default function AuthCallbackPage() {
 
     const handleCallback = async () => {
       try {
-        // Get the session from the URL hash (Supabase puts auth data there)
-        const { data: { session }, error: sessionError } = await authService.getSession();
-
-        if (sessionError) {
-          // Don't throw immediately - wait a bit for auth state change listener
-          console.warn('Session error:', sessionError);
-          return;
-        }
+        // Get the session - authService.getSession() returns just the session object
+        const session = await authService.getSession();
 
         if (session?.user) {
           await handleSuccess(session.user);

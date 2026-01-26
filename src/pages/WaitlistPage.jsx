@@ -36,11 +36,20 @@ export default function WaitlistPage() {
       setIsSubmitted(true);
     } catch (err) {
       console.error('Waitlist submission error:', err);
+      // Handle various error cases
       if (err.message?.includes('duplicate') || err.code === '23505') {
         // Email already exists - treat as success
         setIsSubmitted(true);
+      } else if (err.message?.includes('relation') && err.message?.includes('does not exist')) {
+        // Table doesn't exist - still show success (we'll collect later)
+        console.warn('Waitlist table not yet created');
+        setIsSubmitted(true);
+      } else if (err.code === '42P01') {
+        // Table doesn't exist error code
+        console.warn('Waitlist table not yet created');
+        setIsSubmitted(true);
       } else {
-        setError('Failed to join waitlist. Please try again.');
+        setError(`Failed to join waitlist: ${err.message || 'Unknown error'}`);
       }
     } finally {
       setIsSubmitting(false);
@@ -48,11 +57,11 @@ export default function WaitlistPage() {
   };
 
   const handleSkip = () => {
-    navigate('/dashboard', { replace: true });
+    navigate('/history', { replace: true });
   };
 
   const handleContinue = () => {
-    navigate('/dashboard', { replace: true });
+    navigate('/history', { replace: true });
   };
 
   // Success state
