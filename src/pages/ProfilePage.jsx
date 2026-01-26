@@ -1,11 +1,13 @@
 import React, { useState } from 'react';
-import { AlertTriangle, Check, Lock, User, TrendingUp, Share2 } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { AlertTriangle, Check, Lock, User, TrendingUp, Share2, Target, Trophy, Flame, CheckCircle } from 'lucide-react';
 import { Card, Badge, Button, Modal } from '../components/ui';
 import { IntegrityShieldBadge } from '../components/journey';
 import { IntegrityBadgeCard, ShareableBadgeImage } from '../components/badges';
 import { useApp } from '../context/AppContext';
 
 export default function ProfilePage() {
+  const navigate = useNavigate();
   const { user, milestones, nextPendingMilestone, currentLockedMilestone, currentGoal, goalHistory } = useApp();
   const [showRepairModal, setShowRepairModal] = useState(false);
   const [showShareModal, setShowShareModal] = useState(false);
@@ -187,27 +189,104 @@ export default function ProfilePage() {
         </div>
       </Card>
 
-      {/* Stats */}
-      <div className="grid grid-cols-3 gap-2 sm:gap-4">
-        <Card variant="default" padding="sm" className="sm:p-4 text-center">
-          <div className="text-xl sm:text-2xl lg:text-3xl font-bold text-obsidian-200 mb-0.5 sm:mb-1">
-            {milestones.length}
+      {/* Current Goal */}
+      {currentGoal && (
+        <Card variant="highlighted" padding="md" className="sm:p-6 border-gold-500/20">
+          <div className="flex items-start justify-between gap-4">
+            <div className="flex items-start gap-3">
+              <div className="w-10 h-10 rounded-lg bg-gold-500/20 flex items-center justify-center flex-shrink-0">
+                <Target className="w-5 h-5 text-gold-500" />
+              </div>
+              <div>
+                <p className="text-obsidian-400 text-xs mb-1">Current Goal</p>
+                <h3 className="text-obsidian-100 font-semibold">{currentGoal.title}</h3>
+                {currentGoal.description && (
+                  <p className="text-obsidian-400 text-sm mt-1">{currentGoal.description}</p>
+                )}
+                <div className="flex items-center gap-3 mt-2 text-xs text-obsidian-500">
+                  <span>{milestones.length} milestones</span>
+                  <span>{completedCount} completed</span>
+                  {currentLockedMilestone && <span className="text-gold-500">1 active</span>}
+                </div>
+              </div>
+            </div>
+            <Button variant="ghost" size="sm" onClick={() => navigate('/dashboard')}>
+              View
+            </Button>
           </div>
-          <div className="text-obsidian-500 text-[10px] sm:text-xs lg:text-sm">Total Milestones</div>
         </Card>
+      )}
+
+      {/* Stats Grid */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-4">
         <Card variant="default" padding="sm" className="sm:p-4 text-center">
-          <div className="text-xl sm:text-2xl lg:text-3xl font-bold text-green-400 mb-0.5 sm:mb-1">
+          <CheckCircle className="w-5 h-5 text-green-400 mx-auto mb-1" />
+          <div className="text-xl sm:text-2xl font-bold text-green-400 mb-0.5">
             {completedCount}
           </div>
-          <div className="text-obsidian-500 text-[10px] sm:text-xs lg:text-sm">Promises Kept</div>
+          <div className="text-obsidian-500 text-[10px] sm:text-xs">Promises Kept</div>
         </Card>
         <Card variant="default" padding="sm" className="sm:p-4 text-center">
-          <div className="text-xl sm:text-2xl lg:text-3xl font-bold text-red-400 mb-0.5 sm:mb-1">
+          <AlertTriangle className="w-5 h-5 text-red-400 mx-auto mb-1" />
+          <div className="text-xl sm:text-2xl font-bold text-red-400 mb-0.5">
             {brokenCount}
           </div>
-          <div className="text-obsidian-500 text-[10px] sm:text-xs lg:text-sm">Promises Broken</div>
+          <div className="text-obsidian-500 text-[10px] sm:text-xs">Promises Broken</div>
+        </Card>
+        <Card variant="default" padding="sm" className="sm:p-4 text-center">
+          <Flame className="w-5 h-5 text-amber-400 mx-auto mb-1" />
+          <div className="text-xl sm:text-2xl font-bold text-amber-400 mb-0.5">
+            {currentStreak}
+          </div>
+          <div className="text-obsidian-500 text-[10px] sm:text-xs">Current Streak</div>
+        </Card>
+        <Card variant="default" padding="sm" className="sm:p-4 text-center">
+          <Trophy className="w-5 h-5 text-purple-400 mx-auto mb-1" />
+          <div className="text-xl sm:text-2xl font-bold text-purple-400 mb-0.5">
+            {goalsCompletedCount}
+          </div>
+          <div className="text-obsidian-500 text-[10px] sm:text-xs">Goals Completed</div>
         </Card>
       </div>
+
+      {/* Completed Goals History */}
+      {goalHistory.length > 0 && (
+        <Card variant="default" padding="md" className="sm:p-6">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-base sm:text-lg font-semibold text-obsidian-100">Completed Goals</h3>
+            <span className="text-obsidian-500 text-xs sm:text-sm">{goalHistory.length}</span>
+          </div>
+          <div className="space-y-3">
+            {goalHistory.slice(0, 3).map((goal, index) => (
+              <div
+                key={goal.id || index}
+                className="flex items-start gap-3 p-3 rounded-lg bg-obsidian-800/50 border border-obsidian-700"
+              >
+                <div className="w-8 h-8 rounded-lg bg-green-900/30 flex items-center justify-center flex-shrink-0">
+                  <Trophy className="w-4 h-4 text-green-400" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-obsidian-200 font-medium text-sm truncate">{goal.title}</p>
+                  <div className="flex items-center gap-2 mt-1 text-xs text-obsidian-500">
+                    <span>{goal.stats?.completed || 0}/{goal.stats?.totalMilestones || 0} milestones</span>
+                    {goal.completedAt && (
+                      <span>{new Date(goal.completedAt).toLocaleDateString()}</span>
+                    )}
+                  </div>
+                </div>
+                {goal.finalIntegrityScore && (
+                  <Badge variant="completed" size="sm">{goal.finalIntegrityScore}</Badge>
+                )}
+              </div>
+            ))}
+            {goalHistory.length > 3 && (
+              <Button variant="ghost" size="sm" className="w-full" onClick={() => navigate('/history')}>
+                View All ({goalHistory.length})
+              </Button>
+            )}
+          </div>
+        </Card>
+      )}
 
       {/* Failure History */}
       <Card variant="default" padding="md" className="sm:p-6">

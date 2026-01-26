@@ -45,8 +45,9 @@ export function AppProvider({ children }) {
   // INITIALIZATION
   // =====================================================
 
-  // Helper to load user data
+  // Helper to load user data - optimized with parallel queries
   const loadUserData = async (dbUser) => {
+    // Set user immediately so UI can render
     setUser({
       id: dbUser.id,
       name: dbUser.name,
@@ -60,8 +61,14 @@ export function AppProvider({ children }) {
       createdAt: dbUser.created_at,
     });
 
-    // Load active goal with milestones
-    const activeGoal = await goalService.getActive(dbUser.id);
+    // Load all data in parallel for faster loading
+    const [activeGoal, completedGoals, calData] = await Promise.all([
+      goalService.getActive(dbUser.id),
+      goalService.getCompleted(dbUser.id),
+      calendarService.getByUserId(dbUser.id).catch(() => []),
+    ]);
+
+    // Process active goal
     if (activeGoal) {
       setCurrentGoal({
         id: activeGoal.id,
@@ -96,8 +103,7 @@ export function AppProvider({ children }) {
       setMilestones([]);
     }
 
-    // Load goal history
-    const completedGoals = await goalService.getCompleted(dbUser.id);
+    // Process goal history
     const transformedHistory = completedGoals.map(g => ({
       id: g.id,
       title: g.title,
@@ -119,21 +125,15 @@ export function AppProvider({ children }) {
     }));
     setGoalHistory(transformedHistory);
 
-    // Load calendar data
-    try {
-      const calData = await calendarService.getByUserId(dbUser.id);
-      const calendarMap = {};
-      calData.forEach(entry => {
-        calendarMap[entry.date] = {
-          worked: entry.worked,
-          journal: entry.notes,
-        };
-      });
-      setCalendarData(calendarMap);
-    } catch (calErr) {
-      console.warn('Calendar data not available:', calErr);
-      setCalendarData({});
-    }
+    // Process calendar data
+    const calendarMap = {};
+    (calData || []).forEach(entry => {
+      calendarMap[entry.date] = {
+        worked: entry.worked,
+        journal: entry.notes,
+      };
+    });
+    setCalendarData(calendarMap);
   };
 
   // Initialize user and load data on mount
@@ -759,15 +759,20 @@ export function AppProvider({ children }) {
     return calendarData[dateKey]?.journal || '';
   };
 
-  // Refresh data from database
+  // Refresh data from database - optimized with parallel queries
   const refreshData = async () => {
     if (!user) return;
 
     try {
       setIsLoading(true);
 
-      // Reload active goal
-      const activeGoal = await goalService.getActive(user.id);
+      // Load in parallel
+      const [activeGoal, completedGoals] = await Promise.all([
+        goalService.getActive(user.id),
+        goalService.getCompleted(user.id),
+      ]);
+
+      // Process active goal
       if (activeGoal) {
         setCurrentGoal({
           id: activeGoal.id,
@@ -801,8 +806,7 @@ export function AppProvider({ children }) {
         setMilestones([]);
       }
 
-      // Reload history
-      const completedGoals = await goalService.getCompleted(user.id);
+      // Process history
       const transformedHistory = completedGoals.map(g => ({
         id: g.id,
         title: g.title,
