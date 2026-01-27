@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useRef } from 'react';
 import {
   anonymousUserService,
   authService,
@@ -43,6 +43,9 @@ export function AppProvider({ children }) {
   // { direction: 'up'|'down', newTier, oldTier, scoreChange }
   const [tierChangeNotification, setTierChangeNotification] = useState(null);
   const dismissTierChange = () => setTierChangeNotification(null);
+
+  // Initialization guards to prevent race conditions
+  const isInitialized = useRef(false);
 
   // =====================================================
   // INITIALIZATION
@@ -149,32 +152,41 @@ export function AppProvider({ children }) {
       }
 
       try {
-        // First, check if user is signed in with Google
-        const session = await authService.getSession();
+        // Add timeout to prevent infinite loading if Supabase is slow/paused
+        const timeout = (ms) => new Promise((_, reject) =>
+          setTimeout(() => reject(new Error('Connection timeout. Please check your internet and refresh.')), ms)
+        );
 
-        let dbUser;
-        if (session?.user) {
-          // User is signed in with Google - get or link their account
-          setAuthUser(session.user);
-          dbUser = await authService.getOrCreateAuthUser(session.user);
-        } else {
-          // No auth session - use anonymous user
-          dbUser = await anonymousUserService.getOrCreate();
-        }
+        const loadData = async () => {
+          // First, check if user is signed in with Google
+          const session = await authService.getSession();
 
-        if (!dbUser) {
-          setError('Failed to initialize user.');
-          setIsLoading(false);
-          return;
-        }
+          let dbUser;
+          if (session?.user) {
+            // User is signed in with Google - get or link their account
+            setAuthUser(session.user);
+            dbUser = await authService.getOrCreateAuthUser(session.user);
+          } else {
+            // No auth session - use anonymous user
+            dbUser = await anonymousUserService.getOrCreate();
+          }
 
-        await loadUserData(dbUser);
+          if (!dbUser) {
+            setError('Failed to initialize user.');
+            return;
+          }
+
+          await loadUserData(dbUser);
+        };
+
+        await Promise.race([loadData(), timeout(15000)]);
 
       } catch (err) {
         console.error('Failed to initialize app:', err);
-        setError('Failed to load data. Please refresh the page.');
+        setError(err.message || 'Failed to load data. Please refresh the page.');
       } finally {
         setIsLoading(false);
+        isInitialized.current = true;
       }
     };
 
@@ -182,10 +194,14 @@ export function AppProvider({ children }) {
   }, []);
 
   // Listen for auth state changes (sign in/out)
+  // Skip events during initial setup to avoid race condition with initializeApp
   useEffect(() => {
     if (!isSupabaseConfigured()) return;
 
     const { data: { subscription } } = authService.onAuthStateChange(async (event, session) => {
+      // Skip events during initial load - initializeApp handles the first session
+      if (!isInitialized.current) return;
+
       if (event === 'SIGNED_IN' && session?.user) {
         // User just signed in - reload their data
         setAuthUser(session.user);
