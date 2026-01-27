@@ -11,6 +11,7 @@ export default function CalendarPage() {
   const [modalWorked, setModalWorked] = useState(null);
   const [showJournalModal, setShowJournalModal] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [saveError, setSaveError] = useState(null);
 
   const year = currentDate.getFullYear();
   const month = currentDate.getMonth();
@@ -49,6 +50,7 @@ export default function CalendarPage() {
     setSelectedDay(day);
     setJournalText(calendarData[dateKey]?.journal || '');
     setModalWorked(calendarData[dateKey]?.worked ?? null);
+    setSaveError(null);
     setShowJournalModal(true);
   };
 
@@ -61,11 +63,13 @@ export default function CalendarPage() {
     if (!selectedDay) return;
     const dateKey = formatDateKey(selectedDay);
     setIsSaving(true);
+    setSaveError(null);
     try {
       await saveCalendarDay(dateKey, modalWorked, journalText);
       setShowJournalModal(false);
     } catch (err) {
       console.error('Failed to save entry:', err);
+      setSaveError(err.message || 'Failed to save. Check database settings.');
     } finally {
       setIsSaving(false);
     }
@@ -439,6 +443,13 @@ export default function CalendarPage() {
               ))}
             </div>
           </div>
+
+          {/* Error */}
+          {saveError && (
+            <div className="p-3 bg-red-900/30 border border-red-700/50 rounded-lg text-red-400 text-sm">
+              {saveError}
+            </div>
+          )}
 
           {/* Actions */}
           <div className="flex gap-3">
