@@ -158,16 +158,30 @@ export function AppProvider({ children }) {
         );
 
         const loadData = async () => {
-          // First, check if user is signed in with Google
-          const session = await authService.getSession();
+          // Ensure we always have a Supabase auth session (for RLS).
+          // Anonymous users get an anonymous auth session so auth.uid() is set.
+          let session = await authService.getSession();
+
+          if (!session?.user) {
+            // No existing session - create anonymous auth session
+            try {
+              const anonResult = await authService.signInAnonymously();
+              session = anonResult?.session || null;
+            } catch (err) {
+              console.warn('Anonymous auth not available:', err);
+            }
+          }
 
           let dbUser;
           if (session?.user) {
-            // User is signed in with Google - get or link their account
-            setAuthUser(session.user);
+            // We have an auth session (Google or anonymous)
+            // Only set authUser for Google (non-anonymous) users
+            if (!session.user.is_anonymous) {
+              setAuthUser(session.user);
+            }
             dbUser = await authService.getOrCreateAuthUser(session.user);
           } else {
-            // No auth session - use anonymous user
+            // Complete fallback - no auth at all (shouldn't happen normally)
             dbUser = await anonymousUserService.getOrCreate();
           }
 
@@ -203,8 +217,11 @@ export function AppProvider({ children }) {
       if (!isInitialized.current) return;
 
       if (event === 'SIGNED_IN' && session?.user) {
-        // User just signed in - reload their data
-        setAuthUser(session.user);
+        // User signed in (Google or anonymous) - reload their data
+        const isGoogleUser = !session.user.is_anonymous;
+        if (isGoogleUser) {
+          setAuthUser(session.user);
+        }
         try {
           const dbUser = await authService.getOrCreateAuthUser(session.user);
           if (dbUser) {
@@ -214,15 +231,14 @@ export function AppProvider({ children }) {
           console.error('Failed to load user after sign in:', err);
         }
       } else if (event === 'SIGNED_OUT') {
-        // User signed out - switch back to anonymous
+        // User signed out of Google - re-establish anonymous session for RLS
         setAuthUser(null);
         try {
-          const dbUser = await anonymousUserService.getOrCreate();
-          if (dbUser) {
-            await loadUserData(dbUser);
-          }
+          // Create new anonymous session so RLS continues to work
+          await authService.signInAnonymously();
+          // The SIGNED_IN handler above will process the anonymous session
         } catch (err) {
-          console.error('Failed to load anonymous user:', err);
+          console.error('Failed to re-establish anonymous session:', err);
         }
       }
     });

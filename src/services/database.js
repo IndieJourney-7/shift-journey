@@ -1029,6 +1029,17 @@ export const authService = {
   },
 
   /**
+   * Sign in anonymously (gives auth.uid() for RLS without Google)
+   */
+  async signInAnonymously() {
+    if (!isSupabaseConfigured()) return null;
+
+    const { data, error } = await supabase.auth.signInAnonymously();
+    if (error) throw error;
+    return data;
+  },
+
+  /**
    * Sign out
    */
   async signOut() {
@@ -1048,70 +1059,29 @@ export const authService = {
   },
 
   /**
-   * Get or create user from Supabase Auth user
-   * Links to existing anonymous user if device_id matches
+   * Get or create user from Supabase Auth user.
+   * Uses a SECURITY DEFINER RPC function to bypass RLS for user lookup/creation.
+   * Handles: returning users (by auth_id), linking anonymous→Google (by device_id), new users.
    */
   async getOrCreateAuthUser(authUser) {
     if (!isSupabaseConfigured() || !authUser) return null;
 
     const deviceId = getDeviceId();
+    const provider = authUser.is_anonymous
+      ? 'anonymous'
+      : (authUser.app_metadata?.provider || 'google');
 
-    // First, check if user already exists by auth_id
-    const { data: existingAuthUser, error: authError } = await supabase
-      .from('users')
-      .select('*')
-      .eq('auth_id', authUser.id)
-      .single();
+    const { data, error } = await supabase.rpc('find_or_create_user', {
+      p_device_id: deviceId,
+      p_auth_id: authUser.id,
+      p_email: authUser.email || null,
+      p_name: authUser.user_metadata?.full_name || authUser.user_metadata?.name || 'User',
+      p_avatar_url: authUser.user_metadata?.avatar_url || authUser.user_metadata?.picture || null,
+      p_auth_provider: provider,
+    }).single();
 
-    if (existingAuthUser) {
-      return existingAuthUser;
-    }
-
-    // Check if anonymous user exists with this device_id
-    const { data: anonymousUser, error: anonError } = await supabase
-      .from('users')
-      .select('*')
-      .eq('device_id', deviceId)
-      .single();
-
-    if (anonymousUser) {
-      // Link anonymous account to Google account
-      const { data: linkedUser, error: linkError } = await supabase
-        .from('users')
-        .update({
-          auth_id: authUser.id,
-          email: authUser.email,
-          name: authUser.user_metadata?.full_name || authUser.user_metadata?.name || anonymousUser.name,
-          avatar_url: authUser.user_metadata?.avatar_url || authUser.user_metadata?.picture,
-          auth_provider: 'google',
-          updated_at: new Date().toISOString(),
-        })
-        .eq('id', anonymousUser.id)
-        .select()
-        .single();
-
-      if (linkError) throw linkError;
-      return linkedUser;
-    }
-
-    // No existing user - create new one
-    const { data: newUser, error: createError } = await supabase
-      .from('users')
-      .insert({
-        device_id: deviceId,
-        auth_id: authUser.id,
-        email: authUser.email,
-        name: authUser.user_metadata?.full_name || authUser.user_metadata?.name || 'User',
-        avatar_url: authUser.user_metadata?.avatar_url || authUser.user_metadata?.picture,
-        auth_provider: 'google',
-        integrity_score: 100,
-        failure_streak: 0,
-      })
-      .select()
-      .single();
-
-    if (createError) throw createError;
-    return newUser;
+    if (error) throw error;
+    return data;
   },
 
   /**
