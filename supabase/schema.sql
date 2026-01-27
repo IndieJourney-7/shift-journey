@@ -232,41 +232,41 @@ ALTER TABLE witnesses ENABLE ROW LEVEL SECURITY;
 ALTER TABLE pricing_plans ENABLE ROW LEVEL SECURITY;
 ALTER TABLE user_subscriptions ENABLE ROW LEVEL SECURITY;
 
--- Users policies
+-- Users policies (auth_id = Supabase Auth UUID, id = custom app UUID)
 CREATE POLICY "Users can view own profile" ON users
-  FOR SELECT USING (auth.uid() = id);
+  FOR SELECT USING (auth_id = auth.uid());
 
 CREATE POLICY "Users can update own profile" ON users
-  FOR UPDATE USING (auth.uid() = id);
+  FOR UPDATE USING (auth_id = auth.uid());
 
 CREATE POLICY "Users can insert own profile" ON users
-  FOR INSERT WITH CHECK (auth.uid() = id);
+  FOR INSERT WITH CHECK (auth_id = auth.uid());
 
--- Goals policies
+-- Goals policies (user_id = users.id, so join through users table)
 CREATE POLICY "Users can view own goals" ON goals
-  FOR SELECT USING (auth.uid() = user_id);
+  FOR SELECT USING (user_id IN (SELECT id FROM users WHERE auth_id = auth.uid()));
 
 CREATE POLICY "Users can insert own goals" ON goals
-  FOR INSERT WITH CHECK (auth.uid() = user_id);
+  FOR INSERT WITH CHECK (user_id IN (SELECT id FROM users WHERE auth_id = auth.uid()));
 
 CREATE POLICY "Users can update own goals" ON goals
-  FOR UPDATE USING (auth.uid() = user_id);
+  FOR UPDATE USING (user_id IN (SELECT id FROM users WHERE auth_id = auth.uid()));
 
 CREATE POLICY "Users can delete own goals" ON goals
-  FOR DELETE USING (auth.uid() = user_id);
+  FOR DELETE USING (user_id IN (SELECT id FROM users WHERE auth_id = auth.uid()));
 
 -- Milestones policies
 CREATE POLICY "Users can view own milestones" ON milestones
-  FOR SELECT USING (auth.uid() = user_id);
+  FOR SELECT USING (user_id IN (SELECT id FROM users WHERE auth_id = auth.uid()));
 
 CREATE POLICY "Users can insert own milestones" ON milestones
-  FOR INSERT WITH CHECK (auth.uid() = user_id);
+  FOR INSERT WITH CHECK (user_id IN (SELECT id FROM users WHERE auth_id = auth.uid()));
 
 CREATE POLICY "Users can update own milestones" ON milestones
-  FOR UPDATE USING (auth.uid() = user_id);
+  FOR UPDATE USING (user_id IN (SELECT id FROM users WHERE auth_id = auth.uid()));
 
 CREATE POLICY "Users can delete own milestones" ON milestones
-  FOR DELETE USING (auth.uid() = user_id);
+  FOR DELETE USING (user_id IN (SELECT id FROM users WHERE auth_id = auth.uid()));
 
 -- Public milestone view for witnesses (shareable page)
 CREATE POLICY "Anyone can view locked milestones for witnessing" ON milestones
@@ -274,20 +274,20 @@ CREATE POLICY "Anyone can view locked milestones for witnessing" ON milestones
 
 -- Failure history policies
 CREATE POLICY "Users can view own failure history" ON failure_history
-  FOR SELECT USING (auth.uid() = user_id);
+  FOR SELECT USING (user_id IN (SELECT id FROM users WHERE auth_id = auth.uid()));
 
 CREATE POLICY "Users can insert own failure history" ON failure_history
-  FOR INSERT WITH CHECK (auth.uid() = user_id);
+  FOR INSERT WITH CHECK (user_id IN (SELECT id FROM users WHERE auth_id = auth.uid()));
 
 -- Calendar data policies
 CREATE POLICY "Users can view own calendar data" ON calendar_data
-  FOR SELECT USING (auth.uid() = user_id);
+  FOR SELECT USING (user_id IN (SELECT id FROM users WHERE auth_id = auth.uid()));
 
 CREATE POLICY "Users can insert own calendar data" ON calendar_data
-  FOR INSERT WITH CHECK (auth.uid() = user_id);
+  FOR INSERT WITH CHECK (user_id IN (SELECT id FROM users WHERE auth_id = auth.uid()));
 
 CREATE POLICY "Users can update own calendar data" ON calendar_data
-  FOR UPDATE USING (auth.uid() = user_id);
+  FOR UPDATE USING (user_id IN (SELECT id FROM users WHERE auth_id = auth.uid()));
 
 -- Witnesses policies (anyone can witness)
 CREATE POLICY "Anyone can view witnesses" ON witnesses

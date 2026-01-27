@@ -124,9 +124,6 @@ export function AppProvider({ children }) {
         number: m.number,
         title: m.title,
         status: m.status,
-        completedAt: m.completed_at,
-        brokenAt: m.broken_at,
-        reason: m.broken_reason,
       })),
     }));
     setGoalHistory(transformedHistory);
@@ -158,36 +155,33 @@ export function AppProvider({ children }) {
         );
 
         const loadData = async () => {
-          // Ensure we always have a Supabase auth session (for RLS).
-          // Anonymous users get an anonymous auth session so auth.uid() is set.
+          // ALWAYS ensure we have a Supabase auth session for RLS
           let session = await authService.getSession();
 
           if (!session?.user) {
             // No existing session - create anonymous auth session
-            try {
-              const anonResult = await authService.signInAnonymously();
-              session = anonResult?.session || null;
-            } catch (err) {
-              console.warn('Anonymous auth not available:', err);
+            console.log('No session found, creating anonymous auth session...');
+            const anonResult = await authService.signInAnonymously();
+            session = anonResult?.session;
+            
+            if (!session?.user) {
+              throw new Error('Failed to establish authentication session. Please refresh the page.');
             }
           }
 
+          // We now ALWAYS have a session with auth.uid() for RLS
           let dbUser;
-          if (session?.user) {
-            // We have an auth session (Google or anonymous)
-            // Only set authUser for Google (non-anonymous) users
-            if (!session.user.is_anonymous) {
-              setAuthUser(session.user);
-            }
-            dbUser = await authService.getOrCreateAuthUser(session.user);
-          } else {
-            // Complete fallback - no auth at all (shouldn't happen normally)
-            dbUser = await anonymousUserService.getOrCreate();
+          
+          // Set authUser only for Google (non-anonymous) users
+          if (!session.user.is_anonymous) {
+            setAuthUser(session.user);
           }
-
+          
+          // Get or create user record in database
+          dbUser = await authService.getOrCreateAuthUser(session.user);
+          
           if (!dbUser) {
-            setError('Failed to initialize user.');
-            return;
+            throw new Error('Failed to initialize user record.');
           }
 
           await loadUserData(dbUser);
@@ -235,10 +229,23 @@ export function AppProvider({ children }) {
         setAuthUser(null);
         try {
           // Create new anonymous session so RLS continues to work
-          await authService.signInAnonymously();
-          // The SIGNED_IN handler above will process the anonymous session
+          console.log('User signed out, re-establishing anonymous session...');
+          const anonResult = await authService.signInAnonymously();
+          
+          if (!anonResult?.session?.user) {
+            console.error('Failed to re-establish anonymous session');
+            setError('Session lost. Please refresh the page.');
+            return;
+          }
+          
+          // Get or create anonymous user record
+          const dbUser = await authService.getOrCreateAuthUser(anonResult.session.user);
+          if (dbUser) {
+            await loadUserData(dbUser);
+          }
         } catch (err) {
           console.error('Failed to re-establish anonymous session:', err);
+          setError('Session lost. Please refresh the page.');
         }
       }
     });
