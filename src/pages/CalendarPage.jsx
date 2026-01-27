@@ -4,11 +4,13 @@ import { Button, Card, Modal } from '../components/ui';
 import { useApp } from '../context/AppContext';
 
 export default function CalendarPage() {
-  const { calendarData, toggleCalendarDay, updateJournalEntry, currentLockedMilestone } = useApp();
+  const { calendarData, saveCalendarDay, currentLockedMilestone } = useApp();
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDay, setSelectedDay] = useState(null);
   const [journalText, setJournalText] = useState('');
+  const [modalWorked, setModalWorked] = useState(null);
   const [showJournalModal, setShowJournalModal] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
 
   const year = currentDate.getFullYear();
   const month = currentDate.getMonth();
@@ -43,23 +45,30 @@ export default function CalendarPage() {
     // Can only interact with past days or today
     if (clickedDate > today) return;
 
-    // Open journal modal for this day
+    // Open journal modal with current data
     setSelectedDay(day);
     setJournalText(calendarData[dateKey]?.journal || '');
+    setModalWorked(calendarData[dateKey]?.worked ?? null);
     setShowJournalModal(true);
   };
 
   const handleToggleWorked = (worked) => {
-    if (!selectedDay) return;
-    const dateKey = formatDateKey(selectedDay);
-    toggleCalendarDay(dateKey, worked);
+    // Only update local modal state - DB save happens on "Save Entry"
+    setModalWorked(worked);
   };
 
-  const handleSaveJournal = () => {
+  const handleSaveEntry = async () => {
     if (!selectedDay) return;
     const dateKey = formatDateKey(selectedDay);
-    updateJournalEntry(dateKey, journalText);
-    setShowJournalModal(false);
+    setIsSaving(true);
+    try {
+      await saveCalendarDay(dateKey, modalWorked, journalText);
+      setShowJournalModal(false);
+    } catch (err) {
+      console.error('Failed to save entry:', err);
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   const getDayStatus = (day) => {
@@ -146,7 +155,6 @@ export default function CalendarPage() {
   };
 
   const selectedDateKey = selectedDay ? formatDateKey(selectedDay) : null;
-  const selectedDayData = selectedDateKey ? calendarData[selectedDateKey] : null;
 
   return (
     <div className="space-y-6 sm:space-y-8">
@@ -361,7 +369,7 @@ export default function CalendarPage() {
                 onClick={() => handleToggleWorked(true)}
                 className={`
                   flex-1 p-4 rounded-xl border-2 transition-all flex flex-col items-center gap-2
-                  ${selectedDayData?.worked === true
+                  ${modalWorked === true
                     ? 'bg-green-900/30 border-green-500 text-green-400'
                     : 'bg-obsidian-800/50 border-obsidian-700 text-obsidian-400 hover:border-obsidian-600'
                   }
@@ -374,7 +382,7 @@ export default function CalendarPage() {
                 onClick={() => handleToggleWorked(false)}
                 className={`
                   flex-1 p-4 rounded-xl border-2 transition-all flex flex-col items-center gap-2
-                  ${selectedDayData?.worked === false
+                  ${modalWorked === false
                     ? 'bg-red-900/30 border-red-500 text-red-400'
                     : 'bg-obsidian-800/50 border-obsidian-700 text-obsidian-400 hover:border-obsidian-600'
                   }
@@ -444,7 +452,8 @@ export default function CalendarPage() {
             <Button
               variant="gold"
               className="flex-1"
-              onClick={handleSaveJournal}
+              onClick={handleSaveEntry}
+              loading={isSaving}
             >
               Save Entry
             </Button>

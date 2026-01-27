@@ -645,60 +645,29 @@ export function AppProvider({ children }) {
   // CALENDAR/JOURNAL OPERATIONS
   // =====================================================
 
-  // Toggle calendar day worked status
-  const toggleCalendarDay = async (dateKey, worked) => {
+  // Save calendar day - worked status + journal in a single DB call
+  const saveCalendarDay = async (dateKey, worked, journal) => {
     if (!user) return;
 
-    // Get current journal value before updating state
-    const currentJournal = calendarData[dateKey]?.journal || null;
+    const previousData = calendarData[dateKey] || {};
 
     // Update local state immediately
     setCalendarData(prev => ({
       ...prev,
-      [dateKey]: {
-        ...prev[dateKey],
-        worked,
-      },
+      [dateKey]: { worked, journal },
     }));
 
     // Sync to database
     try {
-      await calendarService.upsert(user.id, dateKey, worked, currentJournal);
+      await calendarService.upsert(user.id, dateKey, worked, journal || null);
     } catch (err) {
       console.error('Failed to save calendar data:', err);
-      // Revert on error
+      // Revert to actual previous state on error
       setCalendarData(prev => ({
         ...prev,
-        [dateKey]: {
-          ...prev[dateKey],
-          worked: !worked,
-        },
+        [dateKey]: previousData,
       }));
-    }
-  };
-
-  // Update journal entry for a specific day
-  const updateJournalEntry = async (dateKey, journal) => {
-    if (!user) return;
-
-    // Get current worked value before updating state (use functional update to get latest)
-    let currentWorked = null;
-    setCalendarData(prev => {
-      currentWorked = prev[dateKey]?.worked ?? null;
-      return {
-        ...prev,
-        [dateKey]: {
-          ...prev[dateKey],
-          journal,
-        },
-      };
-    });
-
-    // Sync to database - preserve the worked status
-    try {
-      await calendarService.upsert(user.id, dateKey, currentWorked, journal);
-    } catch (err) {
-      console.error('Failed to save journal:', err);
+      throw err;
     }
   };
 
@@ -823,8 +792,7 @@ export function AppProvider({ children }) {
 
     // Calendar/Journal
     calendarData,
-    toggleCalendarDay,
-    updateJournalEntry,
+    saveCalendarDay,
     getJournalEntry,
 
     // Tier change notification
