@@ -1,6 +1,7 @@
 import React, { useRef, useCallback, useState, useEffect } from 'react';
 import { Download, Copy, Check, Share2 } from 'lucide-react';
 import { Button } from '../ui';
+import { getIntegrityTier } from '../../lib/badgeDefinitions';
 
 /**
  * Generates a shareable badge image using Canvas
@@ -9,15 +10,25 @@ import { Button } from '../ui';
  * Draws SVG-style badges with white glow effects
  */
 
-// Get tier info based on score
+// Polyfill for ctx.roundRect (not available in all browsers)
+function drawRoundRect(ctx, x, y, w, h, r) {
+  ctx.beginPath();
+  ctx.moveTo(x + r, y);
+  ctx.lineTo(x + w - r, y);
+  ctx.arcTo(x + w, y, x + w, y + r, r);
+  ctx.lineTo(x + w, y + h - r);
+  ctx.arcTo(x + w, y + h, x + w - r, y + h, r);
+  ctx.lineTo(x + r, y + h);
+  ctx.arcTo(x, y + h, x, y + h - r, r);
+  ctx.lineTo(x, y + r);
+  ctx.arcTo(x, y, x + r, y, r);
+  ctx.closePath();
+}
+
+// Get tier info from unified badgeDefinitions
 const getTierInfo = (score) => {
-  if (score <= 30) {
-    return { name: 'Unreliable', color: '#6b7280', glowColor: 'rgba(255,255,255,0.15)' };
-  }
-  if (score <= 70) {
-    return { name: 'Inconsistent', color: '#9ca3af', glowColor: 'rgba(255,255,255,0.25)' };
-  }
-  return { name: 'Reliable', color: '#ffd700', glowColor: 'rgba(255,255,255,0.7)' };
+  const tier = getIntegrityTier(score);
+  return { name: tier.name, color: tier.color.primary, glowColor: tier.color.glow };
 };
 
 export default function ShareableBadgeImage({
@@ -319,8 +330,7 @@ export default function ShareableBadgeImage({
       const boxX = textX + i * (statBoxWidth + statGap);
 
       ctx.fillStyle = 'rgba(255,255,255,0.05)';
-      ctx.beginPath();
-      ctx.roundRect(boxX, currentY, statBoxWidth, statBoxHeight, 12);
+      drawRoundRect(ctx, boxX, currentY, statBoxWidth, statBoxHeight, 12);
       ctx.fill();
 
       ctx.strokeStyle = 'rgba(255,255,255,0.1)';
@@ -358,8 +368,7 @@ export default function ShareableBadgeImage({
       if (!canvas) return;
 
       const link = document.createElement('a');
-      const tierName = score <= 30 ? 'unreliable' : score <= 70 ? 'inconsistent' : 'reliable';
-      link.download = `shift-ascent-${tierName}-badge.png`;
+      link.download = `shift-ascent-${tier.name.toLowerCase()}-badge.png`;
       link.href = canvas.toDataURL('image/png');
       link.click();
 

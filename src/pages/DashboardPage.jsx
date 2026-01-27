@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Lock, Check, AlertTriangle, ChevronRight, Target, Share2, Copy, CheckCircle, Trophy, Upload, Camera } from 'lucide-react';
+import { Lock, Check, AlertTriangle, ChevronRight, Target, Share2, Copy, CheckCircle, Trophy, Upload, Camera, Shield, TrendingUp, TrendingDown } from 'lucide-react';
 import { Button, Card, Badge, Modal, Textarea } from '../components/ui';
 import { JourneyPath, MilestoneCard, CountdownTimer, IntegrityBadgeInline } from '../components/journey';
 import { useApp } from '../context/AppContext';
+import { getIntegrityTier, getNextTier, getPromisesToNextTier, getTierProgress } from '../lib/badgeDefinitions';
 
 export default function DashboardPage() {
   const navigate = useNavigate();
@@ -16,8 +17,11 @@ export default function DashboardPage() {
     breakPromise,
     needsGoalSetup,
     canFinishGoal,
+    isPromiseExpired,
     user,
     isLoading,
+    tierChangeNotification,
+    dismissTierChange,
   } = useApp();
 
   // Redirect to goal creation if user hasn't set up a goal yet
@@ -43,6 +47,14 @@ export default function DashboardPage() {
   });
   const [consequenceProofImage, setConsequenceProofImage] = useState(null);
   const [consequenceProofPreview, setConsequenceProofPreview] = useState(null);
+
+  // Auto-open break modal when promise deadline passes
+  useEffect(() => {
+    if (isPromiseExpired && currentLockedMilestone && !showBreakModal) {
+      setActionError(null);
+      setShowBreakModal(true);
+    }
+  }, [isPromiseExpired, currentLockedMilestone]);
 
   // Generate shareable link for current locked milestone
   const getShareableLink = () => {
@@ -159,6 +171,40 @@ export default function DashboardPage() {
         </div>
       </Card>
 
+      {/* Progress to Next Tier */}
+      {(() => {
+        const tier = getIntegrityTier(user.integrityScore);
+        const nextTier = getNextTier(user.integrityScore);
+        const progress = getTierProgress(user.integrityScore);
+        const promisesNeeded = getPromisesToNextTier(user.integrityScore);
+
+        return nextTier ? (
+          <div className={`flex items-center gap-3 px-4 py-3 rounded-xl bg-gradient-to-r ${tier.color.bg} border ${tier.color.border}`}>
+            <Shield className={`w-5 h-5 flex-shrink-0 ${tier.color.text}`} />
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center justify-between mb-1.5">
+                <span className={`text-sm font-medium ${tier.color.text}`}>{tier.name}</span>
+                <span className="text-obsidian-400 text-xs">{promisesNeeded} kept promises to {nextTier.name}</span>
+              </div>
+              <div className="h-1.5 bg-obsidian-800 rounded-full overflow-hidden">
+                <div
+                  className="h-full rounded-full transition-all duration-500"
+                  style={{
+                    width: `${progress}%`,
+                    background: `linear-gradient(to right, ${tier.color.secondary}, ${tier.color.primary})`,
+                  }}
+                />
+              </div>
+            </div>
+          </div>
+        ) : (
+          <div className="flex items-center gap-3 px-4 py-3 rounded-xl bg-gradient-to-r from-amber-500/20 to-yellow-500/20 border border-amber-400">
+            <Shield className="w-5 h-5 flex-shrink-0 text-amber-300" />
+            <span className="text-amber-300 text-sm font-medium">Reliable &mdash; Your word is your bond</span>
+          </div>
+        );
+      })()}
+
       {/* Goal Ready to Finish Banner */}
       {canFinishGoal && (
         <Card variant="highlighted" padding="md" className="sm:p-6 border-gold-500/30 bg-gradient-to-br from-gold-500/10 to-obsidian-900">
@@ -247,16 +293,27 @@ export default function DashboardPage() {
             />
           </div>
 
+          {/* Expired Warning */}
+          {isPromiseExpired && (
+            <div className="p-3 bg-red-900/20 border border-red-800/30 rounded-lg mb-4">
+              <p className="text-red-400 text-sm text-center font-medium">
+                Deadline has passed. You must complete the failure reflection.
+              </p>
+            </div>
+          )}
+
           {/* Actions */}
           <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
-            <Button
-              variant="gold"
-              className="flex-1"
-              icon={Check}
-              onClick={() => setShowCompleteModal(true)}
-            >
-              Mark Complete
-            </Button>
+            {!isPromiseExpired && (
+              <Button
+                variant="gold"
+                className="flex-1"
+                icon={Check}
+                onClick={() => setShowCompleteModal(true)}
+              >
+                Mark Complete
+              </Button>
+            )}
             <Button
               variant="danger"
               className="flex-1"
@@ -266,7 +323,7 @@ export default function DashboardPage() {
                 setShowBreakModal(true);
               }}
             >
-              Promise Broken
+              {isPromiseExpired ? 'Reflect & Break Promise' : 'Promise Broken'}
             </Button>
           </div>
         </Card>
@@ -428,17 +485,29 @@ export default function DashboardPage() {
       {/* Break Promise Modal - Structured Failure Reflection */}
       <Modal
         isOpen={showBreakModal}
-        onClose={() => setShowBreakModal(false)}
-        title="Failure Reflection"
+        onClose={isPromiseExpired ? undefined : () => setShowBreakModal(false)}
+        title={isPromiseExpired ? 'Deadline Passed - Failure Reflection' : 'Failure Reflection'}
         size="lg"
+        showClose={!isPromiseExpired}
       >
         <div>
           <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-red-900/30 border border-red-700/50 flex items-center justify-center">
             <AlertTriangle className="w-8 h-8 text-red-500" />
           </div>
 
+          {isPromiseExpired && (
+            <div className="p-3 bg-red-900/30 border border-red-700/50 rounded-lg mb-4">
+              <p className="text-red-400 text-sm text-center font-medium">
+                Your deadline has passed. Complete this reflection to proceed.
+              </p>
+            </div>
+          )}
+
           <p className="text-obsidian-200 text-center mb-2">
-            Breaking this promise will be recorded permanently.
+            {isPromiseExpired
+              ? 'This broken promise will be recorded permanently.'
+              : 'Breaking this promise will be recorded permanently.'
+            }
           </p>
           <p className="text-obsidian-500 text-sm text-center mb-6">
             Complete this reflection honestly. It will be stored in your failure history.
@@ -567,18 +636,20 @@ export default function DashboardPage() {
           </div>
 
           <div className="flex gap-3">
-            <Button
-              variant="secondary"
-              className="flex-1"
-              onClick={() => {
-                setReflection({ whyFailed: '', whatWasInControl: '', whatWillChange: '', consequenceProof: '' });
-                setConsequenceProofImage(null);
-                setConsequenceProofPreview(null);
-                setShowBreakModal(false);
-              }}
-            >
-              Cancel
-            </Button>
+            {!isPromiseExpired && (
+              <Button
+                variant="secondary"
+                className="flex-1"
+                onClick={() => {
+                  setReflection({ whyFailed: '', whatWasInControl: '', whatWillChange: '', consequenceProof: '' });
+                  setConsequenceProofImage(null);
+                  setConsequenceProofPreview(null);
+                  setShowBreakModal(false);
+                }}
+              >
+                Cancel
+              </Button>
+            )}
             <Button
               variant="danger"
               className="flex-1"
@@ -668,6 +739,67 @@ export default function DashboardPage() {
             </Button>
           </div>
         </div>
+      </Modal>
+
+      {/* Tier Change Notification Modal */}
+      <Modal
+        isOpen={!!tierChangeNotification}
+        onClose={dismissTierChange}
+        title=""
+        size="sm"
+      >
+        {tierChangeNotification && (
+          <div className="text-center py-4">
+            {tierChangeNotification.direction === 'up' ? (
+              <>
+                <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-green-900/30 border-2 border-green-500/50 flex items-center justify-center">
+                  <TrendingUp className="w-8 h-8 text-green-400" />
+                </div>
+                <h2 className="text-xl font-bold text-obsidian-100 mb-2">
+                  Tier Up!
+                </h2>
+                <p className="text-obsidian-400 mb-3">
+                  You've risen from{' '}
+                  <span className="font-semibold" style={{ color: tierChangeNotification.oldTier.color.primary }}>
+                    {tierChangeNotification.oldTier.name}
+                  </span>{' '}
+                  to{' '}
+                  <span className="font-semibold" style={{ color: tierChangeNotification.newTier.color.primary }}>
+                    {tierChangeNotification.newTier.name}
+                  </span>
+                </p>
+                <p className="text-obsidian-500 text-sm italic mb-6">
+                  "{tierChangeNotification.newTier.tagline}"
+                </p>
+              </>
+            ) : (
+              <>
+                <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-red-900/30 border-2 border-red-500/50 flex items-center justify-center">
+                  <TrendingDown className="w-8 h-8 text-red-400" />
+                </div>
+                <h2 className="text-xl font-bold text-obsidian-100 mb-2">
+                  Tier Down
+                </h2>
+                <p className="text-obsidian-400 mb-3">
+                  You've dropped from{' '}
+                  <span className="font-semibold" style={{ color: tierChangeNotification.oldTier.color.primary }}>
+                    {tierChangeNotification.oldTier.name}
+                  </span>{' '}
+                  to{' '}
+                  <span className="font-semibold" style={{ color: tierChangeNotification.newTier.color.primary }}>
+                    {tierChangeNotification.newTier.name}
+                  </span>
+                </p>
+                <p className="text-obsidian-500 text-sm italic mb-6">
+                  Keep your promises to climb back up.
+                </p>
+              </>
+            )}
+            <Button variant="gold" onClick={dismissTierChange} className="w-full">
+              Got it
+            </Button>
+          </div>
+        )}
       </Modal>
     </div>
   );

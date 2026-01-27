@@ -1,14 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { Outlet, useNavigate } from 'react-router-dom';
-import { AlertTriangle, X, Menu } from 'lucide-react';
+import { Menu } from 'lucide-react';
 import Sidebar from './Sidebar';
 import { useApp } from '../../context/AppContext';
-import { Modal, Button, Textarea } from '../ui';
 
 export default function AppLayout() {
   const navigate = useNavigate();
-  const { user, expiredPromise, clearExpiredPromise, currentLockedMilestone, getTimeRemaining } = useApp();
-  const [reason, setReason] = useState('');
+  const { user, currentLockedMilestone, getTimeRemaining, isPromiseExpired } = useApp();
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   // Tab title countdown timer
@@ -18,6 +16,11 @@ export default function AppLayout() {
     const updateTabTitle = () => {
       if (!currentLockedMilestone?.promise?.deadline) {
         document.title = originalTitle;
+        return;
+      }
+
+      if (isPromiseExpired) {
+        document.title = '⚠️ EXPIRED | Shift Ascent';
         return;
       }
 
@@ -40,12 +43,7 @@ export default function AppLayout() {
       clearInterval(interval);
       document.title = originalTitle;
     };
-  }, [currentLockedMilestone, getTimeRemaining]);
-
-  const handleAcknowledge = () => {
-    clearExpiredPromise();
-    setReason('');
-  };
+  }, [currentLockedMilestone, getTimeRemaining, isPromiseExpired]);
 
   return (
     <div className="min-h-screen bg-obsidian-950">
@@ -84,73 +82,6 @@ export default function AppLayout() {
           <Outlet />
         </div>
       </main>
-
-      {/* Expired Promise Notification Modal */}
-      <Modal
-        isOpen={!!expiredPromise}
-        onClose={handleAcknowledge}
-        title="Promise Expired"
-        size="md"
-        showClose={false}
-      >
-        <div>
-          {/* Warning Icon */}
-          <div className="w-20 h-20 mx-auto mb-6 rounded-full bg-red-900/30 border-2 border-red-700/50 flex items-center justify-center">
-            <AlertTriangle className="w-10 h-10 text-red-500" />
-          </div>
-
-          {/* Message */}
-          <div className="text-center mb-6">
-            <h3 className="text-xl font-semibold text-obsidian-100 mb-2">
-              Your deadline has passed
-            </h3>
-            <p className="text-obsidian-300 mb-4">
-              The promise for <strong>"{expiredPromise?.title}"</strong> has been automatically marked as broken.
-            </p>
-            <p className="text-obsidian-500 text-sm">
-              Your integrity score has decreased by 15 points.
-            </p>
-          </div>
-
-          {/* Promise Details */}
-          <div className="bg-obsidian-900/50 border border-red-900/30 rounded-lg p-4 mb-6">
-            <div className="flex items-start gap-3">
-              <div className="w-2 h-2 mt-2 rounded-full bg-red-500 flex-shrink-0" />
-              <div>
-                <p className="text-obsidian-400 text-sm mb-1">
-                  Milestone {expiredPromise?.number}
-                </p>
-                <p className="text-obsidian-200 font-medium mb-2">
-                  {expiredPromise?.title}
-                </p>
-                {expiredPromise?.promise?.text && (
-                  <p className="text-obsidian-500 text-sm italic">
-                    "{expiredPromise.promise.text}"
-                  </p>
-                )}
-              </div>
-            </div>
-          </div>
-
-          {/* Philosophy Reminder */}
-          <div className="bg-obsidian-800/50 border border-obsidian-700 rounded-lg p-4 mb-6">
-            <p className="text-obsidian-400 text-sm text-center">
-              This failure has been permanently recorded. Consequences are not punishment—they are <strong className="text-obsidian-300">memory and identity pressure</strong>. Use this to grow stronger.
-            </p>
-          </div>
-
-          {/* Action */}
-          <div className="text-center">
-            <Button
-              variant="secondary"
-              onClick={handleAcknowledge}
-              className="min-w-[200px]"
-            >
-              I Acknowledge
-            </Button>
-          </div>
-        </div>
-      </Modal>
     </div>
   );
 }

@@ -23,8 +23,8 @@ function TierShield({ tier, score, size = 'lg' }) {
     boxShadow: `0 0 30px ${tier.color.glow}, 0 0 60px ${tier.color.glow}`,
   };
 
-  const isUnbreakable = tier.id === 'unbreakable';
-  const isCracked = tier.id === 'rebuilding' || tier.id === 'awakening';
+  const isGold = tier.shieldType === 'gold';
+  const isCracked = tier.shieldType === 'cracked';
 
   return (
     <div className="relative flex items-center justify-center">
@@ -38,9 +38,9 @@ function TierShield({ tier, score, size = 'lg' }) {
       <div
         className={`
           relative ${sizeClasses[size]} flex items-center justify-center
-          ${isUnbreakable ? 'animate-pulse' : ''}
+          ${isGold ? 'animate-pulse' : ''}
         `}
-        style={isUnbreakable ? glowStyle : {}}
+        style={isGold ? glowStyle : {}}
       >
         {/* Shield SVG */}
         <svg
@@ -68,13 +68,13 @@ function TierShield({ tier, score, size = 'lg' }) {
             fill={`url(#shieldGrad-${tier.id})`}
             stroke={tier.color.primary}
             strokeWidth="2"
-            filter={isUnbreakable ? 'url(#glow)' : 'none'}
+            filter={isGold ? 'url(#glow)' : 'none'}
           />
 
-          {/* Diamond for Unbreakable */}
-          {isUnbreakable && (
+          {/* Star emblem for Reliable */}
+          {isGold && (
             <polygon
-              points="50,25 60,45 50,65 40,45"
+              points="50,30 54,42 67,42 57,50 61,63 50,55 39,63 43,50 33,42 46,42"
               fill="white"
               fillOpacity="0.3"
             />

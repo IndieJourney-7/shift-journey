@@ -1,10 +1,9 @@
-import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import React, { createContext, useContext, useState, useEffect } from 'react';
 import {
   anonymousUserService,
   authService,
   goalService,
   milestoneService,
-  pricingService,
   calendarService,
   integrityService as dbIntegrityService,
   integrityHistoryService,
@@ -36,10 +35,14 @@ export function AppProvider({ children }) {
   // UI state
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [expiredPromise, setExpiredPromise] = useState(null);
 
   // Calendar/Journal state
   const [calendarData, setCalendarData] = useState({});
+
+  // Tier change notification state
+  // { direction: 'up'|'down', newTier, oldTier, scoreChange }
+  const [tierChangeNotification, setTierChangeNotification] = useState(null);
+  const dismissTierChange = () => setTierChangeNotification(null);
 
   // =====================================================
   // INITIALIZATION
@@ -248,77 +251,11 @@ export function AppProvider({ children }) {
   // PROMISE EXPIRATION CHECK
   // =====================================================
 
-  // Auto-expire promise function
-  const autoExpirePromise = useCallback(async (milestone) => {
-    if (!user) return;
-
-    try {
-      // Update milestone in database
-      await milestoneService.break(milestone.id, 'Deadline passed - promise automatically broken');
-
-      // Update local state
-      setMilestones(prev => prev.map(m =>
-        m.id === milestone.id
-          ? { ...m, status: 'broken', brokenAt: new Date().toISOString(), reason: 'Deadline passed - promise automatically broken' }
-          : m
-      ));
-
-      // Calculate integrity change with streak penalty
-      const integrityResult = calculateIntegrityChange(
-        user.integrityScore,
-        'BROKEN',
-        user.failureStreak || 0
-      );
-
-      // Update integrity in database
-      await dbIntegrityService.updateIntegrity(user.id, integrityResult.newScore, integrityResult.newFailureStreak);
-
-      // Record in history
-      await integrityHistoryService.record({
-        userId: user.id,
-        previousScore: user.integrityScore,
-        newScore: integrityResult.newScore,
-        changeAmount: integrityResult.scoreChange,
-        reason: 'PROMISE_BROKEN',
-        failureStreak: integrityResult.newFailureStreak,
-        milestoneId: milestone.id,
-        goalId: currentGoal?.id,
-      });
-
-      // Update local user state
-      setUser(prev => ({
-        ...prev,
-        integrityScore: integrityResult.newScore,
-        failureStreak: integrityResult.newFailureStreak,
-        status: getIntegrityStatus(integrityResult.newScore),
-        badge: getBadgeFromScore(integrityResult.newScore),
-      }));
-
-      // Show expired promise notification
-      setExpiredPromise(milestone);
-    } catch (err) {
-      console.error('Failed to auto-expire promise:', err);
-    }
-  }, [user, currentGoal]);
-
-  // Check for expired promises
-  useEffect(() => {
-    if (!currentLockedMilestone?.promise?.deadline) return;
-
-    const checkExpiredPromise = () => {
-      const deadline = new Date(currentLockedMilestone.promise.deadline);
-      const now = new Date();
-
-      if (now > deadline) {
-        autoExpirePromise(currentLockedMilestone);
-      }
-    };
-
-    checkExpiredPromise();
-    const interval = setInterval(checkExpiredPromise, 1000);
-
-    return () => clearInterval(interval);
-  }, [currentLockedMilestone, autoExpirePromise]);
+  // Check if a promise has expired (deadline passed) - don't auto-break,
+  // let the user reflect first via the dashboard break modal
+  const isPromiseExpired = currentLockedMilestone?.promise?.deadline
+    ? new Date() > new Date(currentLockedMilestone.promise.deadline)
+    : false;
 
   // =====================================================
   // GOAL OPERATIONS
@@ -583,6 +520,14 @@ export function AppProvider({ children }) {
         status: getIntegrityStatus(integrityResult.newScore),
         badge: getBadgeFromScore(integrityResult.newScore),
       }));
+
+      // Trigger tier-change notification if threshold crossed
+      if (integrityResult.tierChange?.changed) {
+        setTierChangeNotification({
+          ...integrityResult.tierChange,
+          scoreChange: integrityResult.scoreChange,
+        });
+      }
     } catch (err) {
       console.error('Failed to complete milestone:', err);
       throw new Error('Failed to complete milestone. Please try again.');
@@ -638,6 +583,14 @@ export function AppProvider({ children }) {
         status: getIntegrityStatus(integrityResult.newScore),
         badge: getBadgeFromScore(integrityResult.newScore),
       }));
+
+      // Trigger tier-change notification if threshold crossed
+      if (integrityResult.tierChange?.changed) {
+        setTierChangeNotification({
+          ...integrityResult.tierChange,
+          scoreChange: integrityResult.scoreChange,
+        });
+      }
     } catch (err) {
       console.error('Failed to break promise:', err);
       throw new Error('Failed to record broken promise. Please try again.');
@@ -686,11 +639,6 @@ export function AppProvider({ children }) {
     const seconds = Math.floor((diff % (1000 * 60)) / 1000);
 
     return { hours, minutes, seconds, expired: false };
-  };
-
-  // Clear expired promise notification
-  const clearExpiredPromise = () => {
-    setExpiredPromise(null);
   };
 
   // =====================================================
@@ -760,12 +708,11 @@ export function AppProvider({ children }) {
   };
 
   // Refresh data from database - optimized with parallel queries
+  // Does NOT set isLoading to avoid showing full loading screen during refresh
   const refreshData = async () => {
     if (!user) return;
 
     try {
-      setIsLoading(true);
-
       // Load in parallel
       const [activeGoal, completedGoals] = await Promise.all([
         goalService.getActive(user.id),
@@ -827,8 +774,6 @@ export function AppProvider({ children }) {
 
     } catch (err) {
       console.error('Failed to refresh data:', err);
-    } finally {
-      setIsLoading(false);
     }
   };
 
@@ -845,7 +790,6 @@ export function AppProvider({ children }) {
     goalHistory,
     isLoading,
     error,
-    expiredPromise,
 
     // Computed
     currentLockedMilestone,
@@ -853,6 +797,7 @@ export function AppProvider({ children }) {
     hasActivePromise,
     canFinishGoal,
     needsGoalSetup,
+    isPromiseExpired,
     isAuthenticated: !!user, // Has a user account (anonymous or Google)
     isSignedIn: !!authUser, // Signed in with Google
 
@@ -874,7 +819,6 @@ export function AppProvider({ children }) {
 
     // Utility
     getTimeRemaining,
-    clearExpiredPromise,
     refreshData,
 
     // Calendar/Journal
@@ -882,6 +826,10 @@ export function AppProvider({ children }) {
     toggleCalendarDay,
     updateJournalEntry,
     getJournalEntry,
+
+    // Tier change notification
+    tierChangeNotification,
+    dismissTierChange,
   };
 
   return (

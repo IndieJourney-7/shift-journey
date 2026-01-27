@@ -12,7 +12,8 @@
       "Bash(dir d:shift-journey.env*)",
       "Bash(timeout 8 npm run dev:*)",
       "Bash(npm run build:*)",
-      "Bash(git push:*)"
+      "Bash(git push:*)",
+      "Bash(npx vite:*)"
     ]
   }
 }

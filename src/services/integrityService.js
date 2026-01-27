@@ -1,23 +1,19 @@
 /**
  * Integrity Score Service for Shift Journey
  *
- * Concept:
- * - Integrity represents how consistently a user keeps their locked promises
- * - User-level (not goal-level), persists across goals
- * - Initial value: 100/100 for new users
+ * Delegates tier/badge lookups to badgeDefinitions.js (single source of truth).
  *
  * Score Rules:
  * - KEPT: +2 (max 100)
  * - BROKEN: -10 (first), -15 (2nd consecutive), -20 (3rd+ consecutive)
  * - Goal completed: +10 bonus (one-time per goal)
- *
- * Badge Mapping:
- * - 0-30: Unreliable
- * - 31-70: Inconsistent
- * - 71-100: Reliable
  */
 
 import { supabase, isSupabaseConfigured } from '../lib/supabase';
+import { getIntegrityTier, getTierName, detectTierChange } from '../lib/badgeDefinitions';
+
+// Re-export for consumers
+export { detectTierChange };
 
 // =====================================================
 // CONSTANTS
@@ -34,72 +30,34 @@ export const INTEGRITY_CONFIG = {
   BROKEN_PENALTY_STREAK_2: 15,
   BROKEN_PENALTY_STREAK_3_PLUS: 20,
   GOAL_COMPLETED_BONUS: 10,
-
-  // Badge thresholds
-  BADGE_THRESHOLDS: {
-    UNRELIABLE: { min: 0, max: 30 },
-    INCONSISTENT: { min: 31, max: 70 },
-    RELIABLE: { min: 71, max: 100 },
-  },
 };
 
 // =====================================================
-// BADGE/STATUS FUNCTIONS
+// BADGE/STATUS FUNCTIONS (delegated to badgeDefinitions)
 // =====================================================
 
 /**
  * Get badge/status from integrity score
- * @param {number} score - Current integrity score (0-100)
- * @returns {object} Badge info with name, description, color
  */
 export function getBadgeFromScore(score) {
-  const { BADGE_THRESHOLDS } = INTEGRITY_CONFIG;
-
-  if (score <= BADGE_THRESHOLDS.UNRELIABLE.max) {
-    return {
-      name: 'Unreliable',
-      description: 'Your word needs rebuilding. Keep promises to restore trust.',
-      tier: 'unreliable',
-      color: {
-        primary: '#6b7280',
-        text: 'text-obsidian-400',
-        bg: 'bg-obsidian-700',
-      },
-    };
-  }
-
-  if (score <= BADGE_THRESHOLDS.INCONSISTENT.max) {
-    return {
-      name: 'Inconsistent',
-      description: 'Building consistency. Your word is gaining weight.',
-      tier: 'inconsistent',
-      color: {
-        primary: '#9ca3af',
-        text: 'text-obsidian-300',
-        bg: 'bg-obsidian-600',
-      },
-    };
-  }
-
+  const tier = getIntegrityTier(score);
   return {
-    name: 'Reliable',
-    description: 'Your word is your bond. People can count on you.',
-    tier: 'reliable',
+    name: tier.name,
+    description: tier.description,
+    tier: tier.id,
     color: {
-      primary: '#ffd700',
-      text: 'text-gold-400',
-      bg: 'bg-gold-500/20',
+      primary: tier.color.primary,
+      text: tier.color.text,
+      bg: tier.color.bg,
     },
   };
 }
 
 /**
- * Get status label from score (simplified)
+ * Get status label from score
  */
 export function getStatusFromScore(score) {
-  if (score <= 30) return 'Unreliable';
-  if (score <= 70) return 'Inconsistent';
-  return 'Reliable';
+  return getTierName(score);
 }
 
 // =====================================================
@@ -152,11 +110,14 @@ export function calculateIntegrityChange(currentScore, result, failureStreak = 0
   // Clamp score between MIN and MAX
   const newScore = Math.max(MIN_SCORE, Math.min(MAX_SCORE, currentScore + scoreChange));
 
+  const tierChange = detectTierChange(currentScore, newScore);
+
   return {
     newScore,
     scoreChange,
     newFailureStreak,
     badge: getBadgeFromScore(newScore),
+    tierChange,
   };
 }
 
@@ -170,11 +131,13 @@ export function calculateGoalCompletedBonus(currentScore) {
 
   const scoreChange = GOAL_COMPLETED_BONUS;
   const newScore = Math.min(MAX_SCORE, currentScore + scoreChange);
+  const tierChange = detectTierChange(currentScore, newScore);
 
   return {
     newScore,
     scoreChange,
     badge: getBadgeFromScore(newScore),
+    tierChange,
   };
 }
 
@@ -392,6 +355,7 @@ export default {
   // Badge functions
   getBadgeFromScore,
   getStatusFromScore,
+  detectTierChange,
 
   // Calculation functions
   calculateBrokenPenalty,
