@@ -76,7 +76,8 @@ export default function DashboardPage() {
     setIsProcessing(true);
     setActionError(null);
     try {
-      await completeMilestone(currentLockedMilestone.id);
+      // Pass forceComplete=true if deadline has passed (user is marking as complete late)
+      await completeMilestone(currentLockedMilestone.id, isPromiseExpired);
       setShowCompleteModal(false);
     } catch (err) {
       setActionError(err.message);
@@ -502,10 +503,10 @@ export default function DashboardPage() {
       {/* Break Promise Modal - Structured Failure Reflection */}
       <Modal
         isOpen={showBreakModal}
-        onClose={isPromiseExpired ? undefined : () => setShowBreakModal(false)}
+        onClose={() => setShowBreakModal(false)}
         title={isPromiseExpired ? 'Deadline Passed - Failure Reflection' : 'Failure Reflection'}
         size="lg"
-        showClose={!isPromiseExpired}
+        showClose={true}
       >
         <div>
           <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-red-900/30 border border-red-700/50 flex items-center justify-center">
@@ -515,8 +516,23 @@ export default function DashboardPage() {
           {isPromiseExpired && (
             <div className="p-3 bg-red-900/30 border border-red-700/50 rounded-lg mb-4">
               <p className="text-red-400 text-sm text-center font-medium">
-                Your deadline has passed. Complete this reflection to proceed.
+                Your deadline has passed.
               </p>
+              <p className="text-obsidian-400 text-xs text-center mt-2">
+                Did you actually complete the task but forgot to mark it?
+              </p>
+              <Button
+                variant="secondary"
+                size="sm"
+                className="w-full mt-3"
+                icon={Check}
+                onClick={() => {
+                  setShowBreakModal(false);
+                  setShowCompleteModal(true);
+                }}
+              >
+                Mark as Complete Instead
+              </Button>
             </div>
           )}
 

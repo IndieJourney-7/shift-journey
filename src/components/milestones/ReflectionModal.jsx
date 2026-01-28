@@ -189,8 +189,8 @@ export default function ReflectionModal({ isOpen, onClose, milestone, onSubmit }
   return (
     <Modal
       isOpen={isOpen}
-      onClose={null}
-      showClose={false}
+      onClose={onClose}
+      showClose={true}
       title=""
       size="md"
     >

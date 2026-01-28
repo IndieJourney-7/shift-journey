@@ -512,14 +512,15 @@ export function AppProvider({ children }) {
   };
 
   // Complete milestone (promise kept)
-  const completeMilestone = async (milestoneId) => {
+  // Set forceComplete=true to skip deadline check (for late completions)
+  const completeMilestone = async (milestoneId, forceComplete = false) => {
     const milestone = milestones.find(m => m.id === milestoneId);
     if (!milestone || milestone.status !== 'locked') {
       throw new Error('Can only complete a locked milestone.');
     }
 
-    // Check if deadline has passed
-    if (milestone.promise?.deadline && new Date() > new Date(milestone.promise.deadline)) {
+    // Check if deadline has passed (skip if forceComplete is true)
+    if (!forceComplete && milestone.promise?.deadline && new Date() > new Date(milestone.promise.deadline)) {
       throw new Error('Cannot mark as complete - deadline has already passed.');
     }
 
