@@ -80,6 +80,7 @@ export function AppProvider({ children }) {
         id: activeGoal.id,
         title: activeGoal.title,
         description: activeGoal.description,
+        targetDate: activeGoal.target_date,
         createdAt: activeGoal.created_at,
         status: activeGoal.status,
       });
@@ -310,12 +311,14 @@ export function AppProvider({ children }) {
         userId: user.id,
         title: goalData.title,
         description: goalData.description,
+        targetDate: goalData.targetDate || null,
       });
 
       const newGoal = {
         id: dbGoal.id,
         title: dbGoal.title,
         description: dbGoal.description,
+        targetDate: dbGoal.target_date,
         createdAt: dbGoal.created_at,
         status: dbGoal.status,
       };

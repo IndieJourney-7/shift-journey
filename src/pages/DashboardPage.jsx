@@ -58,9 +58,9 @@ export default function DashboardPage() {
 
   // Generate shareable link for current locked milestone
   const getShareableLink = () => {
-    if (!currentLockedMilestone) return '';
+    if (!currentLockedMilestone?.shareId) return '';
     const baseUrl = window.location.origin;
-    return `${baseUrl}/c/${currentLockedMilestone.id}`;
+    return `${baseUrl}/c/${currentLockedMilestone.shareId}`;
   };
 
   const handleCopyLink = () => {
@@ -153,6 +153,23 @@ export default function DashboardPage() {
         <div>
           <h1 className="text-xl sm:text-2xl font-bold text-obsidian-100 mb-1">My Journey</h1>
           <p className="text-obsidian-400 text-sm sm:text-base">{currentGoal?.title || 'Your Goal'}</p>
+          {/* Goal Deadline Reminder */}
+          {currentGoal?.targetDate && (
+            <div className="flex items-center gap-2 mt-2">
+              <Target className="w-4 h-4 text-gold-500" />
+              <span className="text-gold-400 text-xs sm:text-sm font-medium">
+                Goal Deadline: {new Date(currentGoal.targetDate).toLocaleDateString('en-US', {
+                  weekday: 'short',
+                  month: 'short',
+                  day: 'numeric',
+                  year: 'numeric',
+                })}
+              </span>
+              {new Date(currentGoal.targetDate) < new Date() && (
+                <span className="text-red-400 text-xs">(Overdue)</span>
+              )}
+            </div>
+          )}
         </div>
         {/* Small Integrity Indicator */}
         <IntegrityBadgeInline score={user.integrityScore} />

@@ -35,6 +35,12 @@ export default function GoalAccomplishedPage() {
   // Check if reflection is valid (mandatory - at least 10 characters)
   const isReflectionValid = reflection.trim().length >= 10;
 
+  // Check if all broken milestones have reflection/reason (enforced at break time, but double-check)
+  const brokenMilestonesHaveReflection = brokenMilestones.every(m => m.reason && m.reason.trim().length > 0);
+
+  // Can only submit if reflection is valid AND all broken milestones have reflections
+  const canSubmit = isReflectionValid && brokenMilestonesHaveReflection;
+
   // Calculate journey duration
   const getJourneyDuration = () => {
     if (!displayGoal?.createdAt) return 'Unknown';
@@ -65,7 +71,7 @@ export default function GoalAccomplishedPage() {
 
   // Handle finishing the goal with celebration
   const handleFinishGoal = async () => {
-    if (!isReflectionValid) return;
+    if (!canSubmit) return;
 
     // Store goal data BEFORE completing (so we can show it during celebration)
     setCelebrationData({
@@ -322,7 +328,7 @@ export default function GoalAccomplishedPage() {
           className="w-full"
           icon={Send}
           onClick={handleFinishGoal}
-          disabled={isSubmitting || !isReflectionValid}
+          disabled={isSubmitting || !canSubmit}
         >
           {isSubmitting ? 'Celebrating...' : 'Finish Goal & Start Next Journey'}
         </Button>
@@ -330,6 +336,12 @@ export default function GoalAccomplishedPage() {
         {!isReflectionValid && reflection.length > 0 && (
           <p className="text-amber-400 text-xs text-center">
             Please write at least 10 characters in your reflection to continue.
+          </p>
+        )}
+
+        {!brokenMilestonesHaveReflection && brokenMilestones.length > 0 && (
+          <p className="text-red-400 text-xs text-center">
+            All broken promises must have reflections. Go back to dashboard to add missing reflections.
           </p>
         )}
 

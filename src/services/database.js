@@ -293,6 +293,7 @@ export const goalService = {
         user_id: goalData.userId,
         title: goalData.title,
         description: goalData.description,
+        target_date: goalData.targetDate || null,
         status: 'active',
       })
       .select()
