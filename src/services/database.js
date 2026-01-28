@@ -544,7 +544,7 @@ export const milestoneService = {
       .update({
         status: 'broken',
         broken_at: new Date().toISOString(),
-        broken_reason: reason,
+        break_reason: reason,
       })
       .eq('id', milestoneId)
       .select()

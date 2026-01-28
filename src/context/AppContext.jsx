@@ -101,7 +101,7 @@ export function AppProvider({ children }) {
         } : null,
         completedAt: m.completed_at,
         brokenAt: m.broken_at,
-        reason: m.broken_reason,
+        reason: m.break_reason,
         shareId: m.share_id,
       }));
       setMilestones(transformedMilestones);
@@ -755,7 +755,7 @@ export function AppProvider({ children }) {
           } : null,
           completedAt: m.completed_at,
           brokenAt: m.broken_at,
-          reason: m.broken_reason,
+          reason: m.break_reason,
           shareId: m.share_id,
         }));
         setMilestones(transformedMilestones);
