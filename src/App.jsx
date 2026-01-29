@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { AppProvider, useApp } from './context/AppContext';
 import { AppLayout } from './components/layout';
@@ -96,6 +96,20 @@ function AppRouteWrapper({ children }) {
 }
 
 function AppRoutes() {
+  // Handle OAuth hash at ANY route - redirect to auth callback if hash contains access_token
+  // This catches OAuth redirects that may land on root, login, or any other page
+  useEffect(() => {
+    const hash = window.location.hash;
+    const pathname = window.location.pathname;
+    
+    // If we have an OAuth hash and we're NOT already on auth/callback, redirect there
+    if (hash && (hash.includes('access_token') || hash.includes('error_description')) && pathname !== '/auth/callback') {
+      console.log('OAuth hash detected at', pathname, '- redirecting to auth callback...');
+      window.location.replace(`${window.location.origin}/auth/callback${hash}`);
+      return;
+    }
+  }, []);
+
   return (
     <Routes>
       {/* Landing Page - First thing users see */}

@@ -1,7 +1,8 @@
 import { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate, Link, Navigate } from 'react-router-dom';
 import { Loader2 } from 'lucide-react';
 import { authService } from '../services/database';
+import { useApp } from '../context/AppContext';
 
 /**
  * Login Page - Google OAuth sign-in
@@ -9,8 +10,21 @@ import { authService } from '../services/database';
  */
 export default function LoginPage() {
   const navigate = useNavigate();
+  const { isSignedIn, isLoading: appLoading, currentGoal, needsGoalSetup, goalHistory } = useApp();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
+
+  // Redirect already signed-in users to the appropriate page
+  if (!appLoading && isSignedIn) {
+    const hasCompletedGoal = goalHistory && goalHistory.length > 0;
+    if (hasCompletedGoal && !currentGoal) {
+      return <Navigate to="/history" replace />;
+    } else if (needsGoalSetup) {
+      return <Navigate to="/goal/create" replace />;
+    } else {
+      return <Navigate to="/dashboard" replace />;
+    }
+  }
 
   const handleGoogleSignIn = async () => {
     try {
