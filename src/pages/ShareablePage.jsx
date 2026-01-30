@@ -357,6 +357,21 @@ export default function ShareablePage() {
                 "{milestone.promise.text}"
               </p>
             )}
+            {/* Consequence - Prominent Display */}
+            {milestone.promise?.consequence && (
+              <div className="mt-4 sm:mt-6 p-4 sm:p-5 bg-red-950/30 border-2 border-red-800/50 rounded-xl">
+                <div className="flex items-center justify-center gap-2 mb-2 sm:mb-3">
+                  <span className="text-lg sm:text-xl">⚠️</span>
+                  <p className="text-red-400 text-xs sm:text-sm font-bold uppercase tracking-widest">
+                    If I Fail
+                  </p>
+                  <span className="text-lg sm:text-xl">⚠️</span>
+                </div>
+                <p className="text-red-300 text-base sm:text-lg md:text-xl font-medium text-center leading-relaxed">
+                  "{milestone.promise.consequence}"
+                </p>
+              </div>
+            )}
           </div>
 
           {/* Live Countdown Timer - uses actual milestone deadline */}

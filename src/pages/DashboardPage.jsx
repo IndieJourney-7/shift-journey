@@ -281,6 +281,23 @@ export default function DashboardPage() {
             {currentLockedMilestone.promise.text}
           </p>
 
+          {/* Consequence - Prominent Display */}
+          {currentLockedMilestone.promise?.consequence &&
+           currentLockedMilestone.promise.consequence !== 'I accept the consequence.' && (
+            <div className="p-4 sm:p-5 bg-red-950/30 border-2 border-red-800/50 rounded-xl mb-4 sm:mb-6">
+              <div className="flex items-center justify-center gap-2 mb-2 sm:mb-3">
+                <span className="text-base sm:text-lg">⚠️</span>
+                <p className="text-red-400 text-[10px] sm:text-xs font-bold uppercase tracking-widest">
+                  If I Fail
+                </p>
+                <span className="text-base sm:text-lg">⚠️</span>
+              </div>
+              <p className="text-red-300 text-sm sm:text-base md:text-lg font-medium text-center leading-relaxed">
+                "{currentLockedMilestone.promise.consequence}"
+              </p>
+            </div>
+          )}
+
           <p className="text-obsidian-400 text-xs sm:text-sm mb-4 sm:mb-6">
             Due: {new Date(currentLockedMilestone.promise.deadline).toLocaleString('en-US', {
               weekday: 'short',
@@ -752,6 +769,7 @@ export default function DashboardPage() {
             <ul className="text-obsidian-400 text-xs space-y-1">
               <li>• Your milestone title and deadline</li>
               <li>• Live countdown timer</li>
+              <li>• Your consequence (if set)</li>
               <li>• Your integrity score</li>
               <li>• Promise status (Locked/Kept/Broken)</li>
             </ul>
