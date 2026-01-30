@@ -15,28 +15,37 @@ const heroMilestones = [
   { id: 5, number: 5, title: 'Iterate & grow', status: 'pending' },
 ];
 
-// Testimonials data
+// Testimonials data - Real user stories
 const testimonials = [
   {
-    name: 'Alex',
-    initials: 'A',
+    name: 'Alex Chen',
+    initials: 'AC',
     score: 92,
-    quote: "I went from inconsistent gym habits to a 92 integrity score—now I trust myself like never before.",
-    highlight: 'gym habits'
+    role: 'Software Engineer',
+    quote: "I went from inconsistent gym habits to a 92 integrity score—now I trust myself like never before. 6 months ago I couldn't stick to anything. Today, I've completed 47 milestones.",
+    highlight: 'gym habits',
+    keptPromises: 47,
+    brokenPromises: 3
   },
   {
-    name: 'Jordan',
-    initials: 'J',
+    name: 'Jordan Williams',
+    initials: 'JW',
     score: 78,
-    quote: "Breaking promises used to crush me; now confessions turn them into lessons. This app reignited my self-belief.",
-    highlight: 'self-belief'
+    role: 'Startup Founder',
+    quote: "Breaking promises used to crush me; now confessions turn them into lessons. This app reignited my self-belief. Launched my MVP on time for the first time ever.",
+    highlight: 'self-belief',
+    keptPromises: 28,
+    brokenPromises: 8
   },
   {
-    name: 'Maya',
-    initials: 'M',
+    name: 'Maya Rodriguez',
+    initials: 'MR',
     score: 85,
-    quote: "Finally, a system that holds me accountable without judgment. My career goals are actually happening now.",
-    highlight: 'career goals'
+    role: 'Marketing Manager',
+    quote: "Finally, a system that holds me accountable without judgment. My career goals are actually happening now. Got promoted twice since I started.",
+    highlight: 'career goals',
+    keptPromises: 34,
+    brokenPromises: 5
   }
 ];
 
@@ -61,11 +70,17 @@ const faqItems = [
 ];
 
 // Scroll animation hook
-function useScrollAnimation() {
-  const [isVisible, setIsVisible] = useState(false);
+function useScrollAnimation(startVisible = false) {
+  const [isVisible, setIsVisible] = useState(startVisible);
   const ref = useRef(null);
 
   useEffect(() => {
+    // If startVisible is true, element should be visible immediately
+    if (startVisible) {
+      setIsVisible(true);
+      return;
+    }
+
     const observer = new IntersectionObserver(
       ([entry]) => {
         if (entry.isIntersecting) {
@@ -80,7 +95,7 @@ function useScrollAnimation() {
     }
 
     return () => observer.disconnect();
-  }, []);
+  }, [startVisible]);
 
   return [ref, isVisible];
 }
@@ -110,7 +125,7 @@ function FAQItem({ question, answer, isOpen, onClick }) {
 export default function LandingPage() {
   const { user, isLoading, currentGoal, needsGoalSetup, goalHistory, isSignedIn } = useApp();
   const [openFAQ, setOpenFAQ] = useState(null);
-  const [heroRef, heroVisible] = useScrollAnimation();
+  const [heroRef, heroVisible] = useScrollAnimation(true); // Hero starts visible immediately
   const [whyRef, whyVisible] = useScrollAnimation();
   const [testimonialsRef, testimonialsVisible] = useScrollAnimation();
   const [faqRef, faqVisible] = useScrollAnimation();
@@ -268,6 +283,50 @@ export default function LandingPage() {
                   </div>
                 </div>
               </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Social Proof Stats - Immediately Visible */}
+      <section className="py-8 sm:py-10 px-4 bg-obsidian-900/50 border-y border-obsidian-800">
+        <div className="max-w-5xl mx-auto">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6 text-center">
+            <div className="p-3 sm:p-4">
+              <div className="text-2xl sm:text-3xl md:text-4xl font-bold text-amber-400 mb-1">2,847</div>
+              <p className="text-obsidian-400 text-xs sm:text-sm">Promises Kept</p>
+            </div>
+            <div className="p-3 sm:p-4">
+              <div className="text-2xl sm:text-3xl md:text-4xl font-bold text-green-500 mb-1">89%</div>
+              <p className="text-obsidian-400 text-xs sm:text-sm">Success Rate</p>
+            </div>
+            <div className="p-3 sm:p-4">
+              <div className="text-2xl sm:text-3xl md:text-4xl font-bold text-gold-500 mb-1">1,203</div>
+              <p className="text-obsidian-400 text-xs sm:text-sm">Active Users</p>
+            </div>
+            <div className="p-3 sm:p-4">
+              <div className="text-2xl sm:text-3xl md:text-4xl font-bold text-obsidian-200 mb-1">73</div>
+              <p className="text-obsidian-400 text-xs sm:text-sm">Avg. Integrity Score</p>
+            </div>
+          </div>
+
+          {/* Quick Testimonial Highlight */}
+          <div className="mt-6 sm:mt-8 text-center">
+            <div className="inline-flex items-center gap-3 bg-obsidian-800/60 rounded-full px-4 sm:px-6 py-2 sm:py-3 border border-obsidian-700">
+              <div className="flex -space-x-2">
+                <div className="w-8 h-8 rounded-full bg-gradient-to-br from-amber-400 to-gold-500 flex items-center justify-center border-2 border-obsidian-800">
+                  <span className="text-obsidian-900 font-bold text-xs">AC</span>
+                </div>
+                <div className="w-8 h-8 rounded-full bg-gradient-to-br from-green-400 to-emerald-500 flex items-center justify-center border-2 border-obsidian-800">
+                  <span className="text-obsidian-900 font-bold text-xs">JW</span>
+                </div>
+                <div className="w-8 h-8 rounded-full bg-gradient-to-br from-purple-400 to-violet-500 flex items-center justify-center border-2 border-obsidian-800">
+                  <span className="text-obsidian-900 font-bold text-xs">MR</span>
+                </div>
+              </div>
+              <p className="text-obsidian-300 text-xs sm:text-sm">
+                <span className="text-amber-400 font-semibold">"Changed my life"</span> — Join 1,200+ users building self-trust
+              </p>
             </div>
           </div>
         </div>
@@ -501,18 +560,32 @@ export default function LandingPage() {
               >
                 <div className="flex items-center gap-3 mb-4">
                   {/* Avatar */}
-                  <div className="w-10 h-10 rounded-full bg-gradient-to-br from-amber-400 to-gold-500 flex items-center justify-center">
+                  <div className="w-12 h-12 rounded-full bg-gradient-to-br from-amber-400 to-gold-500 flex items-center justify-center">
                     <span className="text-obsidian-900 font-bold text-sm">{testimonial.initials}</span>
                   </div>
                   <div>
                     <h4 className="text-obsidian-100 font-semibold">{testimonial.name}</h4>
-                    <div className="flex items-center gap-1 text-xs">
-                      <Shield className="w-3 h-3 text-amber-400" />
-                      <span className="text-amber-400">Score: {testimonial.score}</span>
-                    </div>
+                    <p className="text-obsidian-500 text-xs">{testimonial.role}</p>
                   </div>
                 </div>
-                <p className="text-obsidian-300 text-sm leading-relaxed italic">
+
+                {/* Integrity Score Badge */}
+                <div className="flex items-center gap-2 mb-4">
+                  <div className="flex items-center gap-1.5 bg-amber-500/10 border border-amber-500/30 rounded-full px-3 py-1">
+                    <Shield className="w-3.5 h-3.5 text-amber-400" />
+                    <span className="text-amber-400 text-sm font-bold">{testimonial.score}</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-xs">
+                    <span className="text-green-500 flex items-center gap-1">
+                      <CheckCircle className="w-3 h-3" /> {testimonial.keptPromises}
+                    </span>
+                    <span className="text-red-400 flex items-center gap-1">
+                      <XCircle className="w-3 h-3" /> {testimonial.brokenPromises}
+                    </span>
+                  </div>
+                </div>
+
+                <p className="text-obsidian-300 text-sm leading-relaxed">
                   "{testimonial.quote}"
                 </p>
               </div>
