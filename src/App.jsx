@@ -22,6 +22,7 @@ import {
   PublicProfilePage,
   CalendarPage,
   WaitlistPage,
+  AnalyticsPage,
 } from './pages';
 
 // Loading screen component
@@ -148,6 +149,7 @@ function AppRoutes() {
         <Route path="/lock-promise/:milestoneId" element={<LockPromisePage />} />
         <Route path="/history" element={<HistoryPage />} />
         <Route path="/calendar" element={<CalendarPage />} />
+        <Route path="/analytics" element={<AnalyticsPage />} />
         <Route path="/profile" element={<ProfilePage />} />
         <Route path="/settings" element={<SettingsPage />} />
         <Route path="/help" element={<HelpPage />} />

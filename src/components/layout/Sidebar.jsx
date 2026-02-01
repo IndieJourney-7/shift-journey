@@ -16,6 +16,7 @@ import {
   ListChecks,
   Menu,
   X,
+  BarChart3,
 } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
 
@@ -52,6 +53,7 @@ export default function Sidebar({ isOpen, onClose }) {
     { icon: Compass, label: 'My Journey', href: '/dashboard' },
     { icon: ListChecks, label: 'Milestones', href: '/milestones' },
     { icon: Calendar, label: 'Calendar', href: '/calendar' },
+    { icon: BarChart3, label: 'Analytics', href: '/analytics' },
     { icon: History, label: 'History', href: '/history' },
     { icon: User, label: 'Profile', href: '/profile' },
     { icon: HelpCircle, label: 'Help', href: '/help' },
