@@ -1,10 +1,11 @@
 import { Link, Navigate } from 'react-router-dom';
 import { useState, useEffect, useRef } from 'react';
-import { Lock, Target, Shield, ChevronRight, ChevronDown, CheckCircle, XCircle, Sparkles, Heart, TrendingUp, MessageCircle, BookOpen, Mail } from 'lucide-react';
+import { Lock, Target, Shield, ChevronRight, ChevronDown, CheckCircle, XCircle, Sparkles, Heart, TrendingUp, MessageCircle, BookOpen, Mail, Gift } from 'lucide-react';
 import { Button } from '../components/ui';
 import { Navbar } from '../components/layout';
 import { JourneyPath } from '../components/journey';
 import { useApp } from '../context/AppContext';
+import { testimonialsService, faqsService, offersService, siteStatsService } from '../services/adminContentService';
 
 // Demo milestones for hero section
 const heroMilestones = [
@@ -15,8 +16,8 @@ const heroMilestones = [
   { id: 5, number: 5, title: 'Iterate & grow', status: 'pending' },
 ];
 
-// Testimonials data - Real user stories
-const testimonials = [
+// Fallback testimonials (used when DB is empty)
+const fallbackTestimonials = [
   {
     name: 'Alex Chen',
     initials: 'AC',
@@ -24,8 +25,8 @@ const testimonials = [
     role: 'Software Engineer',
     quote: "I went from inconsistent gym habits to a 92 integrity score—now I trust myself like never before. 6 months ago I couldn't stick to anything. Today, I've completed 47 milestones.",
     highlight: 'gym habits',
-    keptPromises: 47,
-    brokenPromises: 3
+    kept_promises: 47,
+    broken_promises: 3
   },
   {
     name: 'Jordan Williams',
@@ -34,8 +35,8 @@ const testimonials = [
     role: 'Startup Founder',
     quote: "Breaking promises used to crush me; now confessions turn them into lessons. This app reignited my self-belief. Launched my MVP on time for the first time ever.",
     highlight: 'self-belief',
-    keptPromises: 28,
-    brokenPromises: 8
+    kept_promises: 28,
+    broken_promises: 8
   },
   {
     name: 'Maya Rodriguez',
@@ -44,13 +45,13 @@ const testimonials = [
     role: 'Marketing Manager',
     quote: "Finally, a system that holds me accountable without judgment. My career goals are actually happening now. Got promoted twice since I started.",
     highlight: 'career goals',
-    keptPromises: 34,
-    brokenPromises: 5
+    kept_promises: 34,
+    broken_promises: 5
   }
 ];
 
-// FAQ data
-const faqItems = [
+// Fallback FAQs (used when DB is empty)
+const fallbackFAQs = [
   {
     question: "How does facing my confessions build unshakable confidence?",
     answer: "When you admit a broken promise, you're choosing honesty over hiding. This simple act of self-accountability rewires your brain to trust your own words again. Each confession is a stepping stone, not a stumbling block—proof that you're committed to growth, even when it's hard."
@@ -129,6 +130,48 @@ export default function LandingPage() {
   const [whyRef, whyVisible] = useScrollAnimation();
   const [testimonialsRef, testimonialsVisible] = useScrollAnimation();
   const [faqRef, faqVisible] = useScrollAnimation();
+  
+  // Dynamic content state
+  const [testimonials, setTestimonials] = useState(fallbackTestimonials);
+  const [faqItems, setFaqItems] = useState(fallbackFAQs);
+  const [activeOffer, setActiveOffer] = useState(null);
+  const [siteStats, setSiteStats] = useState({ promises_kept: 2847, success_rate: 89, active_users: 1203 });
+
+  // Load dynamic content from database
+  useEffect(() => {
+    const loadContent = async () => {
+      try {
+        // Load testimonials
+        const testimonialsData = await testimonialsService.getActive();
+        if (testimonialsData && testimonialsData.length > 0) {
+          setTestimonials(testimonialsData);
+        }
+
+        // Load FAQs
+        const faqsData = await faqsService.getActive();
+        if (faqsData && faqsData.length > 0) {
+          setFaqItems(faqsData);
+        }
+
+        // Load active offer
+        const offerData = await offersService.getPrimary();
+        if (offerData) {
+          setActiveOffer(offerData);
+        }
+
+        // Load site stats
+        const statsData = await siteStatsService.get();
+        if (statsData) {
+          setSiteStats(statsData);
+        }
+      } catch (error) {
+        console.error('Error loading landing page content:', error);
+        // Fall back to static content on error
+      }
+    };
+
+    loadContent();
+  }, []);
 
   // If OAuth hash is detected in URL, redirect to auth callback immediately
   // This handles edge cases where OAuth redirects to root with hash
@@ -171,6 +214,41 @@ export default function LandingPage() {
   return (
     <div className="min-h-screen bg-obsidian-950 noise-bg">
       <Navbar />
+
+      {/* Promotional Offer Banner (Dynamic) */}
+      {activeOffer && (
+        <div className={`py-3 px-4 ${
+          activeOffer.bg_color === 'gold' ? 'bg-gradient-to-r from-amber-500 to-amber-600' :
+          activeOffer.bg_color === 'blue' ? 'bg-gradient-to-r from-blue-500 to-blue-600' :
+          activeOffer.bg_color === 'green' ? 'bg-gradient-to-r from-emerald-500 to-emerald-600' :
+          activeOffer.bg_color === 'purple' ? 'bg-gradient-to-r from-purple-500 to-purple-600' :
+          activeOffer.bg_color === 'red' ? 'bg-gradient-to-r from-red-500 to-red-600' :
+          'bg-gradient-to-r from-amber-500 to-amber-600'
+        }`}>
+          <div className="max-w-7xl mx-auto flex items-center justify-center gap-3 flex-wrap">
+            {activeOffer.badge_text && (
+              <span className="text-xs bg-white/20 px-2 py-1 rounded text-white font-medium">
+                {activeOffer.badge_text}
+              </span>
+            )}
+            <span className="text-white font-semibold text-sm sm:text-base">
+              {activeOffer.title}
+              {activeOffer.discount_percent && (
+                <span className="ml-2 font-bold">{activeOffer.discount_percent}% OFF</span>
+              )}
+            </span>
+            {activeOffer.description && (
+              <span className="text-white/80 text-sm hidden sm:inline">— {activeOffer.description}</span>
+            )}
+            <Link
+              to={activeOffer.cta_link || '/login'}
+              className="ml-2 px-4 py-1.5 bg-white/20 hover:bg-white/30 rounded-lg text-white text-sm font-medium transition-colors"
+            >
+              {activeOffer.cta_text || 'Get Started'}
+            </Link>
+          </div>
+        </div>
+      )}
 
       {/* Hero Section */}
       <section 
@@ -293,19 +371,27 @@ export default function LandingPage() {
         <div className="max-w-5xl mx-auto">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6 text-center">
             <div className="p-3 sm:p-4">
-              <div className="text-2xl sm:text-3xl md:text-4xl font-bold text-amber-400 mb-1">2,847</div>
+              <div className="text-2xl sm:text-3xl md:text-4xl font-bold text-amber-400 mb-1">
+                {(siteStats.promises_kept || 2847).toLocaleString()}
+              </div>
               <p className="text-obsidian-400 text-xs sm:text-sm">Promises Kept</p>
             </div>
             <div className="p-3 sm:p-4">
-              <div className="text-2xl sm:text-3xl md:text-4xl font-bold text-green-500 mb-1">89%</div>
+              <div className="text-2xl sm:text-3xl md:text-4xl font-bold text-green-500 mb-1">
+                {siteStats.success_rate || 89}%
+              </div>
               <p className="text-obsidian-400 text-xs sm:text-sm">Success Rate</p>
             </div>
             <div className="p-3 sm:p-4">
-              <div className="text-2xl sm:text-3xl md:text-4xl font-bold text-gold-500 mb-1">1,203</div>
+              <div className="text-2xl sm:text-3xl md:text-4xl font-bold text-gold-500 mb-1">
+                {(siteStats.active_users || 1203).toLocaleString()}
+              </div>
               <p className="text-obsidian-400 text-xs sm:text-sm">Active Users</p>
             </div>
             <div className="p-3 sm:p-4">
-              <div className="text-2xl sm:text-3xl md:text-4xl font-bold text-obsidian-200 mb-1">73</div>
+              <div className="text-2xl sm:text-3xl md:text-4xl font-bold text-obsidian-200 mb-1">
+                {siteStats.avg_integrity_score || 73}
+              </div>
               <p className="text-obsidian-400 text-xs sm:text-sm">Avg. Integrity Score</p>
             </div>
           </div>
@@ -314,18 +400,21 @@ export default function LandingPage() {
           <div className="mt-6 sm:mt-8 text-center">
             <div className="inline-flex items-center gap-3 bg-obsidian-800/60 rounded-full px-4 sm:px-6 py-2 sm:py-3 border border-obsidian-700">
               <div className="flex -space-x-2">
-                <div className="w-8 h-8 rounded-full bg-gradient-to-br from-amber-400 to-gold-500 flex items-center justify-center border-2 border-obsidian-800">
-                  <span className="text-obsidian-900 font-bold text-xs">AC</span>
-                </div>
-                <div className="w-8 h-8 rounded-full bg-gradient-to-br from-green-400 to-emerald-500 flex items-center justify-center border-2 border-obsidian-800">
-                  <span className="text-obsidian-900 font-bold text-xs">JW</span>
-                </div>
-                <div className="w-8 h-8 rounded-full bg-gradient-to-br from-purple-400 to-violet-500 flex items-center justify-center border-2 border-obsidian-800">
-                  <span className="text-obsidian-900 font-bold text-xs">MR</span>
-                </div>
+                {testimonials.slice(0, 3).map((t, i) => (
+                  <div 
+                    key={i}
+                    className={`w-8 h-8 rounded-full flex items-center justify-center border-2 border-obsidian-800 ${
+                      i === 0 ? 'bg-gradient-to-br from-amber-400 to-gold-500' :
+                      i === 1 ? 'bg-gradient-to-br from-green-400 to-emerald-500' :
+                      'bg-gradient-to-br from-purple-400 to-violet-500'
+                    }`}
+                  >
+                    <span className="text-obsidian-900 font-bold text-xs">{t.initials}</span>
+                  </div>
+                ))}
               </div>
               <p className="text-obsidian-300 text-xs sm:text-sm">
-                <span className="text-amber-400 font-semibold">"Changed my life"</span> — Join 1,200+ users building self-trust
+                <span className="text-amber-400 font-semibold">"Changed my life"</span> — Join {(siteStats.active_users || 1200).toLocaleString()}+ users building self-trust
               </p>
             </div>
           </div>
@@ -577,10 +666,10 @@ export default function LandingPage() {
                   </div>
                   <div className="flex items-center gap-2 text-xs">
                     <span className="text-green-500 flex items-center gap-1">
-                      <CheckCircle className="w-3 h-3" /> {testimonial.keptPromises}
+                      <CheckCircle className="w-3 h-3" /> {testimonial.kept_promises || testimonial.keptPromises || 0}
                     </span>
                     <span className="text-red-400 flex items-center gap-1">
-                      <XCircle className="w-3 h-3" /> {testimonial.brokenPromises}
+                      <XCircle className="w-3 h-3" /> {testimonial.broken_promises || testimonial.brokenPromises || 0}
                     </span>
                   </div>
                 </div>

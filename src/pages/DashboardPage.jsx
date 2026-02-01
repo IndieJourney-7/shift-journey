@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Lock, Check, AlertTriangle, ChevronRight, Target, Share2, Copy, CheckCircle, Trophy, Upload, Camera, Shield, TrendingUp, TrendingDown } from 'lucide-react';
+import { Lock, Check, AlertTriangle, ChevronRight, Target, Share2, Copy, CheckCircle, Trophy, Upload, Camera, Shield, TrendingUp, TrendingDown, Quote, RefreshCw } from 'lucide-react';
 import { Button, Card, Badge, Modal, Textarea } from '../components/ui';
 import { JourneyPath, MilestoneCard, CountdownTimer, IntegrityBadgeInline } from '../components/journey';
 import { useApp } from '../context/AppContext';
 import { getIntegrityTier, getNextTier, getPromisesToNextTier, getTierProgress } from '../lib/badgeDefinitions';
+import { quotesService } from '../services/adminContentService';
 
 export default function DashboardPage() {
   const navigate = useNavigate();
@@ -37,6 +38,39 @@ export default function DashboardPage() {
   const [linkCopied, setLinkCopied] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   const [actionError, setActionError] = useState(null);
+
+  // Motivational quote state
+  const [dailyQuote, setDailyQuote] = useState(null);
+  const [isLoadingQuote, setIsLoadingQuote] = useState(false);
+
+  // Load daily quote
+  useEffect(() => {
+    const loadQuote = async () => {
+      try {
+        const quote = await quotesService.getRandom();
+        setDailyQuote(quote);
+      } catch (err) {
+        // Fallback quote if fetch fails
+        setDailyQuote({
+          text: "The only way to build trust is to keep your promises.",
+          author: "Shift Ascent"
+        });
+      }
+    };
+    loadQuote();
+  }, []);
+
+  // Refresh quote function
+  const handleRefreshQuote = async () => {
+    setIsLoadingQuote(true);
+    try {
+      const quote = await quotesService.getRandom();
+      setDailyQuote(quote);
+    } catch (err) {
+      // Keep current quote if refresh fails
+    }
+    setIsLoadingQuote(false);
+  };
 
   // Structured failure reflection state
   const [reflection, setReflection] = useState({
@@ -175,6 +209,34 @@ export default function DashboardPage() {
         {/* Small Integrity Indicator */}
         <IntegrityBadgeInline score={user.integrityScore} />
       </div>
+
+      {/* Daily Motivational Quote */}
+      {dailyQuote && (
+        <div className="relative group">
+          <div className="absolute inset-0 bg-gradient-to-r from-gold-500/10 to-amber-500/10 rounded-xl blur-sm" />
+          <Card variant="default" padding="md" className="relative border-gold-500/20 bg-obsidian-900/80">
+            <div className="flex items-start gap-3">
+              <Quote className="w-6 h-6 text-gold-400 flex-shrink-0 mt-0.5 transform rotate-180" />
+              <div className="flex-1 min-w-0">
+                <p className="text-obsidian-200 text-sm sm:text-base italic leading-relaxed">
+                  "{dailyQuote.text}"
+                </p>
+                <p className="text-gold-400 text-xs sm:text-sm mt-2 font-medium">
+                  — {dailyQuote.author}
+                </p>
+              </div>
+              <button
+                onClick={handleRefreshQuote}
+                disabled={isLoadingQuote}
+                className="p-1.5 text-obsidian-400 hover:text-gold-400 transition-colors opacity-0 group-hover:opacity-100 disabled:opacity-50"
+                title="Get new quote"
+              >
+                <RefreshCw className={`w-4 h-4 ${isLoadingQuote ? 'animate-spin' : ''}`} />
+              </button>
+            </div>
+          </Card>
+        </div>
+      )}
 
       {/* Journey Path Visualization */}
       <Card variant="default" padding="md" className="sm:p-6 lg:p-8">

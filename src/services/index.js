@@ -8,3 +8,12 @@ export {
   publicDataService,
   authService,
 } from './database';
+
+export {
+  testimonialsService,
+  faqsService,
+  quotesService,
+  offersService,
+  siteStatsService,
+  usersService,
+} from './adminContentService';

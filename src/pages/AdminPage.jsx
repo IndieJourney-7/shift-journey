@@ -20,6 +20,11 @@ import {
   Settings,
   ChevronDown,
   ChevronUp,
+  Star,
+  HelpCircle,
+  Quote,
+  Gift,
+  BarChart3,
 } from 'lucide-react';
 import { Button } from '../components/ui';
 import { useApp } from '../context/AppContext';
@@ -29,16 +34,41 @@ import {
   adminAnalyticsService,
 } from '../services/database';
 
+// Import Admin Components
+import {
+  TestimonialsManager,
+  FAQsManager,
+  QuotesManager,
+  OffersManager,
+  UsersManager,
+  SiteStatsManager,
+} from '../components/admin';
+
 /**
  * Admin Dashboard - Full Control Center
  *
  * Features:
  * - Overview stats (users, goals, milestones, subscriptions)
- * - Pricing plan management (edit names, prices, limits, features)
- * - Feature toggles for each plan
- * - Toggle plans active/inactive
- * - View subscription stats
+ * - Pricing plan management
+ * - Testimonials/Reviews management
+ * - FAQs management
+ * - Motivational quotes management
+ * - Offers/Promotions management
+ * - Users list
+ * - Site statistics management
  */
+
+// Admin Tabs Configuration
+const ADMIN_TABS = [
+  { id: 'overview', label: 'Overview', icon: BarChart3 },
+  { id: 'users', label: 'Users', icon: Users },
+  { id: 'testimonials', label: 'Testimonials', icon: Star },
+  { id: 'faqs', label: 'FAQs', icon: HelpCircle },
+  { id: 'quotes', label: 'Quotes', icon: Quote },
+  { id: 'offers', label: 'Offers', icon: Gift },
+  { id: 'pricing', label: 'Pricing', icon: DollarSign },
+  { id: 'stats', label: 'Site Stats', icon: TrendingUp },
+];
 
 // All available features that can be toggled for plans
 const AVAILABLE_FEATURES = {
@@ -563,8 +593,9 @@ function PlanRow({ plan, onEdit, onToggleActive }) {
 
 export default function AdminPage() {
   const navigate = useNavigate();
-  const { user, isAuthenticated } = useApp();
+  const { user, isAuthenticated, isAdmin } = useApp();
 
+  const [activeTab, setActiveTab] = useState('overview');
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState(null);
@@ -725,7 +756,7 @@ export default function AdminPage() {
         </div>
       </header>
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
         {/* Messages */}
         {error && (
           <div className="mb-6 p-4 bg-red-500/10 border border-red-500/30 rounded-lg flex items-center gap-3">
@@ -747,122 +778,206 @@ export default function AdminPage() {
           </div>
         )}
 
-        {loading ? (
-          <div className="flex items-center justify-center py-20">
-            <RefreshCw className="w-8 h-8 text-gold-500 animate-spin" />
-          </div>
-        ) : (
-          <>
-            {/* Stats Overview */}
-            <section className="mb-8">
-              <h2 className="text-lg font-semibold text-obsidian-100 mb-4">Overview</h2>
-              <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-                <StatCard
-                  icon={Users}
-                  label="Total Users"
-                  value={stats.users}
-                  color="blue"
-                />
-                <StatCard
-                  icon={Target}
-                  label="Total Goals"
-                  value={stats.goals.total}
-                  subValue={`${stats.goals.active} active, ${stats.goals.completed} completed`}
-                  color="gold"
-                />
-                <StatCard
-                  icon={Milestone}
-                  label="Total Milestones"
-                  value={stats.milestones.total}
-                  subValue={`${stats.milestones.completed} completed, ${stats.milestones.broken} broken`}
-                  color="purple"
-                />
-                <StatCard
-                  icon={TrendingUp}
-                  label="Subscriptions"
-                  value={stats.subscriptions.total}
-                  subValue={Object.entries(stats.subscriptions.byPlan || {})
-                    .map(([plan, count]) => `${plan}: ${count}`)
-                    .join(', ') || 'No subscriptions'}
-                  color="green"
-                />
-              </div>
-            </section>
+        <div className="flex gap-6">
+          {/* Sidebar Navigation */}
+          <nav className="w-56 flex-shrink-0">
+            <div className="sticky top-24 space-y-1">
+              {ADMIN_TABS.map((tab) => {
+                const Icon = tab.icon;
+                const isActive = activeTab === tab.id;
+                return (
+                  <button
+                    key={tab.id}
+                    onClick={() => setActiveTab(tab.id)}
+                    className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-left transition-colors ${
+                      isActive
+                        ? 'bg-gold-500/20 text-gold-500 border border-gold-500/30'
+                        : 'text-obsidian-400 hover:text-obsidian-200 hover:bg-obsidian-800/50'
+                    }`}
+                  >
+                    <Icon className="w-5 h-5" />
+                    <span className="font-medium">{tab.label}</span>
+                  </button>
+                );
+              })}
+            </div>
+          </nav>
 
-            {/* Pricing Plans Management */}
-            <section className="mb-8">
-              <div className="flex items-center justify-between mb-4">
-                <h2 className="text-lg font-semibold text-obsidian-100">Pricing Plans</h2>
-                <div className="flex items-center gap-2">
-                  <DollarSign className="w-4 h-4 text-obsidian-500" />
-                  <span className="text-obsidian-500 text-sm">
-                    {plans.filter(p => p.is_active).length} active / {plans.length} total
-                  </span>
-                </div>
+          {/* Main Content */}
+          <main className="flex-1 min-w-0">
+            {loading ? (
+              <div className="flex items-center justify-center py-20">
+                <RefreshCw className="w-8 h-8 text-gold-500 animate-spin" />
               </div>
+            ) : (
+              <>
+                {/* Overview Tab */}
+                {activeTab === 'overview' && (
+                  <>
+                    <section className="mb-8">
+                      <h2 className="text-lg font-semibold text-obsidian-100 mb-4">Overview</h2>
+                      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                        <StatCard icon={Users} label="Total Users" value={stats.users} color="blue" />
+                        <StatCard
+                          icon={Target}
+                          label="Total Goals"
+                          value={stats.goals.total}
+                          subValue={`${stats.goals.active} active, ${stats.goals.completed} completed`}
+                          color="gold"
+                        />
+                        <StatCard
+                          icon={Milestone}
+                          label="Total Milestones"
+                          value={stats.milestones.total}
+                          subValue={`${stats.milestones.completed} completed, ${stats.milestones.broken} broken`}
+                          color="purple"
+                        />
+                        <StatCard
+                          icon={TrendingUp}
+                          label="Subscriptions"
+                          value={stats.subscriptions.total}
+                          subValue={Object.entries(stats.subscriptions.byPlan || {})
+                            .map(([plan, count]) => `${plan}: ${count}`)
+                            .join(', ') || 'No subscriptions'}
+                          color="green"
+                        />
+                      </div>
+                    </section>
 
-              <div className="bg-obsidian-800/30 border border-obsidian-700 rounded-xl overflow-hidden">
-                <table className="w-full">
-                  <thead>
-                    <tr className="border-b border-obsidian-700 bg-obsidian-800/50">
-                      <th className="text-left py-3 px-4 text-obsidian-400 text-sm font-medium">Plan</th>
-                      <th className="text-left py-3 px-4 text-obsidian-400 text-sm font-medium">Price</th>
-                      <th className="text-left py-3 px-4 text-obsidian-400 text-sm font-medium">Goals Limit</th>
-                      <th className="text-left py-3 px-4 text-obsidian-400 text-sm font-medium">Features</th>
-                      <th className="text-left py-3 px-4 text-obsidian-400 text-sm font-medium">Status</th>
-                      <th className="text-left py-3 px-4 text-obsidian-400 text-sm font-medium">Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {plans.map((plan) => (
-                      <PlanRow
-                        key={plan.id}
-                        plan={plan}
-                        onEdit={setEditingPlan}
-                        onToggleActive={handleToggleActive}
-                      />
-                    ))}
-                    {plans.length === 0 && (
-                      <tr>
-                        <td colSpan={6} className="py-8 text-center text-obsidian-500">
-                          No pricing plans found. Run the database schema to create default plans.
-                        </td>
-                      </tr>
-                    )}
-                  </tbody>
-                </table>
-              </div>
-            </section>
+                    {/* Quick Actions */}
+                    <section className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+                      <button
+                        onClick={() => setActiveTab('testimonials')}
+                        className="p-4 bg-obsidian-800/50 border border-obsidian-700 rounded-xl hover:border-gold-500/50 transition-colors text-left"
+                      >
+                        <Star className="w-6 h-6 text-amber-500 mb-2" />
+                        <p className="font-medium text-white">Testimonials</p>
+                        <p className="text-xs text-obsidian-400">Manage reviews</p>
+                      </button>
+                      <button
+                        onClick={() => setActiveTab('faqs')}
+                        className="p-4 bg-obsidian-800/50 border border-obsidian-700 rounded-xl hover:border-gold-500/50 transition-colors text-left"
+                      >
+                        <HelpCircle className="w-6 h-6 text-blue-500 mb-2" />
+                        <p className="font-medium text-white">FAQs</p>
+                        <p className="text-xs text-obsidian-400">Edit questions</p>
+                      </button>
+                      <button
+                        onClick={() => setActiveTab('quotes')}
+                        className="p-4 bg-obsidian-800/50 border border-obsidian-700 rounded-xl hover:border-gold-500/50 transition-colors text-left"
+                      >
+                        <Quote className="w-6 h-6 text-purple-500 mb-2" />
+                        <p className="font-medium text-white">Quotes</p>
+                        <p className="text-xs text-obsidian-400">Dashboard quotes</p>
+                      </button>
+                      <button
+                        onClick={() => setActiveTab('offers')}
+                        className="p-4 bg-obsidian-800/50 border border-obsidian-700 rounded-xl hover:border-gold-500/50 transition-colors text-left"
+                      >
+                        <Gift className="w-6 h-6 text-emerald-500 mb-2" />
+                        <p className="font-medium text-white">Offers</p>
+                        <p className="text-xs text-obsidian-400">Promotions</p>
+                      </button>
+                    </section>
 
-            {/* Quick Tips */}
-            <section className="bg-obsidian-800/30 border border-obsidian-700 rounded-xl p-6">
-              <h3 className="text-obsidian-100 font-medium mb-3">How It Works</h3>
-              <ul className="space-y-2 text-obsidian-400 text-sm">
-                <li className="flex items-start gap-2">
-                  <span className="text-gold-500">1.</span>
-                  <span>Edit a plan to change its name, price, limits, and features</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <span className="text-gold-500">2.</span>
-                  <span>Toggle features on/off - they immediately reflect on the pricing page</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <span className="text-gold-500">3.</span>
-                  <span>Set a plan as "Featured" to highlight it on the pricing page</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <span className="text-gold-500">4.</span>
-                  <span>Deactivate plans to hide them from customers without deleting</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <span className="text-gold-500">5.</span>
-                  <span>Prices are in cents (e.g., 900 = $9.00)</span>
-                </li>
-              </ul>
-            </section>
-          </>
-        )}
-      </main>
+                    {/* Quick Guide */}
+                    <section className="bg-obsidian-800/30 border border-obsidian-700 rounded-xl p-6">
+                      <h3 className="text-obsidian-100 font-medium mb-3">Admin Quick Guide</h3>
+                      <ul className="space-y-2 text-obsidian-400 text-sm">
+                        <li className="flex items-start gap-2">
+                          <span className="text-gold-500">•</span>
+                          <span><strong>Testimonials:</strong> Manage reviews shown on the landing page</span>
+                        </li>
+                        <li className="flex items-start gap-2">
+                          <span className="text-gold-500">•</span>
+                          <span><strong>FAQs:</strong> Edit frequently asked questions</span>
+                        </li>
+                        <li className="flex items-start gap-2">
+                          <span className="text-gold-500">•</span>
+                          <span><strong>Quotes:</strong> Motivational quotes shown on user dashboards</span>
+                        </li>
+                        <li className="flex items-start gap-2">
+                          <span className="text-gold-500">•</span>
+                          <span><strong>Offers:</strong> Promotional banners for the landing page</span>
+                        </li>
+                        <li className="flex items-start gap-2">
+                          <span className="text-gold-500">•</span>
+                          <span><strong>Site Stats:</strong> Update statistics shown in social proof section</span>
+                        </li>
+                      </ul>
+                    </section>
+                  </>
+                )}
+
+                {/* Users Tab */}
+                {activeTab === 'users' && <UsersManager />}
+
+                {/* Testimonials Tab */}
+                {activeTab === 'testimonials' && <TestimonialsManager />}
+
+                {/* FAQs Tab */}
+                {activeTab === 'faqs' && <FAQsManager />}
+
+                {/* Quotes Tab */}
+                {activeTab === 'quotes' && <QuotesManager />}
+
+                {/* Offers Tab */}
+                {activeTab === 'offers' && <OffersManager />}
+
+                {/* Site Stats Tab */}
+                {activeTab === 'stats' && <SiteStatsManager />}
+
+                {/* Pricing Tab */}
+                {activeTab === 'pricing' && (
+                  <section>
+                    <div className="flex items-center justify-between mb-4">
+                      <h2 className="text-lg font-semibold text-obsidian-100">Pricing Plans</h2>
+                      <div className="flex items-center gap-2">
+                        <DollarSign className="w-4 h-4 text-obsidian-500" />
+                        <span className="text-obsidian-500 text-sm">
+                          {plans.filter(p => p.is_active).length} active / {plans.length} total
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="bg-obsidian-800/30 border border-obsidian-700 rounded-xl overflow-hidden">
+                      <table className="w-full">
+                        <thead>
+                          <tr className="border-b border-obsidian-700 bg-obsidian-800/50">
+                            <th className="text-left py-3 px-4 text-obsidian-400 text-sm font-medium">Plan</th>
+                            <th className="text-left py-3 px-4 text-obsidian-400 text-sm font-medium">Price</th>
+                            <th className="text-left py-3 px-4 text-obsidian-400 text-sm font-medium">Goals Limit</th>
+                            <th className="text-left py-3 px-4 text-obsidian-400 text-sm font-medium">Features</th>
+                            <th className="text-left py-3 px-4 text-obsidian-400 text-sm font-medium">Status</th>
+                            <th className="text-left py-3 px-4 text-obsidian-400 text-sm font-medium">Actions</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {plans.map((plan) => (
+                            <PlanRow
+                              key={plan.id}
+                              plan={plan}
+                              onEdit={setEditingPlan}
+                              onToggleActive={handleToggleActive}
+                            />
+                          ))}
+                          {plans.length === 0 && (
+                            <tr>
+                              <td colSpan={6} className="py-8 text-center text-obsidian-500">
+                                No pricing plans found.
+                              </td>
+                            </tr>
+                          )}
+                        </tbody>
+                      </table>
+                    </div>
+                  </section>
+                )}
+              </>
+            )}
+          </main>
+        </div>
+      </div>
 
       {/* Edit Modal */}
       {editingPlan && (
