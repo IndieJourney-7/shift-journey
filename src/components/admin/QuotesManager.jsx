@@ -121,18 +121,18 @@ const QuotesManager = () => {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
-          <h2 className="text-xl font-bold text-white">Quotes Manager</h2>
-          <p className="text-gray-400 text-sm mt-1">
-            Motivational quotes for user dashboards • {activeCount} active / {quotes.length} total
+          <h2 className="text-lg sm:text-xl font-bold text-white">Quotes Manager</h2>
+          <p className="text-gray-400 text-xs sm:text-sm mt-1">
+            Motivational quotes for dashboards • {activeCount} active / {quotes.length} total
           </p>
         </div>
         <button
           onClick={() => setShowForm(true)}
-          className="flex items-center gap-2 px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white rounded-lg transition-colors"
+          className="flex items-center justify-center gap-2 px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white text-sm rounded-lg transition-colors"
         >
           <Plus className="w-4 h-4" />
           Add Quote
@@ -140,21 +140,18 @@ const QuotesManager = () => {
       </div>
 
       {/* Info Banner */}
-      <div className="bg-amber-500/10 border border-amber-500/30 rounded-lg p-4 flex items-start gap-3">
-        <Sparkles className="w-5 h-5 text-amber-500 flex-shrink-0 mt-0.5" />
-        <div>
-          <p className="text-amber-200 text-sm">
-            Active quotes are randomly displayed on user dashboards to inspire and motivate.
-            Each user sees a different random quote each time they visit.
-          </p>
-        </div>
+      <div className="bg-amber-500/10 border border-amber-500/30 rounded-lg p-3 sm:p-4 flex items-start gap-2 sm:gap-3">
+        <Sparkles className="w-4 h-4 sm:w-5 sm:h-5 text-amber-500 flex-shrink-0 mt-0.5" />
+        <p className="text-amber-200 text-xs sm:text-sm">
+          Active quotes are randomly displayed on user dashboards to inspire and motivate.
+        </p>
       </div>
 
       {/* Category Filter */}
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap">
         <button
           onClick={() => setFilterCategory('all')}
-          className={`px-3 py-1.5 rounded-lg text-sm transition-colors ${
+          className={`px-2 sm:px-3 py-1 sm:py-1.5 rounded-lg text-xs sm:text-sm transition-colors ${
             filterCategory === 'all'
               ? 'bg-amber-600 text-white'
               : 'bg-gray-800 text-gray-400 hover:text-white'
@@ -168,13 +165,13 @@ const QuotesManager = () => {
             <button
               key={cat.value}
               onClick={() => setFilterCategory(cat.value)}
-              className={`px-3 py-1.5 rounded-lg text-sm transition-colors ${
+              className={`px-2 sm:px-3 py-1 sm:py-1.5 rounded-lg text-xs sm:text-sm transition-colors ${
                 filterCategory === cat.value
                   ? 'bg-amber-600 text-white'
                   : 'bg-gray-800 text-gray-400 hover:text-white'
               }`}
             >
-              {cat.emoji} {cat.label} ({count})
+              <span className="hidden sm:inline">{cat.emoji} </span>{cat.label} ({count})
             </button>
           );
         })}
@@ -182,11 +179,11 @@ const QuotesManager = () => {
 
       {/* Form Modal */}
       {showForm && (
-        <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
-          <div className="bg-gray-900 rounded-xl max-w-xl w-full max-h-[90vh] overflow-y-auto border border-gray-700">
-            <div className="p-6 border-b border-gray-700">
+        <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-3 sm:p-4">
+          <div className="bg-gray-900 rounded-xl w-full max-w-xl max-h-[90vh] overflow-y-auto border border-gray-700">
+            <div className="p-4 sm:p-6 border-b border-gray-700">
               <div className="flex items-center justify-between">
-                <h3 className="text-lg font-bold text-white">
+                <h3 className="text-base sm:text-lg font-bold text-white">
                   {editingId ? 'Edit Quote' : 'Add New Quote'}
                 </h3>
                 <button onClick={resetForm} className="text-gray-400 hover:text-white">
@@ -195,36 +192,36 @@ const QuotesManager = () => {
               </div>
             </div>
 
-            <form onSubmit={handleSubmit} className="p-6 space-y-4">
+            <form onSubmit={handleSubmit} className="p-4 sm:p-6 space-y-4">
               <div>
-                <label className="block text-sm text-gray-400 mb-1">Quote Text *</label>
+                <label className="block text-xs sm:text-sm text-gray-400 mb-1">Quote Text *</label>
                 <textarea
                   value={formData.text}
                   onChange={(e) => setFormData({ ...formData, text: e.target.value })}
                   rows={4}
-                  className="w-full px-3 py-2 bg-gray-800 border border-gray-600 rounded-lg text-white focus:outline-none focus:border-amber-500"
+                  className="w-full px-3 py-2 text-sm bg-gray-800 border border-gray-600 rounded-lg text-white focus:outline-none focus:border-amber-500"
                   placeholder="The promises you make to yourself are the most important ones to keep."
                   required
                 />
               </div>
 
               <div>
-                <label className="block text-sm text-gray-400 mb-1">Author</label>
+                <label className="block text-xs sm:text-sm text-gray-400 mb-1">Author</label>
                 <input
                   type="text"
                   value={formData.author}
                   onChange={(e) => setFormData({ ...formData, author: e.target.value })}
-                  className="w-full px-3 py-2 bg-gray-800 border border-gray-600 rounded-lg text-white focus:outline-none focus:border-amber-500"
-                  placeholder="e.g., John Maxwell, Unknown, Shift Ascent"
+                  className="w-full px-3 py-2 text-sm bg-gray-800 border border-gray-600 rounded-lg text-white focus:outline-none focus:border-amber-500"
+                  placeholder="e.g., John Maxwell"
                 />
               </div>
 
               <div>
-                <label className="block text-sm text-gray-400 mb-1">Category</label>
+                <label className="block text-xs sm:text-sm text-gray-400 mb-1">Category</label>
                 <select
                   value={formData.category}
                   onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-                  className="w-full px-3 py-2 bg-gray-800 border border-gray-600 rounded-lg text-white focus:outline-none focus:border-amber-500"
+                  className="w-full px-3 py-2 text-sm bg-gray-800 border border-gray-600 rounded-lg text-white focus:outline-none focus:border-amber-500"
                 >
                   {CATEGORIES.map(cat => (
                     <option key={cat.value} value={cat.value}>
@@ -242,14 +239,14 @@ const QuotesManager = () => {
                     onChange={(e) => setFormData({ ...formData, is_active: e.target.checked })}
                     className="w-4 h-4 rounded border-gray-600 text-amber-500 focus:ring-amber-500"
                   />
-                  <span className="text-sm text-gray-300">Active (show on dashboards)</span>
+                  <span className="text-xs sm:text-sm text-gray-300">Active</span>
                 </label>
               </div>
 
               <div className="flex gap-3 pt-4">
                 <button
                   type="submit"
-                  className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white rounded-lg transition-colors"
+                  className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white text-sm rounded-lg transition-colors"
                 >
                   <Save className="w-4 h-4" />
                   {editingId ? 'Update' : 'Create'}
@@ -257,7 +254,7 @@ const QuotesManager = () => {
                 <button
                   type="button"
                   onClick={resetForm}
-                  className="px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-lg transition-colors"
+                  className="px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white text-sm rounded-lg transition-colors"
                 >
                   Cancel
                 </button>
@@ -269,18 +266,18 @@ const QuotesManager = () => {
 
       {/* Quotes Grid */}
       {filteredQuotes.length === 0 ? (
-        <div className="text-center py-12 bg-gray-800/50 rounded-xl border border-gray-700">
-          <Quote className="w-12 h-12 text-gray-600 mx-auto mb-3" />
-          <p className="text-gray-400">No quotes found</p>
+        <div className="text-center py-8 sm:py-12 bg-gray-800/50 rounded-xl border border-gray-700">
+          <Quote className="w-10 h-10 sm:w-12 sm:h-12 text-gray-600 mx-auto mb-3" />
+          <p className="text-gray-400 text-sm">No quotes found</p>
           <button
             onClick={() => setShowForm(true)}
-            className="mt-3 text-amber-500 hover:text-amber-400"
+            className="mt-3 text-amber-500 hover:text-amber-400 text-sm"
           >
             Add your first quote
           </button>
         </div>
       ) : (
-        <div className="grid gap-3">
+        <div className="grid gap-2 sm:gap-3">
           {filteredQuotes.map((quote) => {
             const category = getCategoryConfig(quote.category);
 
@@ -289,26 +286,26 @@ const QuotesManager = () => {
                 key={quote.id}
                 className={`bg-gray-800/50 rounded-xl border ${
                   quote.is_active ? 'border-gray-700' : 'border-gray-800 opacity-60'
-                } p-4`}
+                } p-3 sm:p-4`}
               >
-                <div className="flex items-start gap-4">
+                <div className="flex items-start gap-2 sm:gap-4">
                   {/* Quote Icon */}
-                  <div className="flex-shrink-0 w-10 h-10 rounded-lg bg-amber-500/20 flex items-center justify-center text-xl">
+                  <div className="flex-shrink-0 w-8 h-8 sm:w-10 sm:h-10 rounded-lg bg-amber-500/20 flex items-center justify-center text-base sm:text-xl">
                     {category.emoji}
                   </div>
 
                   {/* Content */}
                   <div className="flex-1 min-w-0">
-                    <p className="text-gray-200 italic">"{quote.text}"</p>
-                    <div className="flex items-center gap-3 mt-2">
+                    <p className="text-gray-200 text-sm italic">"{quote.text}"</p>
+                    <div className="flex items-center flex-wrap gap-2 sm:gap-3 mt-2">
                       {quote.author && (
-                        <span className="text-sm text-amber-500">— {quote.author}</span>
+                        <span className="text-xs sm:text-sm text-amber-500">— {quote.author}</span>
                       )}
-                      <span className="text-xs px-2 py-0.5 bg-gray-700 text-gray-400 rounded">
+                      <span className="text-[10px] sm:text-xs px-1.5 sm:px-2 py-0.5 bg-gray-700 text-gray-400 rounded">
                         {category.label}
                       </span>
                       {!quote.is_active && (
-                        <span className="text-xs px-2 py-0.5 bg-gray-700 text-gray-500 rounded">
+                        <span className="text-[10px] sm:text-xs px-1.5 sm:px-2 py-0.5 bg-gray-700 text-gray-500 rounded">
                           Hidden
                         </span>
                       )}
@@ -316,10 +313,10 @@ const QuotesManager = () => {
                   </div>
 
                   {/* Actions */}
-                  <div className="flex items-center gap-1">
+                  <div className="flex items-center gap-0.5 sm:gap-1 flex-shrink-0">
                     <button
                       onClick={() => handleToggleActive(quote.id, quote.is_active)}
-                      className={`p-2 rounded-lg transition-colors ${
+                      className={`p-1.5 sm:p-2 rounded-lg transition-colors ${
                         quote.is_active
                           ? 'hover:bg-gray-700 text-gray-400'
                           : 'hover:bg-gray-700 text-gray-600'
@@ -334,14 +331,14 @@ const QuotesManager = () => {
                     </button>
                     <button
                       onClick={() => handleEdit(quote)}
-                      className="p-2 hover:bg-gray-700 rounded-lg text-gray-400 transition-colors"
+                      className="p-1.5 sm:p-2 hover:bg-gray-700 rounded-lg text-gray-400 transition-colors"
                       title="Edit"
                     >
                       <Edit2 className="w-4 h-4" />
                     </button>
                     <button
                       onClick={() => handleDelete(quote.id)}
-                      className="p-2 hover:bg-red-500/20 rounded-lg text-gray-500 hover:text-red-400 transition-colors"
+                      className="p-1.5 sm:p-2 hover:bg-red-500/20 rounded-lg text-gray-500 hover:text-red-400 transition-colors"
                       title="Delete"
                     >
                       <Trash2 className="w-4 h-4" />

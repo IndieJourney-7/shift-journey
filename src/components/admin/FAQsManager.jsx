@@ -120,18 +120,18 @@ const FAQsManager = () => {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
-          <h2 className="text-xl font-bold text-white">FAQs Manager</h2>
-          <p className="text-gray-400 text-sm mt-1">
+          <h2 className="text-lg sm:text-xl font-bold text-white">FAQs Manager</h2>
+          <p className="text-gray-400 text-xs sm:text-sm mt-1">
             Manage frequently asked questions • {faqs.length} total
           </p>
         </div>
         <button
           onClick={() => setShowForm(true)}
-          className="flex items-center gap-2 px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white rounded-lg transition-colors"
+          className="flex items-center justify-center gap-2 px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white text-sm rounded-lg transition-colors"
         >
           <Plus className="w-4 h-4" />
           Add FAQ
@@ -139,10 +139,10 @@ const FAQsManager = () => {
       </div>
 
       {/* Category Filter */}
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap">
         <button
           onClick={() => setFilterCategory('all')}
-          className={`px-3 py-1.5 rounded-lg text-sm transition-colors ${
+          className={`px-2 sm:px-3 py-1 sm:py-1.5 rounded-lg text-xs sm:text-sm transition-colors ${
             filterCategory === 'all'
               ? 'bg-amber-600 text-white'
               : 'bg-gray-800 text-gray-400 hover:text-white'
@@ -156,7 +156,7 @@ const FAQsManager = () => {
             <button
               key={cat.value}
               onClick={() => setFilterCategory(cat.value)}
-              className={`px-3 py-1.5 rounded-lg text-sm transition-colors ${
+              className={`px-2 sm:px-3 py-1 sm:py-1.5 rounded-lg text-xs sm:text-sm transition-colors ${
                 filterCategory === cat.value
                   ? 'bg-amber-600 text-white'
                   : 'bg-gray-800 text-gray-400 hover:text-white'
@@ -170,11 +170,11 @@ const FAQsManager = () => {
 
       {/* Form Modal */}
       {showForm && (
-        <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
-          <div className="bg-gray-900 rounded-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto border border-gray-700">
-            <div className="p-6 border-b border-gray-700">
+        <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-3 sm:p-4">
+          <div className="bg-gray-900 rounded-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto border border-gray-700">
+            <div className="p-4 sm:p-6 border-b border-gray-700">
               <div className="flex items-center justify-between">
-                <h3 className="text-lg font-bold text-white">
+                <h3 className="text-base sm:text-lg font-bold text-white">
                   {editingId ? 'Edit FAQ' : 'Add New FAQ'}
                 </h3>
                 <button onClick={resetForm} className="text-gray-400 hover:text-white">
@@ -183,35 +183,35 @@ const FAQsManager = () => {
               </div>
             </div>
 
-            <form onSubmit={handleSubmit} className="p-6 space-y-4">
+            <form onSubmit={handleSubmit} className="p-4 sm:p-6 space-y-4">
               <div>
-                <label className="block text-sm text-gray-400 mb-1">Question *</label>
+                <label className="block text-xs sm:text-sm text-gray-400 mb-1">Question *</label>
                 <input
                   type="text"
                   value={formData.question}
                   onChange={(e) => setFormData({ ...formData, question: e.target.value })}
-                  className="w-full px-3 py-2 bg-gray-800 border border-gray-600 rounded-lg text-white focus:outline-none focus:border-amber-500"
+                  className="w-full px-3 py-2 text-sm bg-gray-800 border border-gray-600 rounded-lg text-white focus:outline-none focus:border-amber-500"
                   required
                 />
               </div>
 
               <div>
-                <label className="block text-sm text-gray-400 mb-1">Answer *</label>
+                <label className="block text-xs sm:text-sm text-gray-400 mb-1">Answer *</label>
                 <textarea
                   value={formData.answer}
                   onChange={(e) => setFormData({ ...formData, answer: e.target.value })}
                   rows={5}
-                  className="w-full px-3 py-2 bg-gray-800 border border-gray-600 rounded-lg text-white focus:outline-none focus:border-amber-500"
+                  className="w-full px-3 py-2 text-sm bg-gray-800 border border-gray-600 rounded-lg text-white focus:outline-none focus:border-amber-500"
                   required
                 />
               </div>
 
               <div>
-                <label className="block text-sm text-gray-400 mb-1">Category</label>
+                <label className="block text-xs sm:text-sm text-gray-400 mb-1">Category</label>
                 <select
                   value={formData.category}
                   onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-                  className="w-full px-3 py-2 bg-gray-800 border border-gray-600 rounded-lg text-white focus:outline-none focus:border-amber-500"
+                  className="w-full px-3 py-2 text-sm bg-gray-800 border border-gray-600 rounded-lg text-white focus:outline-none focus:border-amber-500"
                 >
                   {CATEGORIES.map(cat => (
                     <option key={cat.value} value={cat.value}>{cat.label}</option>
@@ -227,14 +227,14 @@ const FAQsManager = () => {
                     onChange={(e) => setFormData({ ...formData, is_active: e.target.checked })}
                     className="w-4 h-4 rounded border-gray-600 text-amber-500 focus:ring-amber-500"
                   />
-                  <span className="text-sm text-gray-300">Active</span>
+                  <span className="text-xs sm:text-sm text-gray-300">Active</span>
                 </label>
               </div>
 
               <div className="flex gap-3 pt-4">
                 <button
                   type="submit"
-                  className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white rounded-lg transition-colors"
+                  className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white text-sm rounded-lg transition-colors"
                 >
                   <Save className="w-4 h-4" />
                   {editingId ? 'Update' : 'Create'}
@@ -242,7 +242,7 @@ const FAQsManager = () => {
                 <button
                   type="button"
                   onClick={resetForm}
-                  className="px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-lg transition-colors"
+                  className="px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white text-sm rounded-lg transition-colors"
                 >
                   Cancel
                 </button>
@@ -255,12 +255,12 @@ const FAQsManager = () => {
       {/* FAQs List */}
       <div className="space-y-2">
         {filteredFaqs.length === 0 ? (
-          <div className="text-center py-12 bg-gray-800/50 rounded-xl border border-gray-700">
-            <HelpCircle className="w-12 h-12 text-gray-600 mx-auto mb-3" />
-            <p className="text-gray-400">No FAQs found</p>
+          <div className="text-center py-8 sm:py-12 bg-gray-800/50 rounded-xl border border-gray-700">
+            <HelpCircle className="w-10 h-10 sm:w-12 sm:h-12 text-gray-600 mx-auto mb-3" />
+            <p className="text-gray-400 text-sm">No FAQs found</p>
             <button
               onClick={() => setShowForm(true)}
-              className="mt-3 text-amber-500 hover:text-amber-400"
+              className="mt-3 text-amber-500 hover:text-amber-400 text-sm"
             >
               Add your first FAQ
             </button>
@@ -277,46 +277,49 @@ const FAQsManager = () => {
                   faq.is_active ? 'border-gray-700' : 'border-gray-800 opacity-60'
                 } overflow-hidden`}
               >
-                <div className="flex items-center gap-3 p-4">
-                  {/* Drag Handle */}
-                  <div className="cursor-move text-gray-600 hover:text-gray-400">
+                <div className="flex items-center gap-2 sm:gap-3 p-3 sm:p-4">
+                  {/* Drag Handle - hidden on mobile */}
+                  <div className="hidden sm:block cursor-move text-gray-600 hover:text-gray-400">
                     <GripVertical className="w-4 h-4" />
                   </div>
 
                   {/* Expand/Collapse */}
                   <button
                     onClick={() => setExpandedId(isExpanded ? null : faq.id)}
-                    className="text-gray-400 hover:text-white"
+                    className="text-gray-400 hover:text-white flex-shrink-0"
                   >
                     {isExpanded ? (
-                      <ChevronDown className="w-5 h-5" />
+                      <ChevronDown className="w-4 h-4 sm:w-5 sm:h-5" />
                     ) : (
-                      <ChevronRight className="w-5 h-5" />
+                      <ChevronRight className="w-4 h-4 sm:w-5 sm:h-5" />
                     )}
                   </button>
 
                   {/* Category Badge */}
-                  <span className={`px-2 py-0.5 text-xs rounded ${category.color} text-white`}>
+                  <span className={`hidden sm:inline px-2 py-0.5 text-xs rounded ${category.color} text-white flex-shrink-0`}>
                     {category.label}
                   </span>
 
                   {/* Question */}
                   <div className="flex-1 min-w-0">
-                    <h4 className="font-medium text-white truncate">{faq.question}</h4>
+                    <h4 className="font-medium text-white text-sm sm:text-base truncate">{faq.question}</h4>
+                    <span className={`sm:hidden inline-block mt-1 px-1.5 py-0.5 text-[10px] rounded ${category.color} text-white`}>
+                      {category.label}
+                    </span>
                   </div>
 
                   {/* Status Badge */}
                   {!faq.is_active && (
-                    <span className="text-xs px-2 py-0.5 bg-gray-700 text-gray-400 rounded">
+                    <span className="hidden sm:inline text-xs px-2 py-0.5 bg-gray-700 text-gray-400 rounded flex-shrink-0">
                       Hidden
                     </span>
                   )}
 
                   {/* Actions */}
-                  <div className="flex items-center gap-1">
+                  <div className="flex items-center gap-0.5 sm:gap-1 flex-shrink-0">
                     <button
                       onClick={() => handleToggleActive(faq.id, faq.is_active)}
-                      className={`p-2 rounded-lg transition-colors ${
+                      className={`p-1.5 sm:p-2 rounded-lg transition-colors ${
                         faq.is_active
                           ? 'hover:bg-gray-700 text-gray-400'
                           : 'hover:bg-gray-700 text-gray-600'
@@ -331,14 +334,14 @@ const FAQsManager = () => {
                     </button>
                     <button
                       onClick={() => handleEdit(faq)}
-                      className="p-2 hover:bg-gray-700 rounded-lg text-gray-400 transition-colors"
+                      className="p-1.5 sm:p-2 hover:bg-gray-700 rounded-lg text-gray-400 transition-colors"
                       title="Edit"
                     >
                       <Edit2 className="w-4 h-4" />
                     </button>
                     <button
                       onClick={() => handleDelete(faq.id)}
-                      className="p-2 hover:bg-red-500/20 rounded-lg text-gray-500 hover:text-red-400 transition-colors"
+                      className="p-1.5 sm:p-2 hover:bg-red-500/20 rounded-lg text-gray-500 hover:text-red-400 transition-colors"
                       title="Delete"
                     >
                       <Trash2 className="w-4 h-4" />
@@ -348,8 +351,8 @@ const FAQsManager = () => {
 
                 {/* Expanded Answer */}
                 {isExpanded && (
-                  <div className="px-4 pb-4 pt-0 ml-12 mr-4">
-                    <p className="text-gray-400 text-sm whitespace-pre-wrap">{faq.answer}</p>
+                  <div className="px-3 sm:px-4 pb-3 sm:pb-4 pt-0 ml-6 sm:ml-12 mr-3 sm:mr-4">
+                    <p className="text-gray-400 text-xs sm:text-sm whitespace-pre-wrap">{faq.answer}</p>
                   </div>
                 )}
               </div>

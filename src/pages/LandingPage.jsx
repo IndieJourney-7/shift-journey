@@ -215,9 +215,9 @@ export default function LandingPage() {
     <div className="min-h-screen bg-obsidian-950 noise-bg">
       <Navbar />
 
-      {/* Promotional Offer Banner (Dynamic) */}
+      {/* Promotional Offer Banner (Dynamic) - Below fixed navbar */}
       {activeOffer && (
-        <div className={`py-3 px-4 ${
+        <div className={`mt-14 sm:mt-16 py-2.5 sm:py-3 px-3 sm:px-4 ${
           activeOffer.bg_color === 'gold' ? 'bg-gradient-to-r from-amber-500 to-amber-600' :
           activeOffer.bg_color === 'blue' ? 'bg-gradient-to-r from-blue-500 to-blue-600' :
           activeOffer.bg_color === 'green' ? 'bg-gradient-to-r from-emerald-500 to-emerald-600' :
@@ -225,24 +225,24 @@ export default function LandingPage() {
           activeOffer.bg_color === 'red' ? 'bg-gradient-to-r from-red-500 to-red-600' :
           'bg-gradient-to-r from-amber-500 to-amber-600'
         }`}>
-          <div className="max-w-7xl mx-auto flex items-center justify-center gap-3 flex-wrap">
+          <div className="max-w-7xl mx-auto flex items-center justify-center gap-2 sm:gap-3 flex-wrap text-center">
             {activeOffer.badge_text && (
-              <span className="text-xs bg-white/20 px-2 py-1 rounded text-white font-medium">
+              <span className="text-[10px] sm:text-xs bg-white/20 px-1.5 sm:px-2 py-0.5 sm:py-1 rounded text-white font-medium">
                 {activeOffer.badge_text}
               </span>
             )}
-            <span className="text-white font-semibold text-sm sm:text-base">
+            <span className="text-white font-semibold text-xs sm:text-sm md:text-base">
               {activeOffer.title}
               {activeOffer.discount_percent && (
-                <span className="ml-2 font-bold">{activeOffer.discount_percent}% OFF</span>
+                <span className="ml-1 sm:ml-2 font-bold">{activeOffer.discount_percent}% OFF</span>
               )}
             </span>
             {activeOffer.description && (
-              <span className="text-white/80 text-sm hidden sm:inline">— {activeOffer.description}</span>
+              <span className="text-white/80 text-xs sm:text-sm hidden md:inline">— {activeOffer.description}</span>
             )}
             <Link
               to={activeOffer.cta_link || '/login'}
-              className="ml-2 px-4 py-1.5 bg-white/20 hover:bg-white/30 rounded-lg text-white text-sm font-medium transition-colors"
+              className="ml-1 sm:ml-2 px-2.5 sm:px-4 py-1 sm:py-1.5 bg-white/20 hover:bg-white/30 rounded-lg text-white text-xs sm:text-sm font-medium transition-colors"
             >
               {activeOffer.cta_text || 'Get Started'}
             </Link>
@@ -253,7 +253,7 @@ export default function LandingPage() {
       {/* Hero Section */}
       <section 
         ref={heroRef}
-        className="pt-20 sm:pt-24 lg:pt-32 pb-12 sm:pb-16 lg:pb-20 px-4 relative overflow-hidden"
+        className={`${activeOffer ? 'pt-8 sm:pt-12 lg:pt-20' : 'pt-20 sm:pt-24 lg:pt-32'} pb-12 sm:pb-16 lg:pb-20 px-4 relative overflow-hidden`}
       >
         {/* Background gradient with warm accent */}
         <div className="absolute inset-0 gradient-radial opacity-50" />

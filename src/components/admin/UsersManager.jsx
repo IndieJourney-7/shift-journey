@@ -117,62 +117,62 @@ const UsersManager = () => {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6">
       {/* Header */}
       <div>
-        <h2 className="text-xl font-bold text-white">Users Manager</h2>
-        <p className="text-gray-400 text-sm mt-1">
+        <h2 className="text-lg sm:text-xl font-bold text-white">Users Manager</h2>
+        <p className="text-gray-400 text-xs sm:text-sm mt-1">
           View and monitor all registered users • {users.length} total
         </p>
       </div>
 
       {/* Stats Cards */}
       {stats && (
-        <div className="grid grid-cols-4 gap-4">
-          <div className="bg-gray-800/50 rounded-xl border border-gray-700 p-4">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-lg bg-blue-500/20 flex items-center justify-center">
-                <Users className="w-5 h-5 text-blue-400" />
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-4">
+          <div className="bg-gray-800/50 rounded-xl border border-gray-700 p-3 sm:p-4">
+            <div className="flex items-center gap-2 sm:gap-3">
+              <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg bg-blue-500/20 flex items-center justify-center">
+                <Users className="w-4 h-4 sm:w-5 sm:h-5 text-blue-400" />
               </div>
               <div>
-                <p className="text-2xl font-bold text-white">{stats.total}</p>
-                <p className="text-xs text-gray-400">Total Users</p>
+                <p className="text-lg sm:text-2xl font-bold text-white">{stats.total}</p>
+                <p className="text-[10px] sm:text-xs text-gray-400">Total Users</p>
               </div>
             </div>
           </div>
 
-          <div className="bg-gray-800/50 rounded-xl border border-gray-700 p-4">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-lg bg-emerald-500/20 flex items-center justify-center">
-                <TrendingUp className="w-5 h-5 text-emerald-400" />
+          <div className="bg-gray-800/50 rounded-xl border border-gray-700 p-3 sm:p-4">
+            <div className="flex items-center gap-2 sm:gap-3">
+              <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg bg-emerald-500/20 flex items-center justify-center">
+                <TrendingUp className="w-4 h-4 sm:w-5 sm:h-5 text-emerald-400" />
               </div>
               <div>
-                <p className="text-2xl font-bold text-white">+{stats.newThisWeek}</p>
-                <p className="text-xs text-gray-400">This Week</p>
+                <p className="text-lg sm:text-2xl font-bold text-white">+{stats.newThisWeek}</p>
+                <p className="text-[10px] sm:text-xs text-gray-400">This Week</p>
               </div>
             </div>
           </div>
 
-          <div className="bg-gray-800/50 rounded-xl border border-gray-700 p-4">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-lg bg-purple-500/20 flex items-center justify-center">
-                <Calendar className="w-5 h-5 text-purple-400" />
+          <div className="bg-gray-800/50 rounded-xl border border-gray-700 p-3 sm:p-4">
+            <div className="flex items-center gap-2 sm:gap-3">
+              <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg bg-purple-500/20 flex items-center justify-center">
+                <Calendar className="w-4 h-4 sm:w-5 sm:h-5 text-purple-400" />
               </div>
               <div>
-                <p className="text-2xl font-bold text-white">+{stats.newThisMonth}</p>
-                <p className="text-xs text-gray-400">This Month</p>
+                <p className="text-lg sm:text-2xl font-bold text-white">+{stats.newThisMonth}</p>
+                <p className="text-[10px] sm:text-xs text-gray-400">This Month</p>
               </div>
             </div>
           </div>
 
-          <div className="bg-gray-800/50 rounded-xl border border-gray-700 p-4">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-lg bg-amber-500/20 flex items-center justify-center">
-                <Shield className="w-5 h-5 text-amber-400" />
+          <div className="bg-gray-800/50 rounded-xl border border-gray-700 p-3 sm:p-4">
+            <div className="flex items-center gap-2 sm:gap-3">
+              <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg bg-amber-500/20 flex items-center justify-center">
+                <Shield className="w-4 h-4 sm:w-5 sm:h-5 text-amber-400" />
               </div>
               <div>
-                <p className="text-2xl font-bold text-white">{stats.avgIntegrityScore}</p>
-                <p className="text-xs text-gray-400">Avg Score</p>
+                <p className="text-lg sm:text-2xl font-bold text-white">{stats.avgIntegrityScore}</p>
+                <p className="text-[10px] sm:text-xs text-gray-400">Avg Score</p>
               </div>
             </div>
           </div>
@@ -180,7 +180,7 @@ const UsersManager = () => {
       )}
 
       {/* Search */}
-      <div className="flex gap-2">
+      <div className="flex flex-col sm:flex-row gap-2">
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
           <input
@@ -189,31 +189,34 @@ const UsersManager = () => {
             onChange={(e) => setSearchQuery(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
             placeholder="Search by name or email..."
-            className="w-full pl-10 pr-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-amber-500"
+            className="w-full pl-10 pr-4 py-2 text-sm bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-amber-500"
           />
         </div>
-        <button
-          onClick={handleSearch}
-          className="px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white rounded-lg transition-colors"
-        >
-          Search
-        </button>
+        <div className="flex gap-2">
+          <button
+            onClick={handleSearch}
+            className="flex-1 sm:flex-none px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white text-sm rounded-lg transition-colors"
+          >
+            Search
+          </button>
         {searchQuery && (
           <button
             onClick={() => {
               setSearchQuery('');
               loadData();
             }}
-            className="px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-lg transition-colors"
+            className="flex-1 sm:flex-none px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white text-sm rounded-lg transition-colors"
           >
             Clear
           </button>
         )}
+        </div>
       </div>
 
-      {/* Users Table */}
+      {/* Users List - Mobile Cards / Desktop Table */}
       <div className="bg-gray-800/50 rounded-xl border border-gray-700 overflow-hidden">
-        <div className="overflow-x-auto">
+        {/* Desktop Table */}
+        <div className="hidden md:block overflow-x-auto">
           <table className="w-full">
             <thead>
               <tr className="border-b border-gray-700">
@@ -368,6 +371,72 @@ const UsersManager = () => {
               )}
             </tbody>
           </table>
+        </div>
+
+        {/* Mobile Cards View */}
+        <div className="md:hidden divide-y divide-gray-700">
+          {filteredUsers.length === 0 ? (
+            <div className="p-8 text-center text-gray-500">
+              No users found
+            </div>
+          ) : (
+            filteredUsers.map((user) => {
+              const tier = getScoreTier(user.integrity_score || 0);
+              return (
+                <div
+                  key={user.id}
+                  className="p-4 hover:bg-gray-700/30"
+                  onClick={() => setExpandedUserId(expandedUserId === user.id ? null : user.id)}
+                >
+                  <div className="flex items-center gap-3">
+                    {user.avatar_url ? (
+                      <img
+                        src={user.avatar_url}
+                        alt={user.name}
+                        className="w-10 h-10 rounded-full object-cover"
+                      />
+                    ) : (
+                      <div className="w-10 h-10 rounded-full bg-gradient-to-br from-amber-500 to-amber-700 flex items-center justify-center flex-shrink-0">
+                        <span className="text-white font-bold text-sm">
+                          {user.name?.substring(0, 2).toUpperCase() || '??'}
+                        </span>
+                      </div>
+                    )}
+                    <div className="flex-1 min-w-0">
+                      <p className="font-medium text-white truncate">{user.name || 'Unknown'}</p>
+                      <p className="text-xs text-gray-400 truncate">{user.email}</p>
+                    </div>
+                    <div className="text-right flex-shrink-0">
+                      <div className="flex items-center gap-1.5">
+                        <span className="text-lg font-bold text-white">{user.integrity_score || 0}</span>
+                        <Shield className="w-4 h-4 text-amber-500" />
+                      </div>
+                      <span className={`text-[10px] px-1.5 py-0.5 rounded ${tier.color}`}>{tier.label}</span>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-4 mt-2 text-xs text-gray-500">
+                    <span>{user.goals?.length || 0} goals</span>
+                    <span>Joined {user.joined_at ? new Date(user.joined_at).toLocaleDateString() : 'N/A'}</span>
+                  </div>
+                  {expandedUserId === user.id && user.goals && user.goals.length > 0 && (
+                    <div className="mt-3 pt-3 border-t border-gray-700 space-y-1.5">
+                      <p className="text-xs text-gray-400">Goals:</p>
+                      {user.goals.map((goal, idx) => (
+                        <div key={idx} className="flex items-center gap-2 text-xs">
+                          <span className={`w-1.5 h-1.5 rounded-full ${
+                            goal.status === 'active' ? 'bg-emerald-500' :
+                            goal.status === 'completed' ? 'bg-blue-500' : 'bg-gray-500'
+                          }`} />
+                          <span className="text-white">{goal.title}</span>
+                          <span className="text-gray-500 capitalize">({goal.status})</span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              );
+            })
+          )}
         </div>
       </div>
     </div>

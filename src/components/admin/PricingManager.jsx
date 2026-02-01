@@ -183,11 +183,11 @@ function PlanEditorModal({ plan, onSave, onClose, isNew = false }) {
   };
 
   return (
-    <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
+    <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-3 sm:p-4">
       <div className="bg-obsidian-900 border border-obsidian-700 rounded-xl max-w-3xl w-full max-h-[90vh] overflow-y-auto">
-        <div className="p-6 border-b border-obsidian-700 sticky top-0 bg-obsidian-900 z-10">
+        <div className="p-4 sm:p-6 border-b border-obsidian-700 sticky top-0 bg-obsidian-900 z-10">
           <div className="flex items-center justify-between">
-            <h3 className="text-xl font-semibold text-obsidian-100">
+            <h3 className="text-lg sm:text-xl font-semibold text-obsidian-100">
               {isNew ? 'Create New Plan' : `Edit ${plan?.name} Plan`}
             </h3>
             <button
@@ -199,23 +199,23 @@ function PlanEditorModal({ plan, onSave, onClose, isNew = false }) {
           </div>
         </div>
 
-        <form onSubmit={handleSubmit} className="p-6 space-y-6">
+        <form onSubmit={handleSubmit} className="p-4 sm:p-6 space-y-4 sm:space-y-6">
           {error && (
             <div className="p-3 bg-red-500/10 border border-red-500/30 rounded-lg flex items-center gap-2">
-              <AlertTriangle className="w-4 h-4 text-red-500" />
-              <span className="text-red-400 text-sm">{error}</span>
+              <AlertTriangle className="w-4 h-4 text-red-500 flex-shrink-0" />
+              <span className="text-red-400 text-xs sm:text-sm">{error}</span>
             </div>
           )}
 
           {/* Basic Info */}
-          <div className="space-y-4">
-            <h4 className="text-obsidian-300 text-sm font-semibold uppercase tracking-wider flex items-center gap-2">
+          <div className="space-y-3 sm:space-y-4">
+            <h4 className="text-obsidian-300 text-xs sm:text-sm font-semibold uppercase tracking-wider flex items-center gap-2">
               <Settings className="w-4 h-4" />
               Basic Information
             </h4>
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
               <div>
-                <label className="block text-sm font-medium text-obsidian-300 mb-2">
+                <label className="block text-xs sm:text-sm font-medium text-obsidian-300 mb-1.5 sm:mb-2">
                   Plan ID <span className="text-red-400">*</span>
                 </label>
                 <input
@@ -224,13 +224,13 @@ function PlanEditorModal({ plan, onSave, onClose, isNew = false }) {
                   value={formData.id}
                   onChange={handleChange}
                   disabled={!isNew}
-                  placeholder="e.g., starter, pro, enterprise"
-                  className="w-full bg-obsidian-800 border border-obsidian-600 rounded-lg px-4 py-2 text-obsidian-100 focus:outline-none focus:border-gold-500 disabled:opacity-50"
+                  placeholder="e.g., starter, pro"
+                  className="w-full bg-obsidian-800 border border-obsidian-600 rounded-lg px-3 sm:px-4 py-2 text-sm text-obsidian-100 focus:outline-none focus:border-gold-500 disabled:opacity-50"
                 />
-                <p className="text-obsidian-500 text-xs mt-1">Unique identifier (lowercase, no spaces)</p>
+                <p className="text-obsidian-500 text-[10px] sm:text-xs mt-1">Unique identifier</p>
               </div>
               <div>
-                <label className="block text-sm font-medium text-obsidian-300 mb-2">
+                <label className="block text-xs sm:text-sm font-medium text-obsidian-300 mb-1.5 sm:mb-2">
                   Plan Name <span className="text-red-400">*</span>
                 </label>
                 <input
@@ -238,13 +238,13 @@ function PlanEditorModal({ plan, onSave, onClose, isNew = false }) {
                   name="name"
                   value={formData.name}
                   onChange={handleChange}
-                  placeholder="e.g., Starter, Pro, Enterprise"
-                  className="w-full bg-obsidian-800 border border-obsidian-600 rounded-lg px-4 py-2 text-obsidian-100 focus:outline-none focus:border-gold-500"
+                  placeholder="e.g., Starter, Pro"
+                  className="w-full bg-obsidian-800 border border-obsidian-600 rounded-lg px-3 sm:px-4 py-2 text-sm text-obsidian-100 focus:outline-none focus:border-gold-500"
                 />
               </div>
             </div>
             <div>
-              <label className="block text-sm font-medium text-obsidian-300 mb-2">
+              <label className="block text-xs sm:text-sm font-medium text-obsidian-300 mb-1.5 sm:mb-2">
                 Tagline
               </label>
               <input
@@ -253,70 +253,70 @@ function PlanEditorModal({ plan, onSave, onClose, isNew = false }) {
                 value={formData.tagline}
                 onChange={handleChange}
                 placeholder="e.g., Perfect for getting started"
-                className="w-full bg-obsidian-800 border border-obsidian-600 rounded-lg px-4 py-2 text-obsidian-100 focus:outline-none focus:border-gold-500"
+                className="w-full bg-obsidian-800 border border-obsidian-600 rounded-lg px-3 sm:px-4 py-2 text-sm text-obsidian-100 focus:outline-none focus:border-gold-500"
               />
             </div>
           </div>
 
           {/* Pricing */}
-          <div className="space-y-4">
-            <h4 className="text-obsidian-300 text-sm font-semibold uppercase tracking-wider flex items-center gap-2">
+          <div className="space-y-3 sm:space-y-4">
+            <h4 className="text-obsidian-300 text-xs sm:text-sm font-semibold uppercase tracking-wider flex items-center gap-2">
               <DollarSign className="w-4 h-4" />
               Pricing
             </h4>
-            <div className="grid grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
               <div>
-                <label className="block text-sm font-medium text-obsidian-300 mb-2">
+                <label className="block text-xs sm:text-sm font-medium text-obsidian-300 mb-1.5 sm:mb-2">
                   Monthly Price (cents)
                 </label>
                 <input
                   type="number"
                   value={formData.priceMonthly}
                   onChange={(e) => setFormData(prev => ({ ...prev, priceMonthly: parseInt(e.target.value) || 0 }))}
-                  className="w-full bg-obsidian-800 border border-obsidian-600 rounded-lg px-4 py-2 text-obsidian-100 focus:outline-none focus:border-gold-500"
+                  className="w-full bg-obsidian-800 border border-obsidian-600 rounded-lg px-3 sm:px-4 py-2 text-sm text-obsidian-100 focus:outline-none focus:border-gold-500"
                 />
-                <p className="text-gold-500 text-xs mt-1">
+                <p className="text-gold-500 text-[10px] sm:text-xs mt-1">
                   = ${(formData.priceMonthly / 100).toFixed(2)}/mo
                 </p>
               </div>
               <div>
-                <label className="block text-sm font-medium text-obsidian-300 mb-2">
+                <label className="block text-xs sm:text-sm font-medium text-obsidian-300 mb-1.5 sm:mb-2">
                   Yearly Price (cents)
                 </label>
                 <input
                   type="number"
                   value={formData.priceYearly}
                   onChange={(e) => setFormData(prev => ({ ...prev, priceYearly: parseInt(e.target.value) || 0 }))}
-                  className="w-full bg-obsidian-800 border border-obsidian-600 rounded-lg px-4 py-2 text-obsidian-100 focus:outline-none focus:border-gold-500"
+                  className="w-full bg-obsidian-800 border border-obsidian-600 rounded-lg px-3 sm:px-4 py-2 text-sm text-obsidian-100 focus:outline-none focus:border-gold-500"
                 />
-                <p className="text-gold-500 text-xs mt-1">
+                <p className="text-gold-500 text-[10px] sm:text-xs mt-1">
                   = ${(formData.priceYearly / 100).toFixed(2)}/yr
                 </p>
               </div>
               <div>
-                <label className="block text-sm font-medium text-obsidian-300 mb-2">
+                <label className="block text-xs sm:text-sm font-medium text-obsidian-300 mb-1.5 sm:mb-2">
                   Discount %
                 </label>
                 <input
                   type="number"
                   value={formData.discountPercent}
                   onChange={(e) => setFormData(prev => ({ ...prev, discountPercent: parseInt(e.target.value) || 0 }))}
-                  className="w-full bg-obsidian-800 border border-obsidian-600 rounded-lg px-4 py-2 text-obsidian-100 focus:outline-none focus:border-gold-500"
+                  className="w-full bg-obsidian-800 border border-obsidian-600 rounded-lg px-3 sm:px-4 py-2 text-sm text-obsidian-100 focus:outline-none focus:border-gold-500"
                 />
-                <p className="text-obsidian-500 text-xs mt-1">Shown for yearly billing</p>
+                <p className="text-obsidian-500 text-[10px] sm:text-xs mt-1">Shown for yearly billing</p>
               </div>
             </div>
           </div>
 
           {/* Limits */}
-          <div className="space-y-4">
-            <h4 className="text-obsidian-300 text-sm font-semibold uppercase tracking-wider flex items-center gap-2">
+          <div className="space-y-3 sm:space-y-4">
+            <h4 className="text-obsidian-300 text-xs sm:text-sm font-semibold uppercase tracking-wider flex items-center gap-2">
               <Target className="w-4 h-4" />
               Plan Limits
             </h4>
-            <div className="grid grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
               <div>
-                <label className="block text-sm font-medium text-obsidian-300 mb-2">
+                <label className="block text-xs sm:text-sm font-medium text-obsidian-300 mb-1.5 sm:mb-2">
                   Max Active Goals
                 </label>
                 <input
@@ -324,12 +324,12 @@ function PlanEditorModal({ plan, onSave, onClose, isNew = false }) {
                   placeholder="unlimited"
                   value={formData.maxActiveGoals === null ? '' : formData.maxActiveGoals}
                   onChange={(e) => handleNumberChange('maxActiveGoals', e.target.value || 'unlimited')}
-                  className="w-full bg-obsidian-800 border border-obsidian-600 rounded-lg px-4 py-2 text-obsidian-100 focus:outline-none focus:border-gold-500"
+                  className="w-full bg-obsidian-800 border border-obsidian-600 rounded-lg px-3 sm:px-4 py-2 text-sm text-obsidian-100 focus:outline-none focus:border-gold-500"
                 />
-                <p className="text-obsidian-500 text-xs mt-1">Empty = unlimited</p>
+                <p className="text-obsidian-500 text-[10px] sm:text-xs mt-1">Empty = unlimited</p>
               </div>
               <div>
-                <label className="block text-sm font-medium text-obsidian-300 mb-2">
+                <label className="block text-xs sm:text-sm font-medium text-obsidian-300 mb-1.5 sm:mb-2">
                   Max Milestones/Goal
                 </label>
                 <input
@@ -337,12 +337,12 @@ function PlanEditorModal({ plan, onSave, onClose, isNew = false }) {
                   placeholder="unlimited"
                   value={formData.maxMilestonesPerGoal === null ? '' : formData.maxMilestonesPerGoal}
                   onChange={(e) => handleNumberChange('maxMilestonesPerGoal', e.target.value || 'unlimited')}
-                  className="w-full bg-obsidian-800 border border-obsidian-600 rounded-lg px-4 py-2 text-obsidian-100 focus:outline-none focus:border-gold-500"
+                  className="w-full bg-obsidian-800 border border-obsidian-600 rounded-lg px-3 sm:px-4 py-2 text-sm text-obsidian-100 focus:outline-none focus:border-gold-500"
                 />
-                <p className="text-obsidian-500 text-xs mt-1">Empty = unlimited</p>
+                <p className="text-obsidian-500 text-[10px] sm:text-xs mt-1">Empty = unlimited</p>
               </div>
               <div>
-                <label className="block text-sm font-medium text-obsidian-300 mb-2">
+                <label className="block text-xs sm:text-sm font-medium text-obsidian-300 mb-1.5 sm:mb-2">
                   Max Shares/Month
                 </label>
                 <input
@@ -350,19 +350,19 @@ function PlanEditorModal({ plan, onSave, onClose, isNew = false }) {
                   placeholder="unlimited"
                   value={formData.maxSharesPerMonth === null ? '' : formData.maxSharesPerMonth}
                   onChange={(e) => handleNumberChange('maxSharesPerMonth', e.target.value || 'unlimited')}
-                  className="w-full bg-obsidian-800 border border-obsidian-600 rounded-lg px-4 py-2 text-obsidian-100 focus:outline-none focus:border-gold-500"
+                  className="w-full bg-obsidian-800 border border-obsidian-600 rounded-lg px-3 sm:px-4 py-2 text-sm text-obsidian-100 focus:outline-none focus:border-gold-500"
                 />
-                <p className="text-obsidian-500 text-xs mt-1">Empty = unlimited</p>
+                <p className="text-obsidian-500 text-[10px] sm:text-xs mt-1">Empty = unlimited</p>
               </div>
             </div>
           </div>
 
           {/* Features Section */}
-          <div className="space-y-4">
+          <div className="space-y-3 sm:space-y-4">
             <button
               type="button"
               onClick={() => setShowFeatures(!showFeatures)}
-              className="w-full flex items-center justify-between text-obsidian-300 text-sm font-semibold uppercase tracking-wider"
+              className="w-full flex items-center justify-between text-obsidian-300 text-xs sm:text-sm font-semibold uppercase tracking-wider"
             >
               <span className="flex items-center gap-2">
                 <CheckCircle className="w-4 h-4" />
@@ -376,7 +376,7 @@ function PlanEditorModal({ plan, onSave, onClose, isNew = false }) {
             </button>
 
             {showFeatures && (
-              <div className="bg-obsidian-800/50 rounded-lg p-4 space-y-1 max-h-60 overflow-y-auto">
+              <div className="bg-obsidian-800/50 rounded-lg p-3 sm:p-4 space-y-1 max-h-60 overflow-y-auto">
                 {Object.entries(AVAILABLE_FEATURES).map(([key, feature]) => (
                   <FeatureToggle
                     key={key}
@@ -391,13 +391,13 @@ function PlanEditorModal({ plan, onSave, onClose, isNew = false }) {
           </div>
 
           {/* Display Options */}
-          <div className="space-y-4">
-            <h4 className="text-obsidian-300 text-sm font-semibold uppercase tracking-wider">
+          <div className="space-y-3 sm:space-y-4">
+            <h4 className="text-obsidian-300 text-xs sm:text-sm font-semibold uppercase tracking-wider">
               Display Options
             </h4>
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
               <div>
-                <label className="block text-sm font-medium text-obsidian-300 mb-2">
+                <label className="block text-xs sm:text-sm font-medium text-obsidian-300 mb-1.5 sm:mb-2">
                   Badge Text
                 </label>
                 <input
@@ -405,12 +405,12 @@ function PlanEditorModal({ plan, onSave, onClose, isNew = false }) {
                   name="badgeText"
                   value={formData.badgeText}
                   onChange={handleChange}
-                  placeholder="e.g., Most Popular, Best Value"
-                  className="w-full bg-obsidian-800 border border-obsidian-600 rounded-lg px-4 py-2 text-obsidian-100 focus:outline-none focus:border-gold-500"
+                  placeholder="e.g., Most Popular"
+                  className="w-full bg-obsidian-800 border border-obsidian-600 rounded-lg px-3 sm:px-4 py-2 text-sm text-obsidian-100 focus:outline-none focus:border-gold-500"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-obsidian-300 mb-2">
+                <label className="block text-xs sm:text-sm font-medium text-obsidian-300 mb-1.5 sm:mb-2">
                   CTA Button Text
                 </label>
                 <input
@@ -418,15 +418,15 @@ function PlanEditorModal({ plan, onSave, onClose, isNew = false }) {
                   name="ctaText"
                   value={formData.ctaText}
                   onChange={handleChange}
-                  placeholder="e.g., Get Started, Upgrade Now"
-                  className="w-full bg-obsidian-800 border border-obsidian-600 rounded-lg px-4 py-2 text-obsidian-100 focus:outline-none focus:border-gold-500"
+                  placeholder="e.g., Get Started"
+                  className="w-full bg-obsidian-800 border border-obsidian-600 rounded-lg px-3 sm:px-4 py-2 text-sm text-obsidian-100 focus:outline-none focus:border-gold-500"
                 />
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
               <div>
-                <label className="block text-sm font-medium text-obsidian-300 mb-2">
+                <label className="block text-xs sm:text-sm font-medium text-obsidian-300 mb-1.5 sm:mb-2">
                   Sort Order
                 </label>
                 <input
@@ -434,11 +434,11 @@ function PlanEditorModal({ plan, onSave, onClose, isNew = false }) {
                   name="sortOrder"
                   value={formData.sortOrder}
                   onChange={(e) => setFormData(prev => ({ ...prev, sortOrder: parseInt(e.target.value) || 0 }))}
-                  className="w-full bg-obsidian-800 border border-obsidian-600 rounded-lg px-4 py-2 text-obsidian-100 focus:outline-none focus:border-gold-500"
+                  className="w-full bg-obsidian-800 border border-obsidian-600 rounded-lg px-3 sm:px-4 py-2 text-sm text-obsidian-100 focus:outline-none focus:border-gold-500"
                 />
               </div>
-              <div className="flex items-end gap-6">
-                <label className="flex items-center gap-3 cursor-pointer py-2">
+              <div className="flex items-end gap-4 sm:gap-6">
+                <label className="flex items-center gap-2 sm:gap-3 cursor-pointer py-2">
                   <input
                     type="checkbox"
                     name="isFeatured"
@@ -446,17 +446,17 @@ function PlanEditorModal({ plan, onSave, onClose, isNew = false }) {
                     onChange={handleChange}
                     className="sr-only"
                   />
-                  <div className={`w-10 h-6 rounded-full transition-colors ${
+                  <div className={`w-9 h-5 sm:w-10 sm:h-6 rounded-full transition-colors ${
                     formData.isFeatured ? 'bg-gold-500' : 'bg-obsidian-700'
                   }`}>
-                    <div className={`w-4 h-4 bg-white rounded-full mt-1 transition-transform ${
-                      formData.isFeatured ? 'translate-x-5' : 'translate-x-1'
+                    <div className={`w-3.5 h-3.5 sm:w-4 sm:h-4 bg-white rounded-full mt-0.5 sm:mt-1 transition-transform ${
+                      formData.isFeatured ? 'translate-x-4 sm:translate-x-5' : 'translate-x-1'
                     }`} />
                   </div>
-                  <span className="text-obsidian-300 text-sm">Featured</span>
+                  <span className="text-obsidian-300 text-xs sm:text-sm">Featured</span>
                 </label>
 
-                <label className="flex items-center gap-3 cursor-pointer py-2">
+                <label className="flex items-center gap-2 sm:gap-3 cursor-pointer py-2">
                   <input
                     type="checkbox"
                     name="isActive"
@@ -464,25 +464,25 @@ function PlanEditorModal({ plan, onSave, onClose, isNew = false }) {
                     onChange={handleChange}
                     className="sr-only"
                   />
-                  <div className={`w-10 h-6 rounded-full transition-colors ${
+                  <div className={`w-9 h-5 sm:w-10 sm:h-6 rounded-full transition-colors ${
                     formData.isActive ? 'bg-emerald-500' : 'bg-obsidian-700'
                   }`}>
-                    <div className={`w-4 h-4 bg-white rounded-full mt-1 transition-transform ${
-                      formData.isActive ? 'translate-x-5' : 'translate-x-1'
+                    <div className={`w-3.5 h-3.5 sm:w-4 sm:h-4 bg-white rounded-full mt-0.5 sm:mt-1 transition-transform ${
+                      formData.isActive ? 'translate-x-4 sm:translate-x-5' : 'translate-x-1'
                     }`} />
                   </div>
-                  <span className="text-obsidian-300 text-sm">Active</span>
+                  <span className="text-obsidian-300 text-xs sm:text-sm">Active</span>
                 </label>
               </div>
             </div>
           </div>
 
           {/* Actions */}
-          <div className="flex gap-3 pt-4 border-t border-obsidian-700">
+          <div className="flex flex-col-reverse sm:flex-row gap-3 pt-4 border-t border-obsidian-700">
             <button
               type="submit"
               disabled={saving}
-              className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-gold-500 hover:bg-gold-600 text-obsidian-950 font-medium rounded-lg transition-colors disabled:opacity-50"
+              className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 sm:py-3 bg-gold-500 hover:bg-gold-600 text-obsidian-950 text-sm font-medium rounded-lg transition-colors disabled:opacity-50"
             >
               <Save className="w-4 h-4" />
               {saving ? 'Saving...' : isNew ? 'Create Plan' : 'Save Changes'}
@@ -491,7 +491,7 @@ function PlanEditorModal({ plan, onSave, onClose, isNew = false }) {
               type="button"
               onClick={onClose}
               disabled={saving}
-              className="px-6 py-3 bg-obsidian-700 hover:bg-obsidian-600 text-obsidian-200 font-medium rounded-lg transition-colors"
+              className="px-6 py-2.5 sm:py-3 bg-obsidian-700 hover:bg-obsidian-600 text-obsidian-200 text-sm font-medium rounded-lg transition-colors"
             >
               Cancel
             </button>
@@ -655,40 +655,40 @@ export default function PricingManager() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
-          <h2 className="text-xl font-semibold text-obsidian-100">Pricing Plans</h2>
-          <p className="text-obsidian-400 text-sm mt-1">
+          <h2 className="text-lg sm:text-xl font-semibold text-obsidian-100">Pricing Plans</h2>
+          <p className="text-obsidian-400 text-xs sm:text-sm mt-1">
             Manage subscription plans and pricing
           </p>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2 sm:gap-3">
           <a
             href="/pricing"
             target="_blank"
             rel="noopener noreferrer"
-            className="flex items-center gap-2 px-4 py-2 bg-obsidian-700 hover:bg-obsidian-600 text-obsidian-200 rounded-lg transition-colors"
+            className="flex items-center justify-center gap-2 px-3 sm:px-4 py-2 bg-obsidian-700 hover:bg-obsidian-600 text-obsidian-200 text-sm rounded-lg transition-colors"
           >
             <Eye className="w-4 h-4" />
-            View Page
+            <span className="hidden sm:inline">View Page</span>
           </a>
           <button
             onClick={() => setIsCreating(true)}
-            className="flex items-center gap-2 px-4 py-2 bg-gold-500 hover:bg-gold-600 text-obsidian-950 font-medium rounded-lg transition-colors"
+            className="flex items-center justify-center gap-2 px-3 sm:px-4 py-2 bg-gold-500 hover:bg-gold-600 text-obsidian-950 text-sm font-medium rounded-lg transition-colors"
           >
             <Plus className="w-4 h-4" />
-            Add Plan
+            <span className="hidden sm:inline">Add Plan</span>
           </button>
         </div>
       </div>
 
       {/* Messages */}
       {error && (
-        <div className="p-4 bg-red-500/10 border border-red-500/30 rounded-lg flex items-center gap-3">
-          <AlertTriangle className="w-5 h-5 text-red-500 flex-shrink-0" />
-          <p className="text-red-400 text-sm">{error}</p>
+        <div className="p-3 sm:p-4 bg-red-500/10 border border-red-500/30 rounded-lg flex items-center gap-2 sm:gap-3">
+          <AlertTriangle className="w-4 h-4 sm:w-5 sm:h-5 text-red-500 flex-shrink-0" />
+          <p className="text-red-400 text-xs sm:text-sm flex-1">{error}</p>
           <button onClick={() => setError(null)} className="ml-auto text-red-400 hover:text-red-300">
             <X className="w-4 h-4" />
           </button>
@@ -696,30 +696,30 @@ export default function PricingManager() {
       )}
 
       {successMessage && (
-        <div className="p-4 bg-emerald-500/10 border border-emerald-500/30 rounded-lg flex items-center gap-3">
-          <CheckCircle className="w-5 h-5 text-emerald-500 flex-shrink-0" />
-          <p className="text-emerald-400 text-sm">{successMessage}</p>
+        <div className="p-3 sm:p-4 bg-emerald-500/10 border border-emerald-500/30 rounded-lg flex items-center gap-2 sm:gap-3">
+          <CheckCircle className="w-4 h-4 sm:w-5 sm:h-5 text-emerald-500 flex-shrink-0" />
+          <p className="text-emerald-400 text-xs sm:text-sm">{successMessage}</p>
         </div>
       )}
 
       {/* Stats */}
-      <div className="grid grid-cols-3 gap-4">
-        <div className="bg-obsidian-800/50 border border-obsidian-700 rounded-lg p-4">
-          <p className="text-obsidian-400 text-sm">Total Plans</p>
-          <p className="text-2xl font-bold text-obsidian-100">{plans.length}</p>
+      <div className="grid grid-cols-3 gap-2 sm:gap-4">
+        <div className="bg-obsidian-800/50 border border-obsidian-700 rounded-lg p-3 sm:p-4">
+          <p className="text-obsidian-400 text-[10px] sm:text-sm">Total Plans</p>
+          <p className="text-xl sm:text-2xl font-bold text-obsidian-100">{plans.length}</p>
         </div>
-        <div className="bg-obsidian-800/50 border border-obsidian-700 rounded-lg p-4">
-          <p className="text-obsidian-400 text-sm">Active Plans</p>
-          <p className="text-2xl font-bold text-emerald-500">{plans.filter(p => p.is_active).length}</p>
+        <div className="bg-obsidian-800/50 border border-obsidian-700 rounded-lg p-3 sm:p-4">
+          <p className="text-obsidian-400 text-[10px] sm:text-sm">Active Plans</p>
+          <p className="text-xl sm:text-2xl font-bold text-emerald-500">{plans.filter(p => p.is_active).length}</p>
         </div>
-        <div className="bg-obsidian-800/50 border border-obsidian-700 rounded-lg p-4">
-          <p className="text-obsidian-400 text-sm">Featured</p>
-          <p className="text-2xl font-bold text-gold-500">{plans.filter(p => p.is_featured).length}</p>
+        <div className="bg-obsidian-800/50 border border-obsidian-700 rounded-lg p-3 sm:p-4">
+          <p className="text-obsidian-400 text-[10px] sm:text-sm">Featured</p>
+          <p className="text-xl sm:text-2xl font-bold text-gold-500">{plans.filter(p => p.is_featured).length}</p>
         </div>
       </div>
 
-      {/* Plans Table */}
-      <div className="bg-obsidian-800/30 border border-obsidian-700 rounded-xl overflow-hidden">
+      {/* Plans Table - Desktop */}
+      <div className="hidden md:block bg-obsidian-800/30 border border-obsidian-700 rounded-xl overflow-hidden">
         <table className="w-full">
           <thead>
             <tr className="border-b border-obsidian-700 bg-obsidian-800/50">
@@ -825,6 +825,98 @@ export default function PricingManager() {
             )}
           </tbody>
         </table>
+      </div>
+
+      {/* Plans Cards - Mobile */}
+      <div className="md:hidden space-y-3">
+        {plans.length === 0 ? (
+          <div className="bg-obsidian-800/30 border border-obsidian-700 rounded-xl p-8 text-center text-obsidian-500">
+            <DollarSign className="w-10 h-10 mx-auto mb-3 opacity-50" />
+            <p className="text-sm">No pricing plans found</p>
+            <button
+              onClick={() => setIsCreating(true)}
+              className="mt-3 text-gold-500 hover:text-gold-400 text-sm"
+            >
+              Create your first plan
+            </button>
+          </div>
+        ) : (
+          plans.map((plan) => {
+            const enabledFeatures = Object.values(plan.features || {}).filter(Boolean).length;
+            
+            return (
+              <div key={plan.id} className="bg-obsidian-800/30 border border-obsidian-700 rounded-xl p-4">
+                <div className="flex items-start justify-between mb-3">
+                  <div className="flex items-center gap-3">
+                    <div className={`w-9 h-9 rounded-lg flex items-center justify-center ${
+                      plan.is_featured ? 'bg-gold-500/20 border border-gold-500/30' : 'bg-obsidian-700'
+                    }`}>
+                      <span className={`text-sm font-bold ${plan.is_featured ? 'text-gold-500' : 'text-obsidian-400'}`}>
+                        {plan.name.charAt(0)}
+                      </span>
+                    </div>
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <p className="text-obsidian-100 font-medium text-sm">{plan.name}</p>
+                        {plan.is_featured && <Star className="w-3 h-3 text-gold-500" />}
+                      </div>
+                      <p className="text-obsidian-500 text-xs">{plan.tagline || plan.id}</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <button
+                      onClick={() => setEditingPlan(plan)}
+                      className="p-1.5 text-obsidian-400 hover:text-gold-500 hover:bg-obsidian-700 rounded-lg transition-colors"
+                    >
+                      <Edit2 className="w-4 h-4" />
+                    </button>
+                    <button
+                      onClick={() => setDeletingPlan(plan)}
+                      className="p-1.5 text-obsidian-400 hover:text-red-500 hover:bg-obsidian-700 rounded-lg transition-colors"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
+                </div>
+                
+                <div className="grid grid-cols-3 gap-2 text-center mb-3">
+                  <div className="bg-obsidian-800/50 rounded-lg p-2">
+                    <p className="text-obsidian-100 text-sm font-medium">{formatPrice(plan.price_monthly)}</p>
+                    <p className="text-obsidian-500 text-[10px]">/month</p>
+                  </div>
+                  <div className="bg-obsidian-800/50 rounded-lg p-2">
+                    <p className="text-obsidian-100 text-sm font-medium">{formatLimit(plan.max_active_goals)}</p>
+                    <p className="text-obsidian-500 text-[10px]">goals</p>
+                  </div>
+                  <div className="bg-obsidian-800/50 rounded-lg p-2">
+                    <p className="text-obsidian-100 text-sm font-medium">{enabledFeatures}</p>
+                    <p className="text-obsidian-500 text-[10px]">features</p>
+                  </div>
+                </div>
+                
+                <div className="flex items-center justify-between pt-2 border-t border-obsidian-700/50">
+                  <span className="text-obsidian-400 text-xs">Status</span>
+                  <button
+                    onClick={() => handleToggleActive(plan.id, !plan.is_active)}
+                    className="flex items-center gap-1.5"
+                  >
+                    {plan.is_active ? (
+                      <>
+                        <ToggleRight className="w-5 h-5 text-emerald-500" />
+                        <span className="text-emerald-500 text-xs">Active</span>
+                      </>
+                    ) : (
+                      <>
+                        <ToggleLeft className="w-5 h-5 text-obsidian-500" />
+                        <span className="text-obsidian-500 text-xs">Inactive</span>
+                      </>
+                    )}
+                  </button>
+                </div>
+              </div>
+            );
+          })
+        )}
       </div>
 
       {/* Modals */}

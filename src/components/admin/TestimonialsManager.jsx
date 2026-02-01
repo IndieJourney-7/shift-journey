@@ -134,18 +134,18 @@ const TestimonialsManager = () => {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
-          <h2 className="text-xl font-bold text-white">Testimonials Manager</h2>
-          <p className="text-gray-400 text-sm mt-1">
+          <h2 className="text-lg sm:text-xl font-bold text-white">Testimonials Manager</h2>
+          <p className="text-gray-400 text-xs sm:text-sm mt-1">
             Manage reviews displayed on the landing page • {testimonials.length} total
           </p>
         </div>
         <button
           onClick={() => setShowForm(true)}
-          className="flex items-center gap-2 px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white rounded-lg transition-colors"
+          className="flex items-center justify-center gap-2 px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white text-sm rounded-lg transition-colors"
         >
           <Plus className="w-4 h-4" />
           Add Testimonial
@@ -154,11 +154,11 @@ const TestimonialsManager = () => {
 
       {/* Form Modal */}
       {showForm && (
-        <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
-          <div className="bg-gray-900 rounded-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto border border-gray-700">
-            <div className="p-6 border-b border-gray-700">
+        <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-3 sm:p-4">
+          <div className="bg-gray-900 rounded-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto border border-gray-700">
+            <div className="p-4 sm:p-6 border-b border-gray-700">
               <div className="flex items-center justify-between">
-                <h3 className="text-lg font-bold text-white">
+                <h3 className="text-base sm:text-lg font-bold text-white">
                   {editingId ? 'Edit Testimonial' : 'Add New Testimonial'}
                 </h3>
                 <button onClick={resetForm} className="text-gray-400 hover:text-white">
@@ -167,87 +167,87 @@ const TestimonialsManager = () => {
               </div>
             </div>
 
-            <form onSubmit={handleSubmit} className="p-6 space-y-4">
-              <div className="grid grid-cols-2 gap-4">
+            <form onSubmit={handleSubmit} className="p-4 sm:p-6 space-y-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm text-gray-400 mb-1">Name *</label>
+                  <label className="block text-xs sm:text-sm text-gray-400 mb-1">Name *</label>
                   <input
                     type="text"
                     value={formData.name}
                     onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                    className="w-full px-3 py-2 bg-gray-800 border border-gray-600 rounded-lg text-white focus:outline-none focus:border-amber-500"
+                    className="w-full px-3 py-2 text-sm bg-gray-800 border border-gray-600 rounded-lg text-white focus:outline-none focus:border-amber-500"
                     required
                   />
                 </div>
                 <div>
-                  <label className="block text-sm text-gray-400 mb-1">Role</label>
+                  <label className="block text-xs sm:text-sm text-gray-400 mb-1">Role</label>
                   <input
                     type="text"
                     value={formData.role}
                     onChange={(e) => setFormData({ ...formData, role: e.target.value })}
                     placeholder="e.g., Software Engineer"
-                    className="w-full px-3 py-2 bg-gray-800 border border-gray-600 rounded-lg text-white focus:outline-none focus:border-amber-500"
+                    className="w-full px-3 py-2 text-sm bg-gray-800 border border-gray-600 rounded-lg text-white focus:outline-none focus:border-amber-500"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block text-sm text-gray-400 mb-1">Quote *</label>
+                <label className="block text-xs sm:text-sm text-gray-400 mb-1">Quote *</label>
                 <textarea
                   value={formData.quote}
                   onChange={(e) => setFormData({ ...formData, quote: e.target.value })}
                   rows={4}
-                  className="w-full px-3 py-2 bg-gray-800 border border-gray-600 rounded-lg text-white focus:outline-none focus:border-amber-500"
+                  className="w-full px-3 py-2 text-sm bg-gray-800 border border-gray-600 rounded-lg text-white focus:outline-none focus:border-amber-500"
                   required
                 />
               </div>
 
               <div>
-                <label className="block text-sm text-gray-400 mb-1">Highlight Phrase</label>
+                <label className="block text-xs sm:text-sm text-gray-400 mb-1">Highlight Phrase</label>
                 <input
                   type="text"
                   value={formData.highlight}
                   onChange={(e) => setFormData({ ...formData, highlight: e.target.value })}
                   placeholder="Key phrase to highlight in quote"
-                  className="w-full px-3 py-2 bg-gray-800 border border-gray-600 rounded-lg text-white focus:outline-none focus:border-amber-500"
+                  className="w-full px-3 py-2 text-sm bg-gray-800 border border-gray-600 rounded-lg text-white focus:outline-none focus:border-amber-500"
                 />
               </div>
 
-              <div className="grid grid-cols-3 gap-4">
+              <div className="grid grid-cols-3 gap-2 sm:gap-4">
                 <div>
-                  <label className="block text-sm text-gray-400 mb-1">Integrity Score</label>
+                  <label className="block text-xs sm:text-sm text-gray-400 mb-1">Score</label>
                   <input
                     type="number"
                     min="0"
                     max="100"
                     value={formData.score}
                     onChange={(e) => setFormData({ ...formData, score: parseInt(e.target.value) || 0 })}
-                    className="w-full px-3 py-2 bg-gray-800 border border-gray-600 rounded-lg text-white focus:outline-none focus:border-amber-500"
+                    className="w-full px-3 py-2 text-sm bg-gray-800 border border-gray-600 rounded-lg text-white focus:outline-none focus:border-amber-500"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm text-gray-400 mb-1">Kept Promises</label>
+                  <label className="block text-xs sm:text-sm text-gray-400 mb-1">Kept</label>
                   <input
                     type="number"
                     min="0"
                     value={formData.kept_promises}
                     onChange={(e) => setFormData({ ...formData, kept_promises: parseInt(e.target.value) || 0 })}
-                    className="w-full px-3 py-2 bg-gray-800 border border-gray-600 rounded-lg text-white focus:outline-none focus:border-amber-500"
+                    className="w-full px-3 py-2 text-sm bg-gray-800 border border-gray-600 rounded-lg text-white focus:outline-none focus:border-amber-500"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm text-gray-400 mb-1">Broken Promises</label>
+                  <label className="block text-xs sm:text-sm text-gray-400 mb-1">Broken</label>
                   <input
                     type="number"
                     min="0"
                     value={formData.broken_promises}
                     onChange={(e) => setFormData({ ...formData, broken_promises: parseInt(e.target.value) || 0 })}
-                    className="w-full px-3 py-2 bg-gray-800 border border-gray-600 rounded-lg text-white focus:outline-none focus:border-amber-500"
+                    className="w-full px-3 py-2 text-sm bg-gray-800 border border-gray-600 rounded-lg text-white focus:outline-none focus:border-amber-500"
                   />
                 </div>
               </div>
 
-              <div className="flex items-center gap-6 pt-2">
+              <div className="flex items-center gap-4 sm:gap-6 pt-2">
                 <label className="flex items-center gap-2 cursor-pointer">
                   <input
                     type="checkbox"
@@ -255,7 +255,7 @@ const TestimonialsManager = () => {
                     onChange={(e) => setFormData({ ...formData, is_active: e.target.checked })}
                     className="w-4 h-4 rounded border-gray-600 text-amber-500 focus:ring-amber-500"
                   />
-                  <span className="text-sm text-gray-300">Active</span>
+                  <span className="text-xs sm:text-sm text-gray-300">Active</span>
                 </label>
                 <label className="flex items-center gap-2 cursor-pointer">
                   <input
@@ -264,14 +264,14 @@ const TestimonialsManager = () => {
                     onChange={(e) => setFormData({ ...formData, is_featured: e.target.checked })}
                     className="w-4 h-4 rounded border-gray-600 text-amber-500 focus:ring-amber-500"
                   />
-                  <span className="text-sm text-gray-300">Featured</span>
+                  <span className="text-xs sm:text-sm text-gray-300">Featured</span>
                 </label>
               </div>
 
               <div className="flex gap-3 pt-4">
                 <button
                   type="submit"
-                  className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white rounded-lg transition-colors"
+                  className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white text-sm rounded-lg transition-colors"
                 >
                   <Save className="w-4 h-4" />
                   {editingId ? 'Update' : 'Create'}
@@ -279,7 +279,7 @@ const TestimonialsManager = () => {
                 <button
                   type="button"
                   onClick={resetForm}
-                  className="px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-lg transition-colors"
+                  className="px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white text-sm rounded-lg transition-colors"
                 >
                   Cancel
                 </button>
@@ -290,14 +290,14 @@ const TestimonialsManager = () => {
       )}
 
       {/* Testimonials List */}
-      <div className="space-y-3">
+      <div className="space-y-2 sm:space-y-3">
         {testimonials.length === 0 ? (
-          <div className="text-center py-12 bg-gray-800/50 rounded-xl border border-gray-700">
-            <Star className="w-12 h-12 text-gray-600 mx-auto mb-3" />
-            <p className="text-gray-400">No testimonials yet</p>
+          <div className="text-center py-8 sm:py-12 bg-gray-800/50 rounded-xl border border-gray-700">
+            <Star className="w-10 h-10 sm:w-12 sm:h-12 text-gray-600 mx-auto mb-3" />
+            <p className="text-gray-400 text-sm">No testimonials yet</p>
             <button
               onClick={() => setShowForm(true)}
-              className="mt-3 text-amber-500 hover:text-amber-400"
+              className="mt-3 text-amber-500 hover:text-amber-400 text-sm"
             >
               Add your first testimonial
             </button>
@@ -308,37 +308,37 @@ const TestimonialsManager = () => {
               key={testimonial.id}
               className={`bg-gray-800/50 rounded-xl border ${
                 testimonial.is_active ? 'border-gray-700' : 'border-gray-800 opacity-60'
-              } p-4`}
+              } p-3 sm:p-4`}
             >
-              <div className="flex items-start gap-4">
-                {/* Drag Handle */}
-                <div className="pt-1 cursor-move text-gray-600 hover:text-gray-400">
+              <div className="flex items-start gap-2 sm:gap-4">
+                {/* Drag Handle - hidden on mobile */}
+                <div className="hidden sm:block pt-1 cursor-move text-gray-600 hover:text-gray-400">
                   <GripVertical className="w-4 h-4" />
                 </div>
 
                 {/* Avatar */}
-                <div className="flex-shrink-0 w-12 h-12 rounded-full bg-gradient-to-br from-amber-500 to-amber-700 flex items-center justify-center">
-                  <span className="text-white font-bold">{testimonial.initials}</span>
+                <div className="flex-shrink-0 w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-gradient-to-br from-amber-500 to-amber-700 flex items-center justify-center">
+                  <span className="text-white font-bold text-sm">{testimonial.initials}</span>
                 </div>
 
                 {/* Content */}
                 <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2 mb-1">
-                    <h4 className="font-semibold text-white">{testimonial.name}</h4>
+                  <div className="flex items-center flex-wrap gap-2 mb-1">
+                    <h4 className="font-semibold text-white text-sm sm:text-base">{testimonial.name}</h4>
                     {testimonial.is_featured && (
                       <Award className="w-4 h-4 text-amber-500" title="Featured" />
                     )}
                     {!testimonial.is_active && (
-                      <span className="text-xs px-2 py-0.5 bg-gray-700 text-gray-400 rounded">
+                      <span className="text-[10px] sm:text-xs px-2 py-0.5 bg-gray-700 text-gray-400 rounded">
                         Hidden
                       </span>
                     )}
                   </div>
                   {testimonial.role && (
-                    <p className="text-sm text-gray-400 mb-2">{testimonial.role}</p>
+                    <p className="text-xs sm:text-sm text-gray-400 mb-2">{testimonial.role}</p>
                   )}
-                  <p className="text-gray-300 text-sm line-clamp-2">{testimonial.quote}</p>
-                  <div className="flex items-center gap-4 mt-2 text-xs text-gray-500">
+                  <p className="text-gray-300 text-xs sm:text-sm line-clamp-2">{testimonial.quote}</p>
+                  <div className="flex items-center flex-wrap gap-3 sm:gap-4 mt-2 text-[10px] sm:text-xs text-gray-500">
                     <span className={getScoreColor(testimonial.score)}>
                       Score: {testimonial.score}
                     </span>
@@ -348,10 +348,10 @@ const TestimonialsManager = () => {
                 </div>
 
                 {/* Actions */}
-                <div className="flex items-center gap-1">
+                <div className="flex items-center gap-0.5 sm:gap-1 flex-shrink-0">
                   <button
                     onClick={() => handleToggleFeatured(testimonial.id, testimonial.is_featured)}
-                    className={`p-2 rounded-lg transition-colors ${
+                    className={`p-1.5 sm:p-2 rounded-lg transition-colors ${
                       testimonial.is_featured
                         ? 'bg-amber-500/20 text-amber-400'
                         : 'hover:bg-gray-700 text-gray-500'
@@ -362,7 +362,7 @@ const TestimonialsManager = () => {
                   </button>
                   <button
                     onClick={() => handleToggleActive(testimonial.id, testimonial.is_active)}
-                    className={`p-2 rounded-lg transition-colors ${
+                    className={`p-1.5 sm:p-2 rounded-lg transition-colors ${
                       testimonial.is_active
                         ? 'hover:bg-gray-700 text-gray-400'
                         : 'hover:bg-gray-700 text-gray-600'
@@ -377,14 +377,14 @@ const TestimonialsManager = () => {
                   </button>
                   <button
                     onClick={() => handleEdit(testimonial)}
-                    className="p-2 hover:bg-gray-700 rounded-lg text-gray-400 transition-colors"
+                    className="p-1.5 sm:p-2 hover:bg-gray-700 rounded-lg text-gray-400 transition-colors"
                     title="Edit"
                   >
                     <Edit2 className="w-4 h-4" />
                   </button>
                   <button
                     onClick={() => handleDelete(testimonial.id)}
-                    className="p-2 hover:bg-red-500/20 rounded-lg text-gray-500 hover:text-red-400 transition-colors"
+                    className="p-1.5 sm:p-2 hover:bg-red-500/20 rounded-lg text-gray-500 hover:text-red-400 transition-colors"
                     title="Delete"
                   >
                     <Trash2 className="w-4 h-4" />
