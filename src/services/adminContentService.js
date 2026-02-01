@@ -42,7 +42,10 @@ export const testimonialsService = {
    * Get active testimonials (public view)
    */
   async getActive() {
-    if (!isSupabaseConfigured()) return [];
+    if (!isSupabaseConfigured()) {
+      console.warn('Supabase not configured, using fallback testimonials');
+      return [];
+    }
     try {
       const { data, error } = await supabase
         .from('testimonials')
@@ -51,7 +54,7 @@ export const testimonialsService = {
         .order('sort_order', { ascending: true });
 
       if (error) {
-        console.error('Error fetching active testimonials:', error);
+        console.error('Error fetching active testimonials:', error.message, error.details);
         return [];
       }
       return data || [];
@@ -195,7 +198,10 @@ export const faqsService = {
    * Get active FAQs (public view)
    */
   async getActive() {
-    if (!isSupabaseConfigured()) return [];
+    if (!isSupabaseConfigured()) {
+      console.warn('Supabase not configured, using fallback FAQs');
+      return [];
+    }
     try {
       const { data, error } = await supabase
         .from('faqs')
@@ -204,7 +210,7 @@ export const faqsService = {
         .order('sort_order', { ascending: true });
 
       if (error) {
-        console.error('Error fetching active FAQs:', error);
+        console.error('Error fetching active FAQs:', error.message, error.details);
         return [];
       }
       return data || [];
@@ -492,20 +498,30 @@ export const offersService = {
   async getActive() {
     if (!isSupabaseConfigured()) return [];
     try {
-      const now = new Date().toISOString();
       const { data, error } = await supabase
         .from('offers')
         .select('*')
         .eq('is_active', true)
-        .or(`starts_at.is.null,starts_at.lte.${now}`)
-        .or(`ends_at.is.null,ends_at.gte.${now}`)
         .order('sort_order', { ascending: true });
 
       if (error) {
         console.error('Error fetching active offers:', error);
         return [];
       }
-      return data || [];
+      
+      // Filter by date range client-side for reliability
+      const now = new Date();
+      const filtered = (data || []).filter(offer => {
+        const startsAt = offer.starts_at ? new Date(offer.starts_at) : null;
+        const endsAt = offer.ends_at ? new Date(offer.ends_at) : null;
+        
+        const hasStarted = !startsAt || startsAt <= now;
+        const notEnded = !endsAt || endsAt >= now;
+        
+        return hasStarted && notEnded;
+      });
+      
+      return filtered;
     } catch (err) {
       console.error('Error in offersService.getActive:', err);
       return [];
@@ -586,7 +602,10 @@ export const siteStatsService = {
    * Get site statistics
    */
   async get() {
-    if (!isSupabaseConfigured()) return null;
+    if (!isSupabaseConfigured()) {
+      console.warn('Supabase not configured, using fallback stats');
+      return null;
+    }
     try {
       const { data, error } = await supabase
         .from('site_stats')
@@ -595,7 +614,7 @@ export const siteStatsService = {
         .single();
 
       if (error) {
-        console.error('Error fetching site stats:', error);
+        console.error('Error fetching site stats:', error.message, error.details);
         return null;
       }
       return data;

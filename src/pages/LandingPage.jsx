@@ -141,29 +141,37 @@ export default function LandingPage() {
   useEffect(() => {
     const loadContent = async () => {
       try {
+        console.log('Loading landing page content...');
+        
         // Load testimonials
         const testimonialsData = await testimonialsService.getActive();
+        console.log('Testimonials loaded:', testimonialsData?.length || 0);
         if (testimonialsData && testimonialsData.length > 0) {
           setTestimonials(testimonialsData);
         }
 
         // Load FAQs
         const faqsData = await faqsService.getActive();
+        console.log('FAQs loaded:', faqsData?.length || 0);
         if (faqsData && faqsData.length > 0) {
           setFaqItems(faqsData);
         }
 
         // Load active offer
         const offerData = await offersService.getPrimary();
+        console.log('Offer loaded:', offerData ? offerData.title : 'none');
         if (offerData) {
           setActiveOffer(offerData);
         }
 
         // Load site stats
         const statsData = await siteStatsService.get();
+        console.log('Stats loaded:', statsData);
         if (statsData) {
           setSiteStats(statsData);
         }
+        
+        console.log('Landing page content loaded successfully');
       } catch (error) {
         console.error('Error loading landing page content:', error);
         // Fall back to static content on error
