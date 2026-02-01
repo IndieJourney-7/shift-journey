@@ -71,17 +71,17 @@ function StatCard({ icon: Icon, label, value, subValue, color = 'gold' }) {
   };
 
   return (
-    <div className="bg-obsidian-800/50 border border-obsidian-700 rounded-xl p-6">
+    <div className="bg-obsidian-800/50 border border-obsidian-700 rounded-xl p-4 sm:p-6">
       <div className="flex items-start justify-between">
-        <div>
-          <p className="text-obsidian-400 text-sm mb-1">{label}</p>
-          <p className="text-2xl font-bold text-obsidian-100">{value}</p>
+        <div className="min-w-0 flex-1">
+          <p className="text-obsidian-400 text-xs sm:text-sm mb-1">{label}</p>
+          <p className="text-xl sm:text-2xl font-bold text-obsidian-100">{value}</p>
           {subValue && (
-            <p className="text-obsidian-500 text-xs mt-1">{subValue}</p>
+            <p className="text-obsidian-500 text-[10px] sm:text-xs mt-1 truncate">{subValue}</p>
           )}
         </div>
-        <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${colorClasses[color]}`}>
-          <Icon className="w-5 h-5" />
+        <div className={`w-8 h-8 sm:w-10 sm:h-10 rounded-lg flex items-center justify-center flex-shrink-0 ml-2 ${colorClasses[color]}`}>
+          <Icon className="w-4 h-4 sm:w-5 sm:h-5" />
         </div>
       </div>
     </div>
@@ -170,48 +170,52 @@ export default function AdminPage() {
     <div className="min-h-screen bg-obsidian-950 noise-bg">
       {/* Header */}
       <header className="border-b border-obsidian-800 bg-obsidian-900/50 sticky top-0 z-40 backdrop-blur-sm">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16">
-            <div className="flex items-center gap-3">
-              <Shield className="w-6 h-6 text-gold-500" />
-              <h1 className="text-xl font-semibold text-obsidian-100">Admin Dashboard</h1>
+        <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-between h-14 sm:h-16">
+            <div className="flex items-center gap-2 sm:gap-3">
+              <Shield className="w-5 h-5 sm:w-6 sm:h-6 text-gold-500" />
+              <h1 className="text-base sm:text-xl font-semibold text-obsidian-100">Admin</h1>
             </div>
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2 sm:gap-3">
               <Button
                 variant="ghost"
                 size="sm"
                 icon={RefreshCw}
                 onClick={handleRefresh}
                 disabled={refreshing}
-                className={refreshing ? 'animate-spin' : ''}
+                className={`${refreshing ? 'animate-spin' : ''} !px-2 sm:!px-3`}
               >
-                Refresh
+                <span className="hidden sm:inline">Refresh</span>
               </Button>
               <Button
                 variant="secondary"
                 size="sm"
                 onClick={() => navigate('/')}
+                className="!px-2 sm:!px-3"
               >
-                View Site
+                <span className="hidden sm:inline">View Site</span>
+                <span className="sm:hidden">Site</span>
               </Button>
               <Button
                 variant="secondary"
                 size="sm"
                 onClick={() => navigate('/dashboard')}
+                className="!px-2 sm:!px-3"
               >
-                Back to App
+                <span className="hidden sm:inline">Back to App</span>
+                <span className="sm:hidden">App</span>
               </Button>
             </div>
           </div>
         </div>
       </header>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+      <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-4 sm:py-6">
         {/* Messages */}
         {error && (
-          <div className="mb-6 p-4 bg-red-500/10 border border-red-500/30 rounded-lg flex items-center gap-3">
-            <AlertTriangle className="w-5 h-5 text-red-500 flex-shrink-0" />
-            <p className="text-red-400 text-sm">{error}</p>
+          <div className="mb-4 sm:mb-6 p-3 sm:p-4 bg-red-500/10 border border-red-500/30 rounded-lg flex items-center gap-2 sm:gap-3">
+            <AlertTriangle className="w-4 h-4 sm:w-5 sm:h-5 text-red-500 flex-shrink-0" />
+            <p className="text-red-400 text-xs sm:text-sm flex-1">{error}</p>
             <button
               onClick={() => setError(null)}
               className="ml-auto text-red-400 hover:text-red-300"
@@ -222,15 +226,39 @@ export default function AdminPage() {
         )}
 
         {successMessage && (
-          <div className="mb-6 p-4 bg-emerald-500/10 border border-emerald-500/30 rounded-lg flex items-center gap-3">
-            <CheckCircle className="w-5 h-5 text-emerald-500 flex-shrink-0" />
-            <p className="text-emerald-400 text-sm">{successMessage}</p>
+          <div className="mb-4 sm:mb-6 p-3 sm:p-4 bg-emerald-500/10 border border-emerald-500/30 rounded-lg flex items-center gap-2 sm:gap-3">
+            <CheckCircle className="w-4 h-4 sm:w-5 sm:h-5 text-emerald-500 flex-shrink-0" />
+            <p className="text-emerald-400 text-xs sm:text-sm">{successMessage}</p>
           </div>
         )}
 
+        {/* Mobile Tab Navigation - Horizontal Scroll */}
+        <nav className="lg:hidden mb-4 -mx-3 px-3 overflow-x-auto scrollbar-hide">
+          <div className="flex gap-2 pb-2 min-w-max">
+            {ADMIN_TABS.map((tab) => {
+              const Icon = tab.icon;
+              const isActive = activeTab === tab.id;
+              return (
+                <button
+                  key={tab.id}
+                  onClick={() => setActiveTab(tab.id)}
+                  className={`flex items-center gap-2 px-3 py-2 rounded-lg whitespace-nowrap transition-colors ${
+                    isActive
+                      ? 'bg-gold-500/20 text-gold-500 border border-gold-500/30'
+                      : 'text-obsidian-400 bg-obsidian-800/50 border border-obsidian-700'
+                  }`}
+                >
+                  <Icon className="w-4 h-4" />
+                  <span className="text-sm font-medium">{tab.label}</span>
+                </button>
+              );
+            })}
+          </div>
+        </nav>
+
         <div className="flex gap-6">
-          {/* Sidebar Navigation */}
-          <nav className="w-56 flex-shrink-0">
+          {/* Desktop Sidebar Navigation */}
+          <nav className="hidden lg:block w-56 flex-shrink-0">
             <div className="sticky top-24 space-y-1">
               {ADMIN_TABS.map((tab) => {
                 const Icon = tab.icon;
@@ -264,9 +292,9 @@ export default function AdminPage() {
                 {/* Overview Tab */}
                 {activeTab === 'overview' && (
                   <>
-                    <section className="mb-8">
-                      <h2 className="text-lg font-semibold text-obsidian-100 mb-4">Overview</h2>
-                      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                    <section className="mb-6 sm:mb-8">
+                      <h2 className="text-base sm:text-lg font-semibold text-obsidian-100 mb-3 sm:mb-4">Overview</h2>
+                      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
                         <StatCard icon={Users} label="Total Users" value={stats.users} color="blue" />
                         <StatCard
                           icon={Target}
@@ -295,45 +323,45 @@ export default function AdminPage() {
                     </section>
 
                     {/* Quick Actions */}
-                    <section className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+                    <section className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 mb-6 sm:mb-8">
                       <button
                         onClick={() => setActiveTab('testimonials')}
-                        className="p-4 bg-obsidian-800/50 border border-obsidian-700 rounded-xl hover:border-gold-500/50 transition-colors text-left"
+                        className="p-3 sm:p-4 bg-obsidian-800/50 border border-obsidian-700 rounded-xl hover:border-gold-500/50 transition-colors text-left"
                       >
-                        <Star className="w-6 h-6 text-amber-500 mb-2" />
-                        <p className="font-medium text-white">Testimonials</p>
-                        <p className="text-xs text-obsidian-400">Manage reviews</p>
+                        <Star className="w-5 h-5 sm:w-6 sm:h-6 text-amber-500 mb-1.5 sm:mb-2" />
+                        <p className="font-medium text-white text-sm sm:text-base">Testimonials</p>
+                        <p className="text-[10px] sm:text-xs text-obsidian-400">Manage reviews</p>
                       </button>
                       <button
                         onClick={() => setActiveTab('faqs')}
-                        className="p-4 bg-obsidian-800/50 border border-obsidian-700 rounded-xl hover:border-gold-500/50 transition-colors text-left"
+                        className="p-3 sm:p-4 bg-obsidian-800/50 border border-obsidian-700 rounded-xl hover:border-gold-500/50 transition-colors text-left"
                       >
-                        <HelpCircle className="w-6 h-6 text-blue-500 mb-2" />
-                        <p className="font-medium text-white">FAQs</p>
-                        <p className="text-xs text-obsidian-400">Edit questions</p>
+                        <HelpCircle className="w-5 h-5 sm:w-6 sm:h-6 text-blue-500 mb-1.5 sm:mb-2" />
+                        <p className="font-medium text-white text-sm sm:text-base">FAQs</p>
+                        <p className="text-[10px] sm:text-xs text-obsidian-400">Edit questions</p>
                       </button>
                       <button
                         onClick={() => setActiveTab('quotes')}
-                        className="p-4 bg-obsidian-800/50 border border-obsidian-700 rounded-xl hover:border-gold-500/50 transition-colors text-left"
+                        className="p-3 sm:p-4 bg-obsidian-800/50 border border-obsidian-700 rounded-xl hover:border-gold-500/50 transition-colors text-left"
                       >
-                        <Quote className="w-6 h-6 text-purple-500 mb-2" />
-                        <p className="font-medium text-white">Quotes</p>
-                        <p className="text-xs text-obsidian-400">Dashboard quotes</p>
+                        <Quote className="w-5 h-5 sm:w-6 sm:h-6 text-purple-500 mb-1.5 sm:mb-2" />
+                        <p className="font-medium text-white text-sm sm:text-base">Quotes</p>
+                        <p className="text-[10px] sm:text-xs text-obsidian-400">Dashboard quotes</p>
                       </button>
                       <button
                         onClick={() => setActiveTab('offers')}
-                        className="p-4 bg-obsidian-800/50 border border-obsidian-700 rounded-xl hover:border-gold-500/50 transition-colors text-left"
+                        className="p-3 sm:p-4 bg-obsidian-800/50 border border-obsidian-700 rounded-xl hover:border-gold-500/50 transition-colors text-left"
                       >
-                        <Gift className="w-6 h-6 text-emerald-500 mb-2" />
-                        <p className="font-medium text-white">Offers</p>
-                        <p className="text-xs text-obsidian-400">Promotions</p>
+                        <Gift className="w-5 h-5 sm:w-6 sm:h-6 text-emerald-500 mb-1.5 sm:mb-2" />
+                        <p className="font-medium text-white text-sm sm:text-base">Offers</p>
+                        <p className="text-[10px] sm:text-xs text-obsidian-400">Promotions</p>
                       </button>
                     </section>
 
                     {/* Quick Guide */}
-                    <section className="bg-obsidian-800/30 border border-obsidian-700 rounded-xl p-6">
-                      <h3 className="text-obsidian-100 font-medium mb-3">Admin Quick Guide</h3>
-                      <ul className="space-y-2 text-obsidian-400 text-sm">
+                    <section className="bg-obsidian-800/30 border border-obsidian-700 rounded-xl p-4 sm:p-6">
+                      <h3 className="text-obsidian-100 font-medium text-sm sm:text-base mb-2 sm:mb-3">Admin Quick Guide</h3>
+                      <ul className="space-y-1.5 sm:space-y-2 text-obsidian-400 text-xs sm:text-sm">
                         <li className="flex items-start gap-2">
                           <span className="text-gold-500">•</span>
                           <span><strong>Testimonials:</strong> Manage reviews shown on the landing page</span>

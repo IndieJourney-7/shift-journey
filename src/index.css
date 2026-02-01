@@ -167,3 +167,13 @@ g.cursor-pointer:hover .node-hover-ring {
   @apply font-mono text-4xl font-bold tracking-wider;
   text-shadow: 0 0 20px rgba(201, 169, 98, 0.5);
 }
+
+/* Hide scrollbar utility */
+.scrollbar-hide {
+  -ms-overflow-style: none;  /* IE and Edge */
+  scrollbar-width: none;  /* Firefox */
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;  /* Chrome, Safari and Opera */
+}
