@@ -728,13 +728,23 @@ export default function ShareableBadgeImage({
     }
   }, [drawBadge, score, onDownload, tier]);
 
-  // Copy link
+  // Copy link - uses profileUrl or constructs from userId
   const handleCopyLink = useCallback(async () => {
-    const url = profileUrl || `${window.location.origin}/p/${username}`;
+    // profileUrl should be the full URL to the public profile
+    // Format: https://shiftascent.com/p/{userId}
+    let url = profileUrl;
+    
+    if (!url) {
+      // Fallback: if no profileUrl provided, we can't construct a valid URL
+      // because we need the userId, not username
+      console.warn('No profileUrl provided to ShareableBadgeImage');
+      url = window.location.origin;
+    }
+    
     await navigator.clipboard.writeText(url);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
-  }, [profileUrl, username]);
+  }, [profileUrl]);
 
   // Render preview
   useEffect(() => {

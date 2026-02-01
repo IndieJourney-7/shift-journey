@@ -33,35 +33,56 @@ export default function PublicProfilePage() {
         return;
       }
 
-      // Fetch user data
+      // Fetch user data - Note: Requires public read RLS policy on users table
+      // See migration: 009_add_public_profile_access.sql
       const { data: userData, error: userError } = await supabase
         .from('users')
-        .select('*')
+        .select('id, full_name, avatar_url, integrity_score, status, joined_at')
         .eq('id', userId)
         .single();
 
-      if (userError) throw userError;
+      if (userError) {
+        console.error('User fetch error:', userError);
+        // Check if it's an RLS error
+        if (userError.code === 'PGRST116' || userError.message?.includes('row-level security')) {
+          throw new Error('Profile is private or not accessible');
+        }
+        throw userError;
+      }
       if (!userData) throw new Error('User not found');
 
       // Fetch user's goals and milestones for stats
-      const { data: goals } = await supabase
+      const { data: goals, error: goalsError } = await supabase
         .from('goals')
-        .select('*')
+        .select('id, status')
         .eq('user_id', userId);
+      
+      if (goalsError) {
+        console.warn('Goals fetch error (may be RLS):', goalsError);
+      }
 
-      const { data: milestones } = await supabase
-        .from('milestones')
-        .select('*')
-        .in('goal_id', goals?.map(g => g.id) || []);
+      let milestones = [];
+      if (goals && goals.length > 0) {
+        const { data: milestonesData, error: milestonesError } = await supabase
+          .from('milestones')
+          .select('status, updated_at, witness_count')
+          .in('goal_id', goals.map(g => g.id));
+        
+        if (milestonesError) {
+          console.warn('Milestones fetch error (may be RLS):', milestonesError);
+        } else {
+          milestones = milestonesData || [];
+        }
+      }
 
       // Calculate stats
-      const stats = calculateStats(milestones || [], goals || []);
+      const stats = calculateStats(milestones, goals || []);
 
       setProfileData({
         user: userData,
         stats,
         goals: goals || [],
-        milestones: milestones || [],
+        milestones: milestones,
       });
     } catch (err) {
       console.error('Error fetching profile:', err);
@@ -141,12 +162,22 @@ export default function PublicProfilePage() {
             <AlertTriangle className="w-8 h-8 text-red-400" />
           </div>
           <h1 className="text-xl font-bold text-obsidian-100 mb-2">Profile Not Found</h1>
-          <p className="text-obsidian-400 mb-6">{error}</p>
-          <Link to="/">
-            <Button variant="secondary" icon={ArrowLeft}>
-              Go Home
-            </Button>
-          </Link>
+          <p className="text-obsidian-400 mb-4">{error}</p>
+          <p className="text-obsidian-500 text-sm mb-6">
+            This profile may be private, or the link may be incorrect.
+          </p>
+          <div className="space-y-3">
+            <Link to="/">
+              <Button variant="gold" icon={ArrowLeft} className="w-full">
+                Go to Shift Ascent
+              </Button>
+            </Link>
+            <a href="https://www.shiftascent.com" target="_blank" rel="noopener noreferrer">
+              <Button variant="secondary" icon={ExternalLink} className="w-full">
+                Learn More
+              </Button>
+            </a>
+          </div>
         </Card>
       </div>
     );
