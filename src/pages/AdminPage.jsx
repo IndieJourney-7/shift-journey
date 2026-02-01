@@ -593,7 +593,7 @@ function PlanRow({ plan, onEdit, onToggleActive }) {
 
 export default function AdminPage() {
   const navigate = useNavigate();
-  const { user, isAuthenticated, isAdmin } = useApp();
+  const { user, isAuthenticated } = useApp();
 
   const [activeTab, setActiveTab] = useState('overview');
   const [loading, setLoading] = useState(true);
@@ -614,8 +614,8 @@ export default function AdminPage() {
   const [editingPlan, setEditingPlan] = useState(null);
 
   // Simple admin check - bypassed for development
-  // TODO: In production, use proper role-based auth
-  const isAdmin = true;
+  // TODO: In production, check user.is_admin or user.role === 'admin'
+  const isAdmin = user?.is_admin || true; // Allow access for now
 
   const loadData = async () => {
     try {
