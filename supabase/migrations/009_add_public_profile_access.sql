@@ -2,7 +2,7 @@
 -- This allows anyone to view basic profile info for the shareable badge feature
 
 -- Allow public (anonymous) read access to basic user profile info
--- Only expose safe fields: id, full_name, avatar_url, integrity_score, status, joined_at
+-- Only expose safe fields: id, name, avatar_url, integrity_score, status, joined_at
 CREATE POLICY "Public can view user profiles" ON users
   FOR SELECT
   TO anon, authenticated
@@ -15,7 +15,7 @@ CREATE POLICY "Public can view user profiles" ON users
 -- CREATE VIEW public_profiles AS
 -- SELECT 
 --   id,
---   full_name,
+--   name,
 --   avatar_url,
 --   integrity_score,
 --   status,

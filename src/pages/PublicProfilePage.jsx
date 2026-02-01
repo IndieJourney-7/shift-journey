@@ -37,7 +37,7 @@ export default function PublicProfilePage() {
       // See migration: 009_add_public_profile_access.sql
       const { data: userData, error: userError } = await supabase
         .from('users')
-        .select('id, full_name, avatar_url, integrity_score, status, joined_at')
+        .select('id, name, avatar_url, integrity_score, status, joined_at')
         .eq('id', userId)
         .single();
 
@@ -128,7 +128,7 @@ export default function PublicProfilePage() {
   const getDemoProfile = () => ({
     user: {
       id: 'demo',
-      full_name: 'Demo User',
+      name: 'Demo User',
       integrity_score: 75,
       created_at: new Date().toISOString(),
     },
@@ -186,7 +186,7 @@ export default function PublicProfilePage() {
   const { user, stats } = profileData;
   const score = user.integrity_score || 50;
   const tier = getIntegrityTier(score);
-  const username = user.full_name || user.name || 'User';
+  const username = user.name || 'User';
   const profileUrl = `${window.location.origin}/p/${userId}`;
 
   return (
