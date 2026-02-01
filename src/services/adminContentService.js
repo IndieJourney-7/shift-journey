@@ -550,7 +550,7 @@ export const usersService = {
       .select(`
         id,
         email,
-        name,
+        full_name,
         avatar_url,
         integrity_score,
         status,
@@ -560,7 +560,11 @@ export const usersService = {
       .order('joined_at', { ascending: false });
 
     if (error) throw error;
-    return data;
+    // Map full_name to name for component compatibility
+    return data?.map(user => ({
+      ...user,
+      name: user.full_name
+    })) || [];
   },
 
   /**
@@ -591,9 +595,10 @@ export const usersService = {
       .from('goals')
       .select('user_id, title, status');
 
-    // Combine data
-    return users.map(user => ({
+    // Combine data and map full_name to name for compatibility
+    return (users || []).map(user => ({
       ...user,
+      name: user.full_name,
       goals: goals?.filter(g => g.user_id === user.id) || []
     }));
   },
@@ -634,11 +639,15 @@ export const usersService = {
     const { data, error } = await supabase
       .from('users')
       .select('*')
-      .or(`name.ilike.%${query}%,email.ilike.%${query}%`)
+      .or(`full_name.ilike.%${query}%,email.ilike.%${query}%`)
       .order('joined_at', { ascending: false });
 
     if (error) throw error;
-    return data;
+    // Map full_name to name for component compatibility
+    return (data || []).map(user => ({
+      ...user,
+      name: user.full_name
+    }));
   }
 };
 
