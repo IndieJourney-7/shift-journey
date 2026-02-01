@@ -10,3 +10,4 @@ export { default as QuotesManager } from './QuotesManager';
 export { default as OffersManager } from './OffersManager';
 export { default as UsersManager } from './UsersManager';
 export { default as SiteStatsManager } from './SiteStatsManager';
+export { default as PricingManager } from './PricingManager';
