@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Trophy, Star, Target, Clock, CheckCircle, AlertTriangle, ChevronRight, Sparkles, Send } from 'lucide-react';
-import { Button, Card, Textarea, Confetti } from '../components/ui';
-import { useApp } from '../context/AppContext';
+import { Button, Card, Textarea, Confetti } from '../../ui';
+import { useApp } from '../../../context/AppContext';
 
 export default function GoalAccomplishedPage() {
   const navigate = useNavigate();

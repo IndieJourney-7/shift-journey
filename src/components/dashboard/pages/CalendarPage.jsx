@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { ChevronLeft, ChevronRight, Check, X, BookOpen, Pencil, Flame } from 'lucide-react';
-import { Button, Card, Modal } from '../components/ui';
-import { useApp } from '../context/AppContext';
+import { Button, Card, Modal } from '../../ui';
+import { useApp } from '../../../context/AppContext';
 
 export default function CalendarPage() {
   const { calendarData, saveCalendarDay, currentLockedMilestone } = useApp();

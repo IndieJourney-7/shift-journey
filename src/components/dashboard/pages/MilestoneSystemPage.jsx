@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { Target, ChevronRight, AlertCircle, RefreshCw } from 'lucide-react';
-import { MilestoneProvider, useMilestones } from '../context/MilestoneContext';
-import { MilestoneDashboard } from '../components/milestones';
-import { Button, Card, Input, Textarea } from '../components/ui';
+import { MilestoneProvider, useMilestones } from '../../../context/MilestoneContext';
+import { MilestoneDashboard } from '../../milestones';
+import { Button, Card, Input, Textarea } from '../../ui';
 
 // Loading screen
 function LoadingScreen() {

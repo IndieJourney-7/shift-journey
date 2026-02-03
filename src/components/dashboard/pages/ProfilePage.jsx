@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AlertTriangle, Check, Lock, User, TrendingUp, Share2, Target, Trophy, Flame, CheckCircle } from 'lucide-react';
-import { Card, Badge, Button, Modal } from '../components/ui';
-import { IntegrityShieldBadge } from '../components/journey';
-import { IntegrityBadgeCard, ShareableBadgeImage } from '../components/badges';
-import { useApp } from '../context/AppContext';
+import { Card, Badge, Button, Modal } from '../../ui';
+import { IntegrityShieldBadge } from '../../journey';
+import { IntegrityBadgeCard, ShareableBadgeImage } from '../../badges';
+import { useApp } from '../../../context/AppContext';
 
 export default function ProfilePage() {
   const navigate = useNavigate();

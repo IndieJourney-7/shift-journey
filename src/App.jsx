@@ -2,28 +2,34 @@ import React, { useEffect } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { AppProvider, useApp } from './context/AppContext';
 import { AppLayout } from './components/layout';
+
+// Public pages (from pages folder)
 import {
   LandingPage,
   LoginPage,
   AuthCallbackPage,
+  ShareablePage,
+  PricingPage,
+  AdminPage,
+  PublicProfilePage,
+} from './pages';
+
+// User Dashboard pages (from components/dashboard folder)
+import {
+  DashboardPage,
   GoalCreationPage,
   MilestonesPage,
   LockPromisePage,
-  DashboardPage,
   HistoryPage,
+  CalendarPage,
+  AnalyticsPage,
   ProfilePage,
   SettingsPage,
   HelpPage,
-  ShareablePage,
   GoalAccomplishedPage,
-  PricingPage,
-  AdminPage,
-  MilestoneSystemPage,
-  PublicProfilePage,
-  CalendarPage,
   WaitlistPage,
-  AnalyticsPage,
-} from './pages';
+  MilestoneSystemPage,
+} from './components/dashboard';
 
 // Loading screen component
 function LoadingScreen() {

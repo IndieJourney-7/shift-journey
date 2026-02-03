@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Mail, MessageSquare, CheckCircle, Trophy, ArrowRight, Sparkles } from 'lucide-react';
-import { Button, Card, Input, Textarea } from '../components/ui';
-import { useApp } from '../context/AppContext';
-import { waitlistService } from '../services/database';
+import { Button, Card, Input, Textarea } from '../../ui';
+import { useApp } from '../../../context/AppContext';
+import { waitlistService } from '../../../services/database';
 
 /**
  * Waitlist Page - Shown after first goal completion

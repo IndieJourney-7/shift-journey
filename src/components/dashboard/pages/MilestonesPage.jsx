@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Plus, Trash2, GripVertical, Lock, ChevronRight } from 'lucide-react';
-import { Button, Card, Input } from '../components/ui';
-import { JourneyPath } from '../components/journey';
-import { useApp } from '../context/AppContext';
+import { Button, Card, Input } from '../../ui';
+import { JourneyPath } from '../../journey';
+import { useApp } from '../../../context/AppContext';
 
 export default function MilestonesPage() {
   const navigate = useNavigate();

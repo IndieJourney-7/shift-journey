@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { User, Bell, Moon, Shield, ChevronRight, AlertTriangle } from 'lucide-react';
-import { Card, Button, Input, Modal } from '../components/ui';
-import { useApp } from '../context/AppContext';
+import { Card, Button, Input, Modal } from '../../ui';
+import { useApp } from '../../../context/AppContext';
 
 export default function SettingsPage() {
   const { user, setUser, currentGoal, hasActivePromise, resetAllData, resetToDemo } = useApp();

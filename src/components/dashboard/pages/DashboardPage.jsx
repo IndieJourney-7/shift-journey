@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Lock, Check, AlertTriangle, ChevronRight, Target, Share2, Copy, CheckCircle, Trophy, Upload, Camera, Shield, TrendingUp, TrendingDown, Quote, RefreshCw } from 'lucide-react';
-import { Button, Card, Badge, Modal, Textarea } from '../components/ui';
-import { JourneyPath, MilestoneCard, CountdownTimer, IntegrityBadgeInline } from '../components/journey';
-import { useApp } from '../context/AppContext';
-import { getIntegrityTier, getNextTier, getPromisesToNextTier, getTierProgress } from '../lib/badgeDefinitions';
-import { quotesService } from '../services/adminContentService';
+import { Button, Card, Badge, Modal, Textarea } from '../../ui';
+import { JourneyPath, MilestoneCard, CountdownTimer, IntegrityBadgeInline } from '../../journey';
+import { useApp } from '../../../context/AppContext';
+import { getIntegrityTier, getNextTier, getPromisesToNextTier, getTierProgress } from '../../../lib/badgeDefinitions';
+import { quotesService } from '../../../services/adminContentService';
 
 export default function DashboardPage() {
   const navigate = useNavigate();

@@ -22,9 +22,9 @@ import {
   Minus,
   Info,
 } from 'lucide-react';
-import { Card, Button } from '../components/ui';
-import { useApp } from '../context/AppContext';
-import { getIntegrityTier, INTEGRITY_TIERS } from '../lib/badgeDefinitions';
+import { Card, Button } from '../../ui';
+import { useApp } from '../../../context/AppContext';
+import { getIntegrityTier, INTEGRITY_TIERS } from '../../../lib/badgeDefinitions';
 
 // =====================================================
 // UTILITY FUNCTIONS

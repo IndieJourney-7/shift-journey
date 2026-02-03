@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { Lock, AlertTriangle, Calendar, Clock } from 'lucide-react';
-import { Button, Card, Textarea } from '../components/ui';
-import { LockAnimation, IntegrityBadgeInline } from '../components/journey';
-import { useApp } from '../context/AppContext';
+import { Button, Card, Textarea } from '../../ui';
+import { LockAnimation, IntegrityBadgeInline } from '../../journey';
+import { useApp } from '../../../context/AppContext';
 
 export default function LockPromisePage() {
   const navigate = useNavigate();

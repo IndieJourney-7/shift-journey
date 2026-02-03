@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { Check, AlertTriangle, Lock, Filter, Trophy, Target, ChevronDown, ChevronUp } from 'lucide-react';
-import { Card, Badge, Button } from '../components/ui';
-import { useApp } from '../context/AppContext';
+import { Card, Badge, Button } from '../../ui';
+import { useApp } from '../../../context/AppContext';
 
 export default function HistoryPage() {
   const [searchParams] = useSearchParams();

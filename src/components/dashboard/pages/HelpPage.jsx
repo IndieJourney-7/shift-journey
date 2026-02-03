@@ -1,6 +1,6 @@
 import React from 'react';
 import { HelpCircle, Lock, Target, AlertTriangle, Calendar, User, ChevronRight } from 'lucide-react';
-import { Card } from '../components/ui';
+import { Card } from '../../ui';
 
 export default function HelpPage() {
   const faqs = [

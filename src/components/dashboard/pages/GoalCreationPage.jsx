@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Target, Calendar, ChevronRight, AlertTriangle, Trophy, Lock } from 'lucide-react';
-import { Button, Card, Input, Textarea } from '../components/ui';
-import { useApp } from '../context/AppContext';
+import { Button, Card, Input, Textarea } from '../../ui';
+import { useApp } from '../../../context/AppContext';
 
 export default function GoalCreationPage() {
   const navigate = useNavigate();
