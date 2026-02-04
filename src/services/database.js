@@ -1587,23 +1587,24 @@ export const adminAnalyticsService = {
 
 export const userMotivationService = {
   /**
-   * Get user's motivation quote
+   * Get user's motivation quote using RPC function
    */
   async getByUserId(userId) {
     if (!isSupabaseConfigured()) return null;
 
     const { data, error } = await supabase
-      .from('user_motivation')
-      .select('*')
-      .eq('user_id', userId)
-      .single();
+      .rpc('get_user_motivation', { p_user_id: userId });
 
-    if (error && error.code !== 'PGRST116') throw error;
+    // If no data found, return null (not an error)
+    if (error && error.code !== 'PGRST116') {
+      console.error('Error fetching motivation:', error);
+      throw error;
+    }
     return data;
   },
 
   /**
-   * Create or update user's motivation
+   * Create or update user's motivation using RPC function
    */
   async upsert(userId, motivationData) {
     if (!isSupabaseConfigured()) {
@@ -1612,34 +1613,30 @@ export const userMotivationService = {
 
     console.log('Saving motivation for user:', userId);
 
-    const payload = {
-      user_id: userId,
-      display_type: motivationData.displayType || 'quote',
-      heading: motivationData.heading || 'My Why',
-      quote_text: motivationData.quoteText || null,
-      bg_color: motivationData.bgColor || '#1a1a2e',
-      text_color: motivationData.textColor || '#fcd34d',
-      font_style: motivationData.fontStyle || 'italic',
-      image_url: motivationData.imageUrl || null,
-      image_caption: motivationData.imageCaption || null,
-    };
-
     const { data, error } = await supabase
-      .from('user_motivation')
-      .upsert(payload, {
-        onConflict: 'user_id',
-      })
-      .select()
-      .single();
+      .rpc('upsert_user_motivation', {
+        p_user_id: userId,
+        p_display_type: motivationData.displayType || 'quote',
+        p_heading: motivationData.heading || 'My Why',
+        p_quote_text: motivationData.quoteText || null,
+        p_bg_color: motivationData.bgColor || '#1a1a2e',
+        p_text_color: motivationData.textColor || '#fcd34d',
+        p_font_style: motivationData.fontStyle || 'italic',
+        p_image_url: motivationData.imageUrl || null,
+        p_image_caption: motivationData.imageCaption || null,
+      });
 
     if (error) {
       console.error('Supabase error saving motivation:', error);
       // Provide user-friendly error messages
-      if (error.code === '42P01') {
-        throw new Error('Database table not found. Please run the migration first.');
+      if (error.code === '42883') {
+        throw new Error('Database function not found. Please run the migration SQL in Supabase.');
       }
       if (error.code === '42501' || error.message?.includes('row-level security')) {
         throw new Error('Permission denied. Please refresh the page and try again.');
+      }
+      if (error.message?.includes('Unauthorized')) {
+        throw new Error('You can only modify your own motivation.');
       }
       throw new Error(error.message || 'Failed to save motivation');
     }
@@ -1649,17 +1646,28 @@ export const userMotivationService = {
   },
 
   /**
-   * Delete user's motivation
+   * Delete user's motivation using RPC function
    */
   async delete(userId) {
     if (!isSupabaseConfigured()) return null;
 
-    const { error } = await supabase
-      .from('user_motivation')
-      .delete()
-      .eq('user_id', userId);
+    console.log('Deleting motivation for user:', userId);
 
-    if (error) throw error;
+    const { data, error } = await supabase
+      .rpc('delete_user_motivation', { p_user_id: userId });
+
+    if (error) {
+      console.error('Supabase error deleting motivation:', error);
+      if (error.code === '42883') {
+        throw new Error('Database function not found. Please run the migration SQL in Supabase.');
+      }
+      if (error.message?.includes('Unauthorized')) {
+        throw new Error('You can only delete your own motivation.');
+      }
+      throw error;
+    }
+    
+    console.log('Motivation deleted successfully');
     return true;
   },
 };
