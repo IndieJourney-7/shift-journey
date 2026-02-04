@@ -7,6 +7,7 @@ import {
   calendarService,
   integrityService as dbIntegrityService,
   integrityHistoryService,
+  userMotivationService,
 } from '../services/database';
 import { isSupabaseConfigured } from '../lib/supabase';
 import {
@@ -39,6 +40,9 @@ export function AppProvider({ children }) {
   // Calendar/Journal state
   const [calendarData, setCalendarData] = useState({});
 
+  // User motivation (personal "why" reminder) state
+  const [userMotivation, setUserMotivation] = useState(null);
+
   // Tier change notification state
   // { direction: 'up'|'down', newTier, oldTier, scoreChange }
   const [tierChangeNotification, setTierChangeNotification] = useState(null);
@@ -68,11 +72,30 @@ export function AppProvider({ children }) {
     });
 
     // Load all data in parallel for faster loading
-    const [activeGoal, completedGoals, calData] = await Promise.all([
+    const [activeGoal, completedGoals, calData, motivationData] = await Promise.all([
       goalService.getActive(dbUser.id),
       goalService.getCompleted(dbUser.id),
       calendarService.getByUserId(dbUser.id).catch(() => []),
+      userMotivationService.getByUserId(dbUser.id).catch(() => null),
     ]);
+
+    // Process user motivation (personal "why" reminder)
+    if (motivationData) {
+      setUserMotivation({
+        id: motivationData.id,
+        heading: motivationData.heading,
+        quoteText: motivationData.quote_text,
+        bgColor: motivationData.bg_color,
+        textColor: motivationData.text_color,
+        fontStyle: motivationData.font_style,
+        imageUrl: motivationData.image_url,
+        imageType: motivationData.image_type,
+        createdAt: motivationData.created_at,
+        updatedAt: motivationData.updated_at,
+      });
+    } else {
+      setUserMotivation(null);
+    }
 
     // Process active goal
     if (activeGoal) {
@@ -719,6 +742,51 @@ export function AppProvider({ children }) {
     return calendarData[dateKey]?.journal || '';
   };
 
+  // =====================================================
+  // USER MOTIVATION OPERATIONS (Personal "Why" Reminder)
+  // =====================================================
+
+  // Save or update user motivation
+  const saveUserMotivation = async (motivationData) => {
+    if (!user) throw new Error('User not initialized');
+
+    try {
+      const dbMotivation = await userMotivationService.upsert(user.id, motivationData);
+
+      const transformedMotivation = {
+        id: dbMotivation.id,
+        heading: dbMotivation.heading,
+        quoteText: dbMotivation.quote_text,
+        bgColor: dbMotivation.bg_color,
+        textColor: dbMotivation.text_color,
+        fontStyle: dbMotivation.font_style,
+        imageUrl: dbMotivation.image_url,
+        imageType: dbMotivation.image_type,
+        createdAt: dbMotivation.created_at,
+        updatedAt: dbMotivation.updated_at,
+      };
+
+      setUserMotivation(transformedMotivation);
+      return transformedMotivation;
+    } catch (err) {
+      console.error('Failed to save user motivation:', err);
+      throw new Error('Failed to save your motivation. Please try again.');
+    }
+  };
+
+  // Delete user motivation
+  const deleteUserMotivation = async () => {
+    if (!user) throw new Error('User not initialized');
+
+    try {
+      await userMotivationService.delete(user.id);
+      setUserMotivation(null);
+    } catch (err) {
+      console.error('Failed to delete user motivation:', err);
+      throw new Error('Failed to delete your motivation. Please try again.');
+    }
+  };
+
   // Refresh data from database - optimized with parallel queries
   // Does NOT set isLoading to avoid showing full loading screen during refresh
   const refreshData = async () => {
@@ -837,6 +905,11 @@ export function AppProvider({ children }) {
     calendarData,
     saveCalendarDay,
     getJournalEntry,
+
+    // User Motivation (Personal "Why" Reminder)
+    userMotivation,
+    saveUserMotivation,
+    deleteUserMotivation,
 
     // Tier change notification
     tierChangeNotification,

@@ -1579,3 +1579,68 @@ export const adminAnalyticsService = {
     };
   },
 };
+
+// =====================================================
+// USER MOTIVATION SERVICE
+// Stores personal "why" reminder with styling
+// =====================================================
+
+export const userMotivationService = {
+  /**
+   * Get user's motivation quote
+   */
+  async getByUserId(userId) {
+    if (!isSupabaseConfigured()) return null;
+
+    const { data, error } = await supabase
+      .from('user_motivation')
+      .select('*')
+      .eq('user_id', userId)
+      .single();
+
+    if (error && error.code !== 'PGRST116') throw error;
+    return data;
+  },
+
+  /**
+   * Create or update user's motivation
+   */
+  async upsert(userId, motivationData) {
+    if (!isSupabaseConfigured()) return null;
+
+    const { data, error } = await supabase
+      .from('user_motivation')
+      .upsert({
+        user_id: userId,
+        heading: motivationData.heading || 'My Why',
+        quote_text: motivationData.quoteText,
+        bg_color: motivationData.bgColor || '#1a1a2e',
+        text_color: motivationData.textColor || '#fcd34d',
+        font_style: motivationData.fontStyle || 'italic',
+        image_url: motivationData.imageUrl || null,
+        image_type: motivationData.imageType || null,
+      }, {
+        onConflict: 'user_id',
+      })
+      .select()
+      .single();
+
+    if (error) throw error;
+    return data;
+  },
+
+  /**
+   * Delete user's motivation
+   */
+  async delete(userId) {
+    if (!isSupabaseConfigured()) return null;
+
+    const { error } = await supabase
+      .from('user_motivation')
+      .delete()
+      .eq('user_id', userId);
+
+    if (error) throw error;
+    return true;
+  },
+};

@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Lock, Check, AlertTriangle, ChevronRight, Target, Share2, Copy, CheckCircle, Trophy, Upload, Camera, Shield, TrendingUp, TrendingDown, Quote, RefreshCw } from 'lucide-react';
 import { Button, Card, Badge, Modal, Textarea } from '../../ui';
-import { JourneyPath, MilestoneCard, CountdownTimer, IntegrityBadgeInline } from '../../journey';
+import { JourneyPath, MilestoneCard, CountdownTimer, IntegrityBadgeInline, PersonalMotivation, EditMotivationModal } from '../../journey';
 import { useApp } from '../../../context/AppContext';
 import { getIntegrityTier, getNextTier, getPromisesToNextTier, getTierProgress } from '../../../lib/badgeDefinitions';
 import { quotesService } from '../../../services/adminContentService';
@@ -23,6 +23,9 @@ export default function DashboardPage() {
     isLoading,
     tierChangeNotification,
     dismissTierChange,
+    userMotivation,
+    saveUserMotivation,
+    deleteUserMotivation,
   } = useApp();
 
   // Redirect to goal creation if user hasn't set up a goal yet
@@ -35,6 +38,7 @@ export default function DashboardPage() {
   const [showCompleteModal, setShowCompleteModal] = useState(false);
   const [showBreakModal, setShowBreakModal] = useState(false);
   const [showShareModal, setShowShareModal] = useState(false);
+  const [showMotivationModal, setShowMotivationModal] = useState(false);
   const [linkCopied, setLinkCopied] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   const [actionError, setActionError] = useState(null);
@@ -237,6 +241,13 @@ export default function DashboardPage() {
           </Card>
         </div>
       )}
+
+      {/* Personal Motivation - User's "Why" Reminder */}
+      <PersonalMotivation
+        motivation={userMotivation}
+        onEdit={() => setShowMotivationModal(true)}
+        showEditButton={true}
+      />
 
       {/* Journey Path Visualization */}
       <Card variant="default" padding="md" className="sm:p-6 lg:p-8">
@@ -914,6 +925,15 @@ export default function DashboardPage() {
           </div>
         )}
       </Modal>
+
+      {/* Edit Personal Motivation Modal */}
+      <EditMotivationModal
+        isOpen={showMotivationModal}
+        onClose={() => setShowMotivationModal(false)}
+        motivation={userMotivation}
+        onSave={saveUserMotivation}
+        onDelete={deleteUserMotivation}
+      />
     </div>
   );
 }
