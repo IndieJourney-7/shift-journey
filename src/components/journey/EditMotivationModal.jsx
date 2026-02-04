@@ -181,27 +181,42 @@ export default function EditMotivationModal({
     if (!validateForm()) return;
 
     setIsSubmitting(true);
+    setErrors({});
+    
     try {
-      await onSave({
+      // Add timeout to prevent infinite loading
+      const timeoutPromise = new Promise((_, reject) => 
+        setTimeout(() => reject(new Error('Save timed out. Please check your connection and try again.')), 15000)
+      );
+      
+      const savePromise = onSave({
         displayType,
         ...formData,
       });
+      
+      await Promise.race([savePromise, timeoutPromise]);
       onClose();
     } catch (err) {
-      setErrors({ submit: err.message });
-    } finally {
+      console.error('Failed to save motivation:', err);
+      setErrors({ submit: err.message || 'Failed to save. Please try again.' });
       setIsSubmitting(false);
     }
   };
 
   const handleDelete = async () => {
     setIsSubmitting(true);
+    setErrors({});
+    
     try {
-      await onDelete();
+      const timeoutPromise = new Promise((_, reject) => 
+        setTimeout(() => reject(new Error('Delete timed out. Please try again.')), 15000)
+      );
+      
+      await Promise.race([onDelete(), timeoutPromise]);
       onClose();
     } catch (err) {
-      setErrors({ submit: err.message });
-    } finally {
+      console.error('Failed to delete motivation:', err);
+      setErrors({ submit: err.message || 'Failed to delete. Please try again.' });
       setIsSubmitting(false);
     }
   };

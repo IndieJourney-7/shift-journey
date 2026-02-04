@@ -1606,31 +1606,42 @@ export const userMotivationService = {
    * Create or update user's motivation
    */
   async upsert(userId, motivationData) {
-    if (!isSupabaseConfigured()) return null;
+    if (!isSupabaseConfigured()) {
+      throw new Error('Database not configured');
+    }
 
-    console.log('Saving motivation for user:', userId, motivationData);
+    console.log('Saving motivation for user:', userId);
+
+    const payload = {
+      user_id: userId,
+      display_type: motivationData.displayType || 'quote',
+      heading: motivationData.heading || 'My Why',
+      quote_text: motivationData.quoteText || null,
+      bg_color: motivationData.bgColor || '#1a1a2e',
+      text_color: motivationData.textColor || '#fcd34d',
+      font_style: motivationData.fontStyle || 'italic',
+      image_url: motivationData.imageUrl || null,
+      image_caption: motivationData.imageCaption || null,
+    };
 
     const { data, error } = await supabase
       .from('user_motivation')
-      .upsert({
-        user_id: userId,
-        display_type: motivationData.displayType || 'quote',
-        heading: motivationData.heading || 'My Why',
-        quote_text: motivationData.quoteText || null,
-        bg_color: motivationData.bgColor || '#1a1a2e',
-        text_color: motivationData.textColor || '#fcd34d',
-        font_style: motivationData.fontStyle || 'italic',
-        image_url: motivationData.imageUrl || null,
-        image_caption: motivationData.imageCaption || null,
-      }, {
+      .upsert(payload, {
         onConflict: 'user_id',
       })
       .select()
       .single();
 
     if (error) {
-      console.error('Error saving motivation:', error);
-      throw error;
+      console.error('Supabase error saving motivation:', error);
+      // Provide user-friendly error messages
+      if (error.code === '42P01') {
+        throw new Error('Database table not found. Please run the migration first.');
+      }
+      if (error.code === '42501' || error.message?.includes('row-level security')) {
+        throw new Error('Permission denied. Please refresh the page and try again.');
+      }
+      throw new Error(error.message || 'Failed to save motivation');
     }
     
     console.log('Motivation saved successfully:', data);
