@@ -37,18 +37,33 @@ CREATE INDEX IF NOT EXISTS idx_user_motivation_user_id ON user_motivation(user_i
 -- Enable RLS
 ALTER TABLE user_motivation ENABLE ROW LEVEL SECURITY;
 
--- RLS Policies
+-- Drop existing policies if they exist (for re-running migration)
+DROP POLICY IF EXISTS "Users can view own motivation" ON user_motivation;
+DROP POLICY IF EXISTS "Users can insert own motivation" ON user_motivation;
+DROP POLICY IF EXISTS "Users can update own motivation" ON user_motivation;
+DROP POLICY IF EXISTS "Users can delete own motivation" ON user_motivation;
+
+-- RLS Policies (matching the pattern used by other tables in this app)
+-- Uses auth.uid() → users.auth_id → users.id → user_motivation.user_id
 CREATE POLICY "Users can view own motivation" ON user_motivation
-  FOR SELECT USING (user_id IN (SELECT id FROM users WHERE auth_id = auth.uid()));
+  FOR SELECT USING (
+    user_id IN (SELECT id FROM users WHERE auth_id = auth.uid())
+  );
 
 CREATE POLICY "Users can insert own motivation" ON user_motivation
-  FOR INSERT WITH CHECK (user_id IN (SELECT id FROM users WHERE auth_id = auth.uid()));
+  FOR INSERT WITH CHECK (
+    user_id IN (SELECT id FROM users WHERE auth_id = auth.uid())
+  );
 
 CREATE POLICY "Users can update own motivation" ON user_motivation
-  FOR UPDATE USING (user_id IN (SELECT id FROM users WHERE auth_id = auth.uid()));
+  FOR UPDATE USING (
+    user_id IN (SELECT id FROM users WHERE auth_id = auth.uid())
+  );
 
 CREATE POLICY "Users can delete own motivation" ON user_motivation
-  FOR DELETE USING (user_id IN (SELECT id FROM users WHERE auth_id = auth.uid()));
+  FOR DELETE USING (
+    user_id IN (SELECT id FROM users WHERE auth_id = auth.uid())
+  );
 
 -- Function to auto-update updated_at timestamp
 CREATE OR REPLACE FUNCTION update_user_motivation_updated_at()

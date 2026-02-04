@@ -1608,6 +1608,8 @@ export const userMotivationService = {
   async upsert(userId, motivationData) {
     if (!isSupabaseConfigured()) return null;
 
+    console.log('Saving motivation for user:', userId, motivationData);
+
     const { data, error } = await supabase
       .from('user_motivation')
       .upsert({
@@ -1626,7 +1628,12 @@ export const userMotivationService = {
       .select()
       .single();
 
-    if (error) throw error;
+    if (error) {
+      console.error('Error saving motivation:', error);
+      throw error;
+    }
+    
+    console.log('Motivation saved successfully:', data);
     return data;
   },
 
