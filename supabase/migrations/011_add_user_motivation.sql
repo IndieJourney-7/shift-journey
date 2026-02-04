@@ -3,24 +3,25 @@
 
 -- =====================================================
 -- USER MOTIVATION TABLE
--- Stores personal motivation quote with styling options
+-- Stores personal motivation - either a quote OR vision board image
 -- =====================================================
 CREATE TABLE IF NOT EXISTS user_motivation (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
   
-  -- Content
-  heading TEXT NOT NULL DEFAULT 'My Why',
-  quote_text TEXT NOT NULL,
+  -- Display type: 'quote' or 'image'
+  display_type TEXT NOT NULL DEFAULT 'quote' CHECK (display_type IN ('quote', 'image')),
   
-  -- Styling options
+  -- Quote content (used when display_type = 'quote')
+  heading TEXT DEFAULT 'My Why',
+  quote_text TEXT,
   bg_color TEXT DEFAULT '#1a1a2e', -- Dark obsidian default
   text_color TEXT DEFAULT '#fcd34d', -- Gold default
   font_style TEXT DEFAULT 'italic' CHECK (font_style IN ('normal', 'italic', 'bold', 'bold-italic')),
   
-  -- Optional inspiration image (stored as base64 or URL)
+  -- Vision board image (used when display_type = 'image')
   image_url TEXT,
-  image_type TEXT CHECK (image_type IN ('base64', 'url', NULL)),
+  image_caption TEXT, -- Optional caption for the image
   
   -- Timestamps
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),

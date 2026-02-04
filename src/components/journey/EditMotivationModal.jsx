@@ -7,6 +7,8 @@ import {
   X,
   Check,
   Trash2,
+  Quote,
+  Image,
 } from 'lucide-react';
 import { Modal, Button, Input, Textarea } from '../ui';
 
@@ -35,10 +37,10 @@ const textColorPalettes = [
 
 // Font style options
 const fontStyles = [
-  { value: 'normal', label: 'Normal', preview: 'Aa' },
-  { value: 'italic', label: 'Italic', preview: 'Aa', className: 'italic' },
-  { value: 'bold', label: 'Bold', preview: 'Aa', className: 'font-bold' },
-  { value: 'bold-italic', label: 'Bold Italic', preview: 'Aa', className: 'font-bold italic' },
+  { value: 'normal', label: 'Normal', className: '' },
+  { value: 'italic', label: 'Italic', className: 'italic' },
+  { value: 'bold', label: 'Bold', className: 'font-bold' },
+  { value: 'bold-italic', label: 'Bold Italic', className: 'font-bold italic' },
 ];
 
 // Font style class mapping for preview
@@ -59,14 +61,17 @@ export default function EditMotivationModal({
   const fileInputRef = useRef(null);
 
   // Form state
+  const [displayType, setDisplayType] = useState('quote'); // 'quote' or 'image'
   const [formData, setFormData] = useState({
+    // Quote fields
     heading: 'My Why',
     quoteText: '',
     bgColor: '#1a1a2e',
     textColor: '#fcd34d',
     fontStyle: 'italic',
+    // Image fields
     imageUrl: null,
-    imageType: null,
+    imageCaption: '',
   });
 
   const [errors, setErrors] = useState({});
@@ -76,6 +81,7 @@ export default function EditMotivationModal({
   // Initialize form with existing motivation data
   useEffect(() => {
     if (motivation) {
+      setDisplayType(motivation.displayType || 'quote');
       setFormData({
         heading: motivation.heading || 'My Why',
         quoteText: motivation.quoteText || '',
@@ -83,10 +89,11 @@ export default function EditMotivationModal({
         textColor: motivation.textColor || '#fcd34d',
         fontStyle: motivation.fontStyle || 'italic',
         imageUrl: motivation.imageUrl || null,
-        imageType: motivation.imageType || null,
+        imageCaption: motivation.imageCaption || '',
       });
     } else {
       // Reset to defaults for new motivation
+      setDisplayType('quote');
       setFormData({
         heading: 'My Why',
         quoteText: '',
@@ -94,7 +101,7 @@ export default function EditMotivationModal({
         textColor: '#fcd34d',
         fontStyle: 'italic',
         imageUrl: null,
-        imageType: null,
+        imageCaption: '',
       });
     }
     setErrors({});
@@ -130,7 +137,6 @@ export default function EditMotivationModal({
       setFormData(prev => ({
         ...prev,
         imageUrl: reader.result,
-        imageType: 'base64',
       }));
       setErrors(prev => ({ ...prev, image: null }));
     };
@@ -141,7 +147,6 @@ export default function EditMotivationModal({
     setFormData(prev => ({
       ...prev,
       imageUrl: null,
-      imageType: null,
     }));
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
@@ -151,14 +156,20 @@ export default function EditMotivationModal({
   const validateForm = () => {
     const newErrors = {};
 
-    if (!formData.quoteText.trim()) {
-      newErrors.quoteText = 'Please enter your motivation quote';
-    } else if (formData.quoteText.trim().length < 10) {
-      newErrors.quoteText = 'Your motivation should be at least 10 characters';
-    }
-
-    if (!formData.heading.trim()) {
-      newErrors.heading = 'Please enter a heading';
+    if (displayType === 'quote') {
+      if (!formData.quoteText.trim()) {
+        newErrors.quoteText = 'Please enter your motivation quote';
+      } else if (formData.quoteText.trim().length < 10) {
+        newErrors.quoteText = 'Your motivation should be at least 10 characters';
+      }
+      if (!formData.heading.trim()) {
+        newErrors.heading = 'Please enter a heading';
+      }
+    } else {
+      // Image type
+      if (!formData.imageUrl) {
+        newErrors.image = 'Please upload a vision board image';
+      }
     }
 
     setErrors(newErrors);
@@ -171,7 +182,10 @@ export default function EditMotivationModal({
 
     setIsSubmitting(true);
     try {
-      await onSave(formData);
+      await onSave({
+        displayType,
+        ...formData,
+      });
       onClose();
     } catch (err) {
       setErrors({ submit: err.message });
@@ -206,221 +220,304 @@ export default function EditMotivationModal({
           <Sparkles className="w-5 h-5 text-gold-400 flex-shrink-0" />
           <p className="text-obsidian-400 text-sm">
             This is your personal "why" - a reminder of what motivated you to start this journey.
-            It will be displayed on your dashboard to keep you inspired.
           </p>
         </div>
 
-        {/* Live Preview */}
-        <div className="mb-6">
-          <label className="block text-obsidian-300 text-sm font-medium mb-2">Preview</label>
-          <div
-            className="p-4 rounded-lg border border-obsidian-600/50"
-            style={{ backgroundColor: formData.bgColor }}
+        {/* Type Selection Tabs */}
+        <div className="flex gap-2 mb-6">
+          <button
+            type="button"
+            onClick={() => setDisplayType('quote')}
+            className={`
+              flex-1 flex items-center justify-center gap-2 p-4 rounded-lg border-2 transition-all duration-200
+              ${displayType === 'quote'
+                ? 'border-gold-500 bg-gold-500/10 text-gold-400'
+                : 'border-obsidian-600 hover:border-obsidian-500 text-obsidian-400'
+              }
+            `}
           >
-            <div className="flex items-center gap-2 mb-2">
-              <Sparkles className="w-4 h-4" style={{ color: formData.textColor }} />
-              <span
-                className="text-sm font-semibold uppercase tracking-wide"
-                style={{ color: formData.textColor }}
+            <Quote className="w-5 h-5" />
+            <div className="text-left">
+              <p className="font-medium text-sm">Quote</p>
+              <p className="text-xs opacity-70">Centered motivational text</p>
+            </div>
+          </button>
+          <button
+            type="button"
+            onClick={() => setDisplayType('image')}
+            className={`
+              flex-1 flex items-center justify-center gap-2 p-4 rounded-lg border-2 transition-all duration-200
+              ${displayType === 'image'
+                ? 'border-gold-500 bg-gold-500/10 text-gold-400'
+                : 'border-obsidian-600 hover:border-obsidian-500 text-obsidian-400'
+              }
+            `}
+          >
+            <Image className="w-5 h-5" />
+            <div className="text-left">
+              <p className="font-medium text-sm">Vision Board</p>
+              <p className="text-xs opacity-70">Inspiring image</p>
+            </div>
+          </button>
+        </div>
+
+        {/* QUOTE TYPE FORM */}
+        {displayType === 'quote' && (
+          <>
+            {/* Live Preview */}
+            <div className="mb-6">
+              <label className="block text-obsidian-300 text-sm font-medium mb-2">Preview</label>
+              <div
+                className="p-6 rounded-lg border border-obsidian-600/50 text-center"
+                style={{ backgroundColor: formData.bgColor }}
               >
-                {formData.heading || 'My Why'}
-              </span>
-            </div>
-            <div className="flex gap-3">
-              {formData.imageUrl && (
-                <div className="w-16 h-16 rounded-lg overflow-hidden flex-shrink-0">
-                  <img
-                    src={formData.imageUrl}
-                    alt="Preview"
-                    className="w-full h-full object-cover"
-                  />
+                <div className="flex items-center justify-center gap-2 mb-3">
+                  <Sparkles className="w-4 h-4" style={{ color: formData.textColor }} />
+                  <span
+                    className="text-xs font-semibold uppercase tracking-widest"
+                    style={{ color: formData.textColor }}
+                  >
+                    {formData.heading || 'My Why'}
+                  </span>
+                  <Sparkles className="w-4 h-4" style={{ color: formData.textColor }} />
                 </div>
-              )}
-              <p
-                className={`text-sm leading-relaxed ${fontStyleClasses[formData.fontStyle]}`}
-                style={{ color: formData.textColor }}
-              >
-                "{formData.quoteText || 'Your motivation quote will appear here...'}"
-              </p>
-            </div>
-          </div>
-        </div>
-
-        {/* Heading Input */}
-        <div className="mb-4">
-          <Input
-            label="Heading"
-            placeholder="e.g., My Why, Remember This, Never Forget"
-            value={formData.heading}
-            onChange={(e) => handleChange('heading', e.target.value)}
-            error={errors.heading}
-          />
-        </div>
-
-        {/* Quote Text */}
-        <div className="mb-4">
-          <Textarea
-            label="Your Motivation Quote"
-            placeholder="Write what inspired you to start this journey... Why is this goal important to you?"
-            value={formData.quoteText}
-            onChange={(e) => handleChange('quoteText', e.target.value)}
-            error={errors.quoteText}
-            rows={3}
-          />
-        </div>
-
-        {/* Styling Section */}
-        <div className="mb-4 p-4 bg-obsidian-900/30 rounded-lg border border-obsidian-700">
-          <h4 className="text-obsidian-200 text-sm font-medium mb-4 flex items-center gap-2">
-            <Palette className="w-4 h-4 text-gold-400" />
-            Style Options
-          </h4>
-
-          {/* Background Color */}
-          <div className="mb-4">
-            <label className="block text-obsidian-400 text-xs mb-2">Background Color</label>
-            <div className="flex flex-wrap gap-2">
-              {bgColorPalettes.map((palette) => (
-                <button
-                  key={palette.color}
-                  type="button"
-                  onClick={() => handleChange('bgColor', palette.color)}
-                  className={`
-                    w-8 h-8 rounded-lg border-2 transition-all duration-200
-                    ${formData.bgColor === palette.color
-                      ? 'border-gold-500 scale-110'
-                      : 'border-obsidian-600 hover:border-obsidian-400'
-                    }
-                  `}
-                  style={{ backgroundColor: palette.color }}
-                  title={palette.name}
-                />
-              ))}
-              {/* Custom color picker */}
-              <label className="relative">
-                <input
-                  type="color"
-                  value={formData.bgColor}
-                  onChange={(e) => handleChange('bgColor', e.target.value)}
-                  className="absolute inset-0 w-8 h-8 opacity-0 cursor-pointer"
-                />
-                <div className="w-8 h-8 rounded-lg border-2 border-obsidian-600 hover:border-obsidian-400 bg-gradient-to-br from-red-500 via-green-500 to-blue-500 flex items-center justify-center cursor-pointer">
-                  <span className="text-white text-xs font-bold">+</span>
-                </div>
-              </label>
-            </div>
-          </div>
-
-          {/* Text Color */}
-          <div className="mb-4">
-            <label className="block text-obsidian-400 text-xs mb-2">Text Color</label>
-            <div className="flex flex-wrap gap-2">
-              {textColorPalettes.map((palette) => (
-                <button
-                  key={palette.color}
-                  type="button"
-                  onClick={() => handleChange('textColor', palette.color)}
-                  className={`
-                    w-8 h-8 rounded-lg border-2 transition-all duration-200
-                    ${formData.textColor === palette.color
-                      ? 'border-gold-500 scale-110'
-                      : 'border-obsidian-600 hover:border-obsidian-400'
-                    }
-                  `}
-                  style={{ backgroundColor: palette.color }}
-                  title={palette.name}
-                />
-              ))}
-              {/* Custom color picker */}
-              <label className="relative">
-                <input
-                  type="color"
-                  value={formData.textColor}
-                  onChange={(e) => handleChange('textColor', e.target.value)}
-                  className="absolute inset-0 w-8 h-8 opacity-0 cursor-pointer"
-                />
-                <div className="w-8 h-8 rounded-lg border-2 border-obsidian-600 hover:border-obsidian-400 bg-gradient-to-br from-yellow-500 via-pink-500 to-cyan-500 flex items-center justify-center cursor-pointer">
-                  <span className="text-obsidian-900 text-xs font-bold">+</span>
-                </div>
-              </label>
-            </div>
-          </div>
-
-          {/* Font Style */}
-          <div>
-            <label className="block text-obsidian-400 text-xs mb-2 flex items-center gap-1">
-              <Type className="w-3 h-3" />
-              Font Style
-            </label>
-            <div className="flex flex-wrap gap-2">
-              {fontStyles.map((style) => (
-                <button
-                  key={style.value}
-                  type="button"
-                  onClick={() => handleChange('fontStyle', style.value)}
-                  className={`
-                    px-3 py-2 rounded-lg border-2 transition-all duration-200 text-sm
-                    ${formData.fontStyle === style.value
-                      ? 'border-gold-500 bg-gold-500/10 text-gold-400'
-                      : 'border-obsidian-600 hover:border-obsidian-400 text-obsidian-300'
-                    }
-                    ${style.className || ''}
-                  `}
+                <p
+                  className={`text-lg leading-relaxed ${fontStyleClasses[formData.fontStyle]}`}
+                  style={{ color: formData.textColor }}
                 >
-                  {style.label}
-                </button>
-              ))}
-            </div>
-          </div>
-        </div>
-
-        {/* Image Upload */}
-        <div className="mb-6">
-          <label className="block text-obsidian-300 text-sm font-medium mb-2 flex items-center gap-2">
-            <ImagePlus className="w-4 h-4 text-gold-400" />
-            Inspiration Image (Optional)
-          </label>
-          <p className="text-obsidian-500 text-xs mb-3">
-            Add an image that inspires you - a vision board image, a photo that motivates you, or anything meaningful.
-          </p>
-
-          {formData.imageUrl ? (
-            <div className="flex items-start gap-4">
-              <div className="relative">
-                <img
-                  src={formData.imageUrl}
-                  alt="Motivation"
-                  className="w-24 h-24 object-cover rounded-lg border border-obsidian-600"
-                />
-                <button
-                  type="button"
-                  onClick={removeImage}
-                  className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 hover:bg-red-600 text-white rounded-full flex items-center justify-center transition-colors"
-                >
-                  <X className="w-4 h-4" />
-                </button>
+                  "{formData.quoteText || 'Your motivation quote will appear here...'}"
+                </p>
               </div>
-              <p className="text-obsidian-500 text-xs">
-                Click the × to remove this image.
-              </p>
             </div>
-          ) : (
-            <label className="flex items-center justify-center gap-3 p-6 border-2 border-dashed border-obsidian-600 rounded-lg hover:border-gold-500/30 cursor-pointer transition-colors">
-              <ImagePlus className="w-6 h-6 text-obsidian-500" />
-              <span className="text-obsidian-400 text-sm">Click to upload an image</span>
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept="image/*"
-                onChange={handleImageUpload}
-                className="hidden"
+
+            {/* Heading Input */}
+            <div className="mb-4">
+              <Input
+                label="Heading"
+                placeholder="e.g., My Why, Remember This, Never Forget"
+                value={formData.heading}
+                onChange={(e) => handleChange('heading', e.target.value)}
+                error={errors.heading}
               />
-            </label>
-          )}
-          {errors.image && (
-            <p className="mt-2 text-red-400 text-sm">{errors.image}</p>
-          )}
-        </div>
+            </div>
+
+            {/* Quote Text */}
+            <div className="mb-4">
+              <Textarea
+                label="Your Motivation Quote"
+                placeholder="Write what inspired you to start this journey... Why is this goal important to you?"
+                value={formData.quoteText}
+                onChange={(e) => handleChange('quoteText', e.target.value)}
+                error={errors.quoteText}
+                rows={3}
+              />
+            </div>
+
+            {/* Styling Section */}
+            <div className="mb-6 p-4 bg-obsidian-900/30 rounded-lg border border-obsidian-700">
+              <h4 className="text-obsidian-200 text-sm font-medium mb-4 flex items-center gap-2">
+                <Palette className="w-4 h-4 text-gold-400" />
+                Style Options
+              </h4>
+
+              {/* Background Color */}
+              <div className="mb-4">
+                <label className="block text-obsidian-400 text-xs mb-2">Background Color</label>
+                <div className="flex flex-wrap gap-2">
+                  {bgColorPalettes.map((palette) => (
+                    <button
+                      key={palette.color}
+                      type="button"
+                      onClick={() => handleChange('bgColor', palette.color)}
+                      className={`
+                        w-8 h-8 rounded-lg border-2 transition-all duration-200
+                        ${formData.bgColor === palette.color
+                          ? 'border-gold-500 scale-110'
+                          : 'border-obsidian-600 hover:border-obsidian-400'
+                        }
+                      `}
+                      style={{ backgroundColor: palette.color }}
+                      title={palette.name}
+                    />
+                  ))}
+                  <label className="relative">
+                    <input
+                      type="color"
+                      value={formData.bgColor}
+                      onChange={(e) => handleChange('bgColor', e.target.value)}
+                      className="absolute inset-0 w-8 h-8 opacity-0 cursor-pointer"
+                    />
+                    <div className="w-8 h-8 rounded-lg border-2 border-obsidian-600 hover:border-obsidian-400 bg-gradient-to-br from-red-500 via-green-500 to-blue-500 flex items-center justify-center cursor-pointer">
+                      <span className="text-white text-xs font-bold">+</span>
+                    </div>
+                  </label>
+                </div>
+              </div>
+
+              {/* Text Color */}
+              <div className="mb-4">
+                <label className="block text-obsidian-400 text-xs mb-2">Text Color</label>
+                <div className="flex flex-wrap gap-2">
+                  {textColorPalettes.map((palette) => (
+                    <button
+                      key={palette.color}
+                      type="button"
+                      onClick={() => handleChange('textColor', palette.color)}
+                      className={`
+                        w-8 h-8 rounded-lg border-2 transition-all duration-200
+                        ${formData.textColor === palette.color
+                          ? 'border-gold-500 scale-110'
+                          : 'border-obsidian-600 hover:border-obsidian-400'
+                        }
+                      `}
+                      style={{ backgroundColor: palette.color }}
+                      title={palette.name}
+                    />
+                  ))}
+                  <label className="relative">
+                    <input
+                      type="color"
+                      value={formData.textColor}
+                      onChange={(e) => handleChange('textColor', e.target.value)}
+                      className="absolute inset-0 w-8 h-8 opacity-0 cursor-pointer"
+                    />
+                    <div className="w-8 h-8 rounded-lg border-2 border-obsidian-600 hover:border-obsidian-400 bg-gradient-to-br from-yellow-500 via-pink-500 to-cyan-500 flex items-center justify-center cursor-pointer">
+                      <span className="text-obsidian-900 text-xs font-bold">+</span>
+                    </div>
+                  </label>
+                </div>
+              </div>
+
+              {/* Font Style */}
+              <div>
+                <label className="text-obsidian-400 text-xs mb-2 flex items-center gap-1">
+                  <Type className="w-3 h-3" />
+                  Font Style
+                </label>
+                <div className="flex flex-wrap gap-2">
+                  {fontStyles.map((style) => (
+                    <button
+                      key={style.value}
+                      type="button"
+                      onClick={() => handleChange('fontStyle', style.value)}
+                      className={`
+                        px-3 py-2 rounded-lg border-2 transition-all duration-200 text-sm
+                        ${formData.fontStyle === style.value
+                          ? 'border-gold-500 bg-gold-500/10 text-gold-400'
+                          : 'border-obsidian-600 hover:border-obsidian-400 text-obsidian-300'
+                        }
+                        ${style.className}
+                      `}
+                    >
+                      {style.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </>
+        )}
+
+        {/* IMAGE TYPE FORM */}
+        {displayType === 'image' && (
+          <>
+            {/* Preview */}
+            {formData.imageUrl && (
+              <div className="mb-6">
+                <label className="block text-obsidian-300 text-sm font-medium mb-2">Preview</label>
+                <div className="relative rounded-lg overflow-hidden border border-obsidian-600/50">
+                  <div className="aspect-[16/9]">
+                    <img
+                      src={formData.imageUrl}
+                      alt="Vision Board Preview"
+                      className="w-full h-full object-cover"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-obsidian-900/80 via-transparent to-transparent" />
+                    <div className="absolute bottom-0 left-0 right-0 p-4">
+                      <div className="flex items-center gap-2 mb-1">
+                        <Image className="w-4 h-4 text-gold-400" />
+                        <span className="text-gold-400 text-xs font-semibold uppercase tracking-wide">
+                          My Vision Board
+                        </span>
+                      </div>
+                      {formData.imageCaption && (
+                        <p className="text-obsidian-200 text-sm">{formData.imageCaption}</p>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Image Upload */}
+            <div className="mb-4">
+              <label className="text-obsidian-300 text-sm font-medium mb-2 flex items-center gap-2">
+                <ImagePlus className="w-4 h-4 text-gold-400" />
+                Vision Board Image
+              </label>
+              <p className="text-obsidian-500 text-xs mb-3">
+                Upload an image that inspires you - a vision board, a photo that motivates you, or anything meaningful to your goal.
+              </p>
+
+              {formData.imageUrl ? (
+                <div className="flex items-center gap-4">
+                  <div className="relative">
+                    <img
+                      src={formData.imageUrl}
+                      alt="Vision Board"
+                      className="w-20 h-20 object-cover rounded-lg border border-obsidian-600"
+                    />
+                    <button
+                      type="button"
+                      onClick={removeImage}
+                      className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 hover:bg-red-600 text-white rounded-full flex items-center justify-center transition-colors"
+                    >
+                      <X className="w-4 h-4" />
+                    </button>
+                  </div>
+                  <div className="text-obsidian-400 text-sm">
+                    <p>Image uploaded</p>
+                    <button
+                      type="button"
+                      onClick={() => fileInputRef.current?.click()}
+                      className="text-gold-400 hover:text-gold-300 text-xs underline"
+                    >
+                      Change image
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <label className="flex flex-col items-center justify-center gap-3 p-8 border-2 border-dashed border-obsidian-600 rounded-lg hover:border-gold-500/30 cursor-pointer transition-colors">
+                  <ImagePlus className="w-10 h-10 text-obsidian-500" />
+                  <div className="text-center">
+                    <span className="text-obsidian-300 text-sm font-medium">Click to upload your vision board</span>
+                    <p className="text-obsidian-500 text-xs mt-1">PNG, JPG up to 5MB</p>
+                  </div>
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/*"
+                    onChange={handleImageUpload}
+                    className="hidden"
+                  />
+                </label>
+              )}
+              {errors.image && (
+                <p className="mt-2 text-red-400 text-sm">{errors.image}</p>
+              )}
+            </div>
+
+            {/* Image Caption */}
+            <div className="mb-6">
+              <Input
+                label="Caption (Optional)"
+                placeholder="A short description of your vision..."
+                value={formData.imageCaption}
+                onChange={(e) => handleChange('imageCaption', e.target.value)}
+              />
+            </div>
+          </>
+        )}
 
         {/* Error message */}
         {errors.submit && (
@@ -484,7 +581,7 @@ export default function EditMotivationModal({
             icon={Check}
             disabled={isSubmitting}
           >
-            {isSubmitting ? 'Saving...' : 'Save Motivation'}
+            {isSubmitting ? 'Saving...' : 'Save'}
           </Button>
         </div>
       </form>

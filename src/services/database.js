@@ -1612,13 +1612,14 @@ export const userMotivationService = {
       .from('user_motivation')
       .upsert({
         user_id: userId,
+        display_type: motivationData.displayType || 'quote',
         heading: motivationData.heading || 'My Why',
-        quote_text: motivationData.quoteText,
+        quote_text: motivationData.quoteText || null,
         bg_color: motivationData.bgColor || '#1a1a2e',
         text_color: motivationData.textColor || '#fcd34d',
         font_style: motivationData.fontStyle || 'italic',
         image_url: motivationData.imageUrl || null,
-        image_type: motivationData.imageType || null,
+        image_caption: motivationData.imageCaption || null,
       }, {
         onConflict: 'user_id',
       })

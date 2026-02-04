@@ -12,7 +12,7 @@ const fontStyleClasses = {
 
 /**
  * PersonalMotivation - Displays user's personal "why" reminder
- * Shows their custom heading, quote text with styling, and optional image
+ * Either a centered quote OR a vision board image
  */
 export default function PersonalMotivation({
   motivation,
@@ -36,7 +36,7 @@ export default function PersonalMotivation({
             </div>
             <h3 className="text-obsidian-200 font-medium mb-1">Add Your "Why"</h3>
             <p className="text-obsidian-500 text-sm max-w-xs">
-              Create a personal reminder of why you started this journey. It will help keep you motivated!
+              Add a personal quote or vision board image to remind yourself why you started this journey.
             </p>
           </div>
         </Card>
@@ -45,25 +45,79 @@ export default function PersonalMotivation({
   }
 
   const {
+    displayType,
     heading,
     quoteText,
     bgColor,
     textColor,
     fontStyle,
     imageUrl,
+    imageCaption,
   } = motivation;
 
+  // Vision Board Image Display
+  if (displayType === 'image' && imageUrl) {
+    return (
+      <div className={`relative group ${className}`}>
+        <Card variant="default" padding="none" className="relative overflow-hidden">
+          {/* Edit button */}
+          {showEditButton && onEdit && (
+            <button
+              onClick={onEdit}
+              className="absolute top-3 right-3 z-10 p-2 rounded-lg bg-obsidian-900/70 border border-obsidian-600/50 
+                         text-obsidian-400 hover:text-gold-400 hover:border-gold-500/30 
+                         opacity-0 group-hover:opacity-100 transition-all duration-200"
+              title="Edit your motivation"
+            >
+              <Edit3 className="w-4 h-4" />
+            </button>
+          )}
+
+          {/* Vision Board Image */}
+          <div className="relative aspect-[16/9] sm:aspect-[21/9] w-full">
+            <img
+              src={imageUrl}
+              alt="Vision Board"
+              className="w-full h-full object-cover"
+              onError={(e) => {
+                e.target.style.display = 'none';
+              }}
+            />
+            {/* Gradient overlay for caption */}
+            <div className="absolute inset-0 bg-gradient-to-t from-obsidian-900/80 via-transparent to-transparent" />
+            
+            {/* Caption and label */}
+            <div className="absolute bottom-0 left-0 right-0 p-4">
+              <div className="flex items-center gap-2 mb-1">
+                <ImageIcon className="w-4 h-4 text-gold-400" />
+                <span className="text-gold-400 text-xs font-semibold uppercase tracking-wide">
+                  My Vision Board
+                </span>
+              </div>
+              {imageCaption && (
+                <p className="text-obsidian-200 text-sm sm:text-base">
+                  {imageCaption}
+                </p>
+              )}
+            </div>
+          </div>
+        </Card>
+      </div>
+    );
+  }
+
+  // Quote Display (Centered)
   return (
     <div className={`relative group ${className}`}>
       {/* Glow effect */}
       <div
-        className="absolute inset-0 rounded-xl blur-sm opacity-50"
+        className="absolute inset-0 rounded-xl blur-sm opacity-30"
         style={{ backgroundColor: bgColor || '#1a1a2e' }}
       />
 
       <Card
         variant="default"
-        padding="md"
+        padding="lg"
         className="relative overflow-hidden"
         style={{ backgroundColor: bgColor || '#1a1a2e' }}
       >
@@ -80,44 +134,27 @@ export default function PersonalMotivation({
           </button>
         )}
 
-        <div className="flex flex-col sm:flex-row gap-4">
-          {/* Image (if provided) */}
-          {imageUrl && (
-            <div className="flex-shrink-0">
-              <div className="w-full sm:w-24 h-24 rounded-lg overflow-hidden border border-obsidian-600/50">
-                <img
-                  src={imageUrl}
-                  alt="Motivation"
-                  className="w-full h-full object-cover"
-                  onError={(e) => {
-                    e.target.style.display = 'none';
-                  }}
-                />
-              </div>
-            </div>
-          )}
-
-          {/* Content */}
-          <div className="flex-1 min-w-0">
-            {/* Heading */}
-            <div className="flex items-center gap-2 mb-2">
-              <Sparkles className="w-4 h-4 flex-shrink-0" style={{ color: textColor || '#fcd34d' }} />
-              <h3
-                className="text-sm font-semibold uppercase tracking-wide"
-                style={{ color: textColor || '#fcd34d' }}
-              >
-                {heading || 'My Why'}
-              </h3>
-            </div>
-
-            {/* Quote text */}
-            <p
-              className={`text-sm sm:text-base leading-relaxed ${fontStyleClasses[fontStyle] || 'italic'}`}
+        {/* Centered Quote Content */}
+        <div className="text-center py-4 sm:py-6">
+          {/* Heading */}
+          <div className="flex items-center justify-center gap-2 mb-3">
+            <Sparkles className="w-4 h-4" style={{ color: textColor || '#fcd34d' }} />
+            <h3
+              className="text-xs sm:text-sm font-semibold uppercase tracking-widest"
               style={{ color: textColor || '#fcd34d' }}
             >
-              "{quoteText}"
-            </p>
+              {heading || 'My Why'}
+            </h3>
+            <Sparkles className="w-4 h-4" style={{ color: textColor || '#fcd34d' }} />
           </div>
+
+          {/* Quote text */}
+          <p
+            className={`text-lg sm:text-xl md:text-2xl leading-relaxed max-w-2xl mx-auto ${fontStyleClasses[fontStyle] || 'italic'}`}
+            style={{ color: textColor || '#fcd34d' }}
+          >
+            "{quoteText}"
+          </p>
         </div>
       </Card>
     </div>
@@ -145,6 +182,22 @@ export function PersonalMotivationCompact({
     );
   }
 
+  if (motivation.displayType === 'image' && motivation.imageUrl) {
+    return (
+      <div
+        className={`rounded-lg overflow-hidden relative group cursor-pointer ${className}`}
+        onClick={onEdit}
+      >
+        <img
+          src={motivation.imageUrl}
+          alt="Vision"
+          className="w-full h-16 object-cover"
+        />
+        <Edit3 className="absolute top-1 right-1 w-3 h-3 text-white opacity-0 group-hover:opacity-100 transition-opacity" />
+      </div>
+    );
+  }
+
   return (
     <div
       className={`p-3 rounded-lg relative group cursor-pointer ${className}`}
@@ -152,7 +205,7 @@ export function PersonalMotivationCompact({
       onClick={onEdit}
     >
       <p
-        className={`text-xs leading-relaxed line-clamp-2 ${fontStyleClasses[motivation.fontStyle] || 'italic'}`}
+        className={`text-xs leading-relaxed line-clamp-2 text-center ${fontStyleClasses[motivation.fontStyle] || 'italic'}`}
         style={{ color: motivation.textColor || '#fcd34d' }}
       >
         "{motivation.quoteText}"

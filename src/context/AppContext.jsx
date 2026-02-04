@@ -83,13 +83,14 @@ export function AppProvider({ children }) {
     if (motivationData) {
       setUserMotivation({
         id: motivationData.id,
+        displayType: motivationData.display_type || 'quote',
         heading: motivationData.heading,
         quoteText: motivationData.quote_text,
         bgColor: motivationData.bg_color,
         textColor: motivationData.text_color,
         fontStyle: motivationData.font_style,
         imageUrl: motivationData.image_url,
-        imageType: motivationData.image_type,
+        imageCaption: motivationData.image_caption,
         createdAt: motivationData.created_at,
         updatedAt: motivationData.updated_at,
       });
@@ -755,13 +756,14 @@ export function AppProvider({ children }) {
 
       const transformedMotivation = {
         id: dbMotivation.id,
+        displayType: dbMotivation.display_type || 'quote',
         heading: dbMotivation.heading,
         quoteText: dbMotivation.quote_text,
         bgColor: dbMotivation.bg_color,
         textColor: dbMotivation.text_color,
         fontStyle: dbMotivation.font_style,
         imageUrl: dbMotivation.image_url,
-        imageType: dbMotivation.image_type,
+        imageCaption: dbMotivation.image_caption,
         createdAt: dbMotivation.created_at,
         updatedAt: dbMotivation.updated_at,
       };
