@@ -222,14 +222,22 @@ export const goalService = {
   async getByUserId(userId) {
     if (!isSupabaseConfigured()) return [];
 
-    const { data, error } = await supabase
-      .from('goals')
-      .select('*, milestones(*)')
-      .eq('user_id', userId)
-      .order('created_at', { ascending: false });
+    try {
+      const { data, error } = await supabase
+        .from('goals')
+        .select('*, milestones(*)')
+        .eq('user_id', userId)
+        .order('created_at', { ascending: false });
 
-    if (error) throw error;
-    return data;
+      if (error) {
+        console.error('Error fetching goals:', error);
+        return [];
+      }
+      return data || [];
+    } catch (err) {
+      console.error('Error in goalService.getByUserId:', err);
+      return [];
+    }
   },
 
   /**
@@ -238,29 +246,37 @@ export const goalService = {
   async getActive(userId) {
     if (!isSupabaseConfigured()) return null;
 
-    const { data, error } = await supabase
-      .from('goals')
-      .select('*')
-      .eq('user_id', userId)
-      .eq('status', 'active')
-      .order('created_at', { ascending: false })
-      .limit(1)
-      .single();
-
-    if (error && error.code !== 'PGRST116') throw error;
-
-    if (data) {
-      // Fetch milestones separately to ensure proper ordering
-      const { data: milestones } = await supabase
-        .from('milestones')
+    try {
+      const { data, error } = await supabase
+        .from('goals')
         .select('*')
-        .eq('goal_id', data.id)
-        .order('number', { ascending: true });
+        .eq('user_id', userId)
+        .eq('status', 'active')
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .maybeSingle(); // Use maybeSingle instead of single to avoid error on no results
 
-      data.milestones = milestones || [];
+      if (error) {
+        console.error('Error fetching active goal:', error);
+        return null;
+      }
+
+      if (data) {
+        // Fetch milestones separately to ensure proper ordering
+        const { data: milestones } = await supabase
+          .from('milestones')
+          .select('*')
+          .eq('goal_id', data.id)
+          .order('number', { ascending: true });
+
+        data.milestones = milestones || [];
+      }
+
+      return data;
+    } catch (err) {
+      console.error('Error in goalService.getActive:', err);
+      return null;
     }
-
-    return data;
   },
 
   /**
@@ -269,27 +285,35 @@ export const goalService = {
   async getCompleted(userId) {
     if (!isSupabaseConfigured()) return [];
 
-    const { data, error } = await supabase
-      .from('goals')
-      .select('*')
-      .eq('user_id', userId)
-      .eq('status', 'completed')
-      .order('completed_at', { ascending: false });
-
-    if (error) throw error;
-
-    // Fetch milestones for each goal
-    for (const goal of data) {
-      const { data: milestones } = await supabase
-        .from('milestones')
+    try {
+      const { data, error } = await supabase
+        .from('goals')
         .select('*')
-        .eq('goal_id', goal.id)
-        .order('number', { ascending: true });
+        .eq('user_id', userId)
+        .eq('status', 'completed')
+        .order('completed_at', { ascending: false });
 
-      goal.milestones = milestones || [];
+      if (error) {
+        console.error('Error fetching completed goals:', error);
+        return [];
+      }
+
+      // Fetch milestones for each goal
+      for (const goal of (data || [])) {
+        const { data: milestones } = await supabase
+          .from('milestones')
+          .select('*')
+          .eq('goal_id', goal.id)
+          .order('number', { ascending: true });
+
+        goal.milestones = milestones || [];
+      }
+
+      return data || [];
+    } catch (err) {
+      console.error('Error in goalService.getCompleted:', err);
+      return [];
     }
-
-    return data;
   },
 
   /**
