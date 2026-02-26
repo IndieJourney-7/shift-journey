@@ -297,7 +297,7 @@ export default function LandingPage() {
             {/* Trust indicators - larger text */}
             <div className="flex items-center gap-6 text-sm sm:text-base text-obsidian-400 justify-center">
               <span className="flex items-center gap-2">
-                <CheckCircle className="w-4 h-4 text-green-500" /> Free forever
+                <CheckCircle className="w-4 h-4 text-green-500" /> Free for now 
               </span>
               <span className="flex items-center gap-2">
                 <CheckCircle className="w-4 h-4 text-green-500" /> No credit card
