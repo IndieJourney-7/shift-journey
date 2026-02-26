@@ -267,81 +267,49 @@ export default function LandingPage() {
         <div className="absolute inset-0 gradient-radial opacity-50" />
         <div className="absolute top-1/4 right-1/4 w-96 h-96 bg-amber-500/5 rounded-full blur-3xl" />
 
-        <div className={`max-w-7xl mx-auto relative z-10 transition-all duration-1000 ${heroVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
-          <div className="grid lg:grid-cols-2 gap-8 lg:gap-12 items-center">
-            {/* Left: Text Content */}
-            <div className="text-center lg:text-left">
-              {/* Tagline */}
-              <div className="inline-block mb-4 sm:mb-6">
-                <span className="text-amber-400 text-xs sm:text-sm font-medium tracking-widest uppercase flex items-center gap-2 justify-center lg:justify-start">
-                  <Lock className="w-4 h-4" />
-                  Commitment System
-                </span>
-              </div>
+        <div className={`max-w-3xl mx-auto relative z-10 transition-all duration-1000 ${heroVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
+          {/* Centered Hero Content */}
+          <div className="text-center">
+            <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold mb-6">
+              <span className="text-obsidian-100">Finally keep the</span>
+              <br />
+              <span className="bg-gradient-to-r from-gold-500 to-amber-400 bg-clip-text text-transparent">promises you make to yourself</span>
+            </h1>
 
-              <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold mb-4 sm:mb-6">
-                <span className="text-obsidian-100">Lock Your Word.</span>
-                <br />
-                <span className="bg-gradient-to-r from-gold-500 to-amber-400 bg-clip-text text-transparent">No Escape.</span>
-              </h1>
+            <p className="text-obsidian-300 text-lg sm:text-xl md:text-2xl mb-8 max-w-2xl mx-auto leading-relaxed">
+              Write a goal, set a deadline, and lock it. Once locked, you can't change or delete it. 
+              You either finish it or mark it failed. Your track record builds over time.
+            </p>
 
-              <p className="text-obsidian-200 text-lg sm:text-xl md:text-2xl mb-4 font-medium">
-                Set a promise. Set a deadline. It can't be edited or deleted.
-              </p>
-
-              <p className="text-obsidian-400 text-base sm:text-lg mb-6 sm:mb-8 max-w-lg mx-auto lg:mx-0 leading-relaxed">
-                Deliver—or your failure stays on record <span className="text-obsidian-200">forever</span>. 
-                No rescheduling. No excuses. Just <span className="text-amber-400">you and your word</span>.
-              </p>
-
-              <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center lg:justify-start">
-                <Link to="/login">
-                  <Button variant="gold" size="lg" className="min-w-[180px] sm:min-w-[200px] group relative overflow-hidden">
-                    <span className="relative z-10 flex items-center gap-2">
-                      <Lock className="w-4 h-4" />
-                      Lock Your First Promise
-                    </span>
-                    <div className="absolute inset-0 bg-gradient-to-r from-amber-500 to-gold-500 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                  </Button>
-                </Link>
-                <a href="#how-it-works">
-                  <Button variant="secondary" size="lg" className="min-w-[180px] sm:min-w-[200px]">
-                    See How It Works
-                  </Button>
-                </a>
-              </div>
-
-              {/* Trust indicators */}
-              <div className="mt-6 flex items-center gap-4 text-xs text-obsidian-500 justify-center lg:justify-start">
-                <span className="flex items-center gap-1">
-                  <CheckCircle className="w-3 h-3 text-green-500" /> Free to start
-                </span>
-                <span className="flex items-center gap-1">
-                  <CheckCircle className="w-3 h-3 text-green-500" /> No credit card
-                </span>
-                <span className="flex items-center gap-1">
-                  <Lock className="w-3 h-3 text-amber-500" /> Immutable promises
-                </span>
-              </div>
+            {/* Single CTA */}
+            <div className="flex justify-center mb-6">
+              <Link to="/login">
+                <Button variant="gold" size="lg" className="min-w-[240px] sm:min-w-[280px] py-4 text-lg group relative overflow-hidden">
+                  <span className="relative z-10 flex items-center gap-2">
+                    <Lock className="w-5 h-5" />
+                    Start Free
+                  </span>
+                  <div className="absolute inset-0 bg-gradient-to-r from-amber-500 to-gold-500 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                </Button>
+              </Link>
             </div>
 
-            {/* Right: Journey Visualization */}
-            <div className="relative mt-8 lg:mt-0">
-              {/* Description */}
-              <div className="text-center lg:text-right mb-6">
-                <p className="text-obsidian-200 text-sm leading-relaxed">
-                  1. Set a goal → 2. Break into milestones
-                  <br />
-                  3. <span className="text-amber-400 font-medium">Lock one promise</span> with a deadline
-                  <br />
-                  4. Complete or fail. No undo button.
-                </p>
-              </div>
+            {/* Trust indicators - larger text */}
+            <div className="flex items-center gap-6 text-sm sm:text-base text-obsidian-400 justify-center">
+              <span className="flex items-center gap-2">
+                <CheckCircle className="w-4 h-4 text-green-500" /> Free forever
+              </span>
+              <span className="flex items-center gap-2">
+                <CheckCircle className="w-4 h-4 text-green-500" /> No credit card
+              </span>
+            </div>
+          </div>
 
-              {/* Journey Path */}
-              <div className="flex justify-center overflow-x-auto pb-4">
-                <JourneyPath milestones={heroMilestones} showGoal={true} />
-              </div>
+          {/* Journey Visualization - below hero */}
+          <div className="mt-12 sm:mt-16">
+            <div className="flex justify-center overflow-x-auto pb-4">
+              <JourneyPath milestones={heroMilestones} showGoal={true} />
+            </div>
 
               {/* Integrity Score Card */}
               <div className="flex justify-center mt-6 sm:mt-8">
@@ -370,7 +338,6 @@ export default function LandingPage() {
               </div>
             </div>
           </div>
-        </div>
       </section>
 
       {/* Social Proof Stats - Immediately Visible */}
