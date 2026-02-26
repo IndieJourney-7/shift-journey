@@ -11,6 +11,7 @@ import {
   ShareablePage,
   PricingPage,
   AdminPage,
+  AdminLoginPage,
   PublicProfilePage,
 } from './pages';
 
@@ -134,8 +135,11 @@ function AppRoutes() {
       {/* Pricing Page - Public */}
       <Route path="/pricing" element={<PricingPage />} />
 
-      {/* Admin Dashboard */}
-      <Route path="/admin" element={<AdminPage />} />
+      {/* Admin Login Page */}
+      <Route path="/admin" element={<AdminLoginPage />} />
+      
+      {/* Admin Dashboard - Protected */}
+      <Route path="/admin/dashboard" element={<AdminPage />} />
 
       {/* Auth Pages - Public */}
       <Route path="/login" element={<LoginPage />} />

@@ -3,6 +3,7 @@
 
 export { default as LandingPage } from './LandingPage';
 export { default as LoginPage } from './LoginPage';
+export { default as AdminLoginPage } from './AdminLoginPage';
 export { default as AuthCallbackPage } from './AuthCallbackPage';
 export { default as ShareablePage } from './ShareablePage';
 export { default as PricingPage } from './PricingPage';
