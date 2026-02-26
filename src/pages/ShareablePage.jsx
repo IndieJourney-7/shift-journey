@@ -170,10 +170,10 @@ export default function ShareablePage() {
           goalTitle: data.goals?.title,
         });
 
-        // Set user info from the joined data
+        // Set user info from the joined data (handle both full_name and name for compatibility)
         if (data.users) {
           setMilestoneUser({
-            name: data.users.name || 'User',
+            name: data.users.full_name || data.users.name || 'User',
             integrityScore: data.users.integrity_score ?? 100,
           });
         }

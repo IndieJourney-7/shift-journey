@@ -37,9 +37,14 @@ export default function PublicProfilePage() {
       // See migration: 009_add_public_profile_access.sql
       const { data: userData, error: userError } = await supabase
         .from('users')
-        .select('id, name, avatar_url, integrity_score, status, joined_at')
+        .select('id, full_name, avatar_url, integrity_score, status, joined_at')
         .eq('id', userId)
         .single();
+      
+      // Map full_name to name for component compatibility
+      if (userData) {
+        userData.name = userData.full_name || userData.name;
+      }
 
       if (userError) {
         console.error('User fetch error:', userError);

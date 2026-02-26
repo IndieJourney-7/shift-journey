@@ -107,6 +107,17 @@ export const anonymousUserService = {
 // USER OPERATIONS
 // =====================================================
 
+/**
+ * Map DB user record to app format (full_name -> name)
+ */
+function mapUserFromDB(dbUser) {
+  if (!dbUser) return null;
+  return {
+    ...dbUser,
+    name: dbUser.full_name || dbUser.name, // Map full_name to name for app compatibility
+  };
+}
+
 export const userService = {
   /**
    * Get user profile by ID
@@ -121,7 +132,7 @@ export const userService = {
       .single();
 
     if (error) throw error;
-    return data;
+    return mapUserFromDB(data);
   },
 
   /**
@@ -137,7 +148,7 @@ export const userService = {
       .single();
 
     if (error && error.code !== 'PGRST116') throw error;
-    return data;
+    return mapUserFromDB(data);
   },
 
   /**
@@ -282,75 +293,92 @@ export const goalService = {
   },
 
   /**
-   * Create a new goal
+   * Create a new goal using RPC function
    */
   async create(goalData) {
     if (!isSupabaseConfigured()) return null;
 
-    const { data, error } = await supabase
-      .from('goals')
-      .insert({
-        user_id: goalData.userId,
-        title: goalData.title,
-        description: goalData.description,
-        target_date: goalData.targetDate || null,
-        status: 'active',
-      })
-      .select()
-      .single();
+    console.log('Creating goal for user:', goalData.userId);
 
-    if (error) throw error;
+    const { data, error } = await supabase
+      .rpc('create_goal', {
+        p_user_id: goalData.userId,
+        p_title: goalData.title,
+        p_description: goalData.description || null,
+        p_target_date: goalData.targetDate || null,
+      });
+
+    if (error) {
+      console.error('Supabase error creating goal:', error);
+      if (error.code === '42883') {
+        throw new Error('Database function not found. Please run the migration SQL in Supabase.');
+      }
+      throw error;
+    }
+    
+    console.log('Goal created successfully:', data);
     return data;
   },
 
   /**
-   * Update a goal
+   * Update a goal using RPC function
    */
   async update(goalId, updates) {
     if (!isSupabaseConfigured()) return null;
 
-    const updateData = {};
-    if (updates.title) updateData.title = updates.title;
-    if (updates.description !== undefined) updateData.description = updates.description;
-    if (updates.status) updateData.status = updates.status;
-    if (updates.completedAt) updateData.completed_at = updates.completedAt;
-    if (updates.reflection !== undefined) updateData.reflection = updates.reflection;
-    if (updates.finalIntegrityScore !== undefined) {
-      updateData.final_integrity_score = updates.finalIntegrityScore;
-    }
-    if (updates.stats) updateData.stats = updates.stats;
+    console.log('Updating goal:', goalId);
 
     const { data, error } = await supabase
-      .from('goals')
-      .update(updateData)
-      .eq('id', goalId)
-      .select()
-      .single();
+      .rpc('update_goal', {
+        p_goal_id: goalId,
+        p_title: updates.title || null,
+        p_description: updates.description !== undefined ? updates.description : null,
+        p_status: updates.status || null,
+        p_completed_at: updates.completedAt || null,
+        p_reflection: updates.reflection !== undefined ? updates.reflection : null,
+        p_final_integrity_score: updates.finalIntegrityScore !== undefined ? updates.finalIntegrityScore : null,
+        p_stats: updates.stats || null,
+      });
 
-    if (error) throw error;
+    if (error) {
+      console.error('Supabase error updating goal:', error);
+      if (error.code === '42883') {
+        throw new Error('Database function not found. Please run the migration SQL in Supabase.');
+      }
+      throw error;
+    }
+
+    console.log('Goal updated successfully:', data);
     return data;
   },
 
   /**
-   * Complete a goal with reflection and stats
+   * Complete a goal with reflection and stats using RPC function
    */
   async complete(goalId, reflection, finalScore, stats) {
     if (!isSupabaseConfigured()) return null;
 
-    const { data, error } = await supabase
-      .from('goals')
-      .update({
-        status: 'completed',
-        completed_at: new Date().toISOString(),
-        reflection,
-        final_integrity_score: finalScore,
-        stats,
-      })
-      .eq('id', goalId)
-      .select()
-      .single();
+    console.log('Completing goal:', goalId);
 
-    if (error) throw error;
+    const { data, error } = await supabase
+      .rpc('update_goal', {
+        p_goal_id: goalId,
+        p_status: 'completed',
+        p_completed_at: new Date().toISOString(),
+        p_reflection: reflection,
+        p_final_integrity_score: finalScore,
+        p_stats: stats,
+      });
+
+    if (error) {
+      console.error('Supabase error completing goal:', error);
+      if (error.code === '42883') {
+        throw new Error('Database function not found. Please run the migration SQL in Supabase.');
+      }
+      throw error;
+    }
+
+    console.log('Goal completed successfully:', data);
     return data;
   },
 
@@ -399,11 +427,15 @@ export const milestoneService = {
 
     const { data, error } = await supabase
       .from('milestones')
-      .select('*, users(name, integrity_score)')
+      .select('*, users(full_name, integrity_score)')
       .eq('id', milestoneId)
       .single();
 
     if (error) throw error;
+    // Map full_name to name for app compatibility
+    if (data && data.users) {
+      data.users.name = data.users.full_name || data.users.name;
+    }
     return data;
   },
 
@@ -415,11 +447,15 @@ export const milestoneService = {
 
     const { data, error } = await supabase
       .from('milestones')
-      .select('*, users(name, integrity_score), goals(title)')
+      .select('*, users(full_full_name, integrity_score), goals(title)')
       .eq('share_id', shareId)
       .single();
 
     if (error && error.code !== 'PGRST116') throw error;
+    // Map full_name to name for app compatibility
+    if (data && data.users) {
+      data.users.name = data.users.full_name || data.users.name;
+    }
     return data;
   },
 
@@ -441,24 +477,30 @@ export const milestoneService = {
   },
 
   /**
-   * Create a single milestone
+   * Create a single milestone using RPC function
    */
   async create(goalId, userId, title, number) {
     if (!isSupabaseConfigured()) return null;
 
-    const { data, error } = await supabase
-      .from('milestones')
-      .insert({
-        goal_id: goalId,
-        user_id: userId,
-        number,
-        title,
-        status: 'pending',
-      })
-      .select()
-      .single();
+    console.log('Creating milestone:', { goalId, userId, title, number });
 
-    if (error) throw error;
+    const { data, error } = await supabase
+      .rpc('create_milestone', {
+        p_goal_id: goalId,
+        p_user_id: userId,
+        p_title: title,
+        p_number: number,
+      });
+
+    if (error) {
+      console.error('Supabase error creating milestone:', error);
+      if (error.code === '42883') {
+        throw new Error('Database function not found. Please run the migration SQL in Supabase.');
+      }
+      throw error;
+    }
+
+    console.log('Milestone created successfully:', data);
     return data;
   },
 
@@ -487,104 +529,132 @@ export const milestoneService = {
   },
 
   /**
-   * Lock a milestone with a promise
+   * Lock a milestone with a promise using RPC function
    */
   async lock(milestoneId, promiseData) {
     if (!isSupabaseConfigured()) return null;
 
-    // Generate share ID if not provided
-    const shareId = promiseData.shareId || `share_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    console.log('Locking milestone:', milestoneId);
 
     const { data, error } = await supabase
-      .from('milestones')
-      .update({
-        status: 'locked',
-        promise_text: promiseData.text,
-        promise_deadline: promiseData.deadline,
-        promise_consequence: promiseData.consequence,
-        promise_locked_at: new Date().toISOString(),
-        share_id: shareId,
-      })
-      .eq('id', milestoneId)
-      .select()
-      .single();
+      .rpc('lock_milestone', {
+        p_milestone_id: milestoneId,
+        p_promise_text: promiseData.text,
+        p_promise_deadline: promiseData.deadline,
+        p_promise_consequence: promiseData.consequence,
+      });
 
-    if (error) throw error;
+    if (error) {
+      console.error('Supabase error locking milestone:', error);
+      if (error.code === '42883') {
+        throw new Error('Database function not found. Please run the migration SQL in Supabase.');
+      }
+      throw error;
+    }
+
+    console.log('Milestone locked successfully:', data);
     return data;
   },
 
   /**
-   * Complete a milestone (promise kept)
+   * Complete a milestone (promise kept) using RPC function
    */
   async complete(milestoneId) {
     if (!isSupabaseConfigured()) return null;
 
-    const { data, error } = await supabase
-      .from('milestones')
-      .update({
-        status: 'completed',
-        completed_at: new Date().toISOString(),
-      })
-      .eq('id', milestoneId)
-      .select()
-      .single();
+    console.log('Completing milestone:', milestoneId);
 
-    if (error) throw error;
+    const { data, error } = await supabase
+      .rpc('complete_milestone', {
+        p_milestone_id: milestoneId,
+      });
+
+    if (error) {
+      console.error('Supabase error completing milestone:', error);
+      if (error.code === '42883') {
+        throw new Error('Database function not found. Please run the migration SQL in Supabase.');
+      }
+      throw error;
+    }
+
+    console.log('Milestone completed successfully:', data);
     return data;
   },
 
   /**
-   * Break a milestone (promise broken)
+   * Break a milestone (promise broken) using RPC function
    */
   async break(milestoneId, reason) {
     if (!isSupabaseConfigured()) return null;
 
-    const { data, error } = await supabase
-      .from('milestones')
-      .update({
-        status: 'broken',
-        broken_at: new Date().toISOString(),
-        break_reason: reason,
-      })
-      .eq('id', milestoneId)
-      .select()
-      .single();
+    console.log('Breaking milestone:', milestoneId);
 
-    if (error) throw error;
+    const { data, error } = await supabase
+      .rpc('break_milestone', {
+        p_milestone_id: milestoneId,
+        p_reason: reason || null,
+      });
+
+    if (error) {
+      console.error('Supabase error breaking milestone:', error);
+      if (error.code === '42883') {
+        throw new Error('Database function not found. Please run the migration SQL in Supabase.');
+      }
+      throw error;
+    }
+
+    console.log('Milestone broken successfully:', data);
     return data;
   },
 
   /**
-   * Update milestone title (only if pending)
+   * Update milestone title (only if pending) using RPC function
    */
   async updateTitle(milestoneId, title) {
     if (!isSupabaseConfigured()) return null;
 
-    const { data, error } = await supabase
-      .from('milestones')
-      .update({ title })
-      .eq('id', milestoneId)
-      .eq('status', 'pending')
-      .select()
-      .single();
+    console.log('Updating milestone title:', milestoneId);
 
-    if (error) throw error;
+    const { data, error } = await supabase
+      .rpc('update_milestone', {
+        p_milestone_id: milestoneId,
+        p_title: title,
+      });
+
+    if (error) {
+      console.error('Supabase error updating milestone:', error);
+      if (error.code === '42883') {
+        throw new Error('Database function not found. Please run the migration SQL in Supabase.');
+      }
+      throw error;
+    }
+
+    console.log('Milestone updated successfully:', data);
     return data;
   },
 
   /**
-   * Delete a milestone (only if pending)
+   * Delete a milestone (only if pending) using RPC function
    */
   async delete(milestoneId) {
     if (!isSupabaseConfigured()) return null;
 
-    const { error } = await supabase
-      .from('milestones')
-      .delete()
-      .eq('id', milestoneId)
-      .eq('status', 'pending');
+    console.log('Deleting milestone:', milestoneId);
 
-    if (error) throw error;
+    const { data, error } = await supabase
+      .rpc('delete_milestone', {
+        p_milestone_id: milestoneId,
+      });
+
+    if (error) {
+      console.error('Supabase error deleting milestone:', error);
+      if (error.code === '42883') {
+        throw new Error('Database function not found. Please run the migration SQL in Supabase.');
+      }
+      throw error;
+    }
+
+    console.log('Milestone deleted successfully');
     return true;
   },
 
