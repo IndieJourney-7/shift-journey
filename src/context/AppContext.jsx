@@ -68,6 +68,7 @@ export function AppProvider({ children }) {
       failureStreak: dbUser.failure_streak ?? 0,
       status: getIntegrityStatus(dbUser.integrity_score ?? INTEGRITY_CONFIG.INITIAL_SCORE),
       badge: getBadgeFromScore(dbUser.integrity_score ?? INTEGRITY_CONFIG.INITIAL_SCORE),
+      is_admin: dbUser.is_admin || false,
       createdAt: dbUser.created_at,
     });
 
