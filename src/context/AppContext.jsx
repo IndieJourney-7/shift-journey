@@ -180,33 +180,28 @@ export function AppProvider({ children }) {
         );
 
         const loadData = async () => {
-          // ALWAYS ensure we have a Supabase auth session for RLS
-          let session = await authService.getSession();
+          // Check for existing auth session
+          const session = await authService.getSession();
 
           if (!session?.user) {
-            // No existing session - create anonymous auth session
-            console.log('No session found, creating anonymous auth session...');
-            const anonResult = await authService.signInAnonymously();
-            session = anonResult?.session;
-            
-            if (!session?.user) {
-              throw new Error('Failed to establish authentication session. Please refresh the page.');
-            }
+            // No session - user is not logged in
+            // This is fine for public pages (landing, pricing, etc.)
+            console.log('No session found - app will work in guest mode');
+            setUser(null);
+            setAuthUser(null);
+            return; // Skip loading user data, allow app to render
           }
 
-          // We now ALWAYS have a session with auth.uid() for RLS
-          let dbUser;
-          
-          // Set authUser only for Google (non-anonymous) users
-          if (!session.user.is_anonymous) {
-            setAuthUser(session.user);
-          }
+          // User is authenticated (Google sign-in)
+          setAuthUser(session.user);
           
           // Get or create user record in database
-          dbUser = await authService.getOrCreateAuthUser(session.user);
+          const dbUser = await authService.getOrCreateAuthUser(session.user);
           
           if (!dbUser) {
-            throw new Error('Failed to initialize user record.');
+            console.warn('Could not load user record, continuing as guest');
+            setUser(null);
+            return;
           }
 
           await loadUserData(dbUser);
@@ -250,28 +245,15 @@ export function AppProvider({ children }) {
           console.error('Failed to load user after sign in:', err);
         }
       } else if (event === 'SIGNED_OUT') {
-        // User signed out of Google - re-establish anonymous session for RLS
+        // User signed out - clear all user state
+        console.log('User signed out, clearing state...');
         setAuthUser(null);
-        try {
-          // Create new anonymous session so RLS continues to work
-          console.log('User signed out, re-establishing anonymous session...');
-          const anonResult = await authService.signInAnonymously();
-          
-          if (!anonResult?.session?.user) {
-            console.error('Failed to re-establish anonymous session');
-            setError('Session lost. Please refresh the page.');
-            return;
-          }
-          
-          // Get or create anonymous user record
-          const dbUser = await authService.getOrCreateAuthUser(anonResult.session.user);
-          if (dbUser) {
-            await loadUserData(dbUser);
-          }
-        } catch (err) {
-          console.error('Failed to re-establish anonymous session:', err);
-          setError('Session lost. Please refresh the page.');
-        }
+        setUser(null);
+        setCurrentGoal(null);
+        setMilestones([]);
+        setGoalHistory([]);
+        setCalendarData({});
+        setUserMotivation(null);
       }
     });
 
