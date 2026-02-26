@@ -106,11 +106,18 @@ export default function AdminPage() {
     subscriptions: { total: 0, byPlan: {} },
   });
 
-  // Simple admin check - bypassed for development
-  // TODO: In production, check user.is_admin or user.role === 'admin'
-  const isAdmin = user?.is_admin || true;
+  // Admin check - require authenticated user with admin flag
+  // For development, allow any authenticated user
+  const isAdmin = user && (user.is_admin || import.meta.env.DEV);
+  const isAuthenticated = Boolean(user);
 
   const loadData = async () => {
+    // Don't load admin data if not authenticated
+    if (!isAuthenticated) {
+      setLoading(false);
+      return;
+    }
+    
     try {
       setError(null);
 
@@ -144,12 +151,28 @@ export default function AdminPage() {
 
   useEffect(() => {
     loadData();
-  }, []);
+  }, [isAuthenticated]);
 
   const handleRefresh = () => {
     setRefreshing(true);
     loadData();
   };
+
+  // Require authentication first
+  if (!isAuthenticated) {
+    return (
+      <div className="min-h-screen bg-obsidian-950 noise-bg flex items-center justify-center">
+        <div className="text-center">
+          <Shield className="w-12 h-12 text-gold-500 mx-auto mb-4" />
+          <h1 className="text-xl font-semibold text-obsidian-100 mb-2">Sign In Required</h1>
+          <p className="text-obsidian-400 mb-4">Please sign in to access the admin dashboard.</p>
+          <Button variant="primary" onClick={() => navigate('/login')}>
+            Sign In
+          </Button>
+        </div>
+      </div>
+    );
+  }
 
   if (!isAdmin) {
     return (

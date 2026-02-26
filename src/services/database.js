@@ -1520,51 +1520,88 @@ export const adminPricingService = {
 
 export const adminSubscriptionService = {
   /**
-   * Get all subscriptions with user info
+   * Get all subscriptions with user info using admin RPC function
    */
   async getAll() {
     if (!isSupabaseConfigured()) return [];
 
-    const { data, error } = await supabase
-      .from('user_subscriptions')
-      .select(`
-        *,
-        users (id, email, full_name),
-        pricing_plans (id, name)
-      `)
-      .order('created_at', { ascending: false });
+    try {
+      // Try RPC function first (bypasses RLS)
+      const { data, error } = await supabase.rpc('admin_get_all_subscriptions');
+      
+      if (!error && data) {
+        return data;
+      }
+      
+      // Fallback to direct query
+      const { data: subs, error: subsError } = await supabase
+        .from('user_subscriptions')
+        .select(`
+          *,
+          users (id, email, full_name),
+          pricing_plans (id, name)
+        `)
+        .order('created_at', { ascending: false });
 
-    if (error) throw error;
-    return data;
+      if (subsError) {
+        console.error('Error fetching subscriptions:', subsError);
+        return [];
+      }
+      return subs || [];
+    } catch (err) {
+      console.error('Error in adminSubscriptionService.getAll:', err);
+      return [];
+    }
   },
 
   /**
-   * Get subscription stats
+   * Get subscription stats using admin RPC function
    */
   async getStats() {
-    if (!isSupabaseConfigured()) return null;
+    if (!isSupabaseConfigured()) return { total: 0, byPlan: {}, byStatus: {}, byBillingCycle: {} };
 
-    const { data, error } = await supabase
-      .from('user_subscriptions')
-      .select('plan_id, status, billing_cycle');
+    try {
+      // Try RPC function first (bypasses RLS)
+      const { data, error } = await supabase.rpc('admin_get_subscription_stats');
+      
+      if (!error && data) {
+        return {
+          total: data.total || 0,
+          byPlan: {},
+          byStatus: data.by_status || {},
+          byBillingCycle: {},
+        };
+      }
+      
+      // Fallback to direct query
+      const { data: subs, error: subsError } = await supabase
+        .from('user_subscriptions')
+        .select('plan_id, status, billing_cycle');
 
-    if (error) throw error;
+      if (subsError) {
+        console.error('Error fetching subscription stats:', subsError);
+        return { total: 0, byPlan: {}, byStatus: {}, byBillingCycle: {} };
+      }
 
-    // Calculate stats
-    const stats = {
-      total: data.length,
-      byPlan: {},
-      byStatus: {},
-      byBillingCycle: {},
-    };
+      // Calculate stats
+      const stats = {
+        total: subs?.length || 0,
+        byPlan: {},
+        byStatus: {},
+        byBillingCycle: {},
+      };
 
-    data.forEach(sub => {
-      stats.byPlan[sub.plan_id] = (stats.byPlan[sub.plan_id] || 0) + 1;
-      stats.byStatus[sub.status] = (stats.byStatus[sub.status] || 0) + 1;
-      stats.byBillingCycle[sub.billing_cycle] = (stats.byBillingCycle[sub.billing_cycle] || 0) + 1;
-    });
+      (subs || []).forEach(sub => {
+        stats.byPlan[sub.plan_id] = (stats.byPlan[sub.plan_id] || 0) + 1;
+        stats.byStatus[sub.status] = (stats.byStatus[sub.status] || 0) + 1;
+        stats.byBillingCycle[sub.billing_cycle] = (stats.byBillingCycle[sub.billing_cycle] || 0) + 1;
+      });
 
-    return stats;
+      return stats;
+    } catch (err) {
+      console.error('Error in adminSubscriptionService.getStats:', err);
+      return { total: 0, byPlan: {}, byStatus: {}, byBillingCycle: {} };
+    }
   },
 
   /**
@@ -1573,20 +1610,28 @@ export const adminSubscriptionService = {
   async update(subscriptionId, updates) {
     if (!isSupabaseConfigured()) return null;
 
-    const { data, error } = await supabase
-      .from('user_subscriptions')
-      .update({
-        plan_id: updates.planId,
-        status: updates.status,
-        billing_cycle: updates.billingCycle,
-        current_period_end: updates.currentPeriodEnd,
-      })
-      .eq('id', subscriptionId)
-      .select()
-      .single();
+    try {
+      const { data, error } = await supabase
+        .from('user_subscriptions')
+        .update({
+          plan_id: updates.planId,
+          status: updates.status,
+          billing_cycle: updates.billingCycle,
+          current_period_end: updates.currentPeriodEnd,
+        })
+        .eq('id', subscriptionId)
+        .select()
+        .single();
 
-    if (error) throw error;
-    return data;
+      if (error) {
+        console.error('Error updating subscription:', error);
+        return null;
+      }
+      return data;
+    } catch (err) {
+      console.error('Error in adminSubscriptionService.update:', err);
+      return null;
+    }
   },
 };
 
@@ -1596,57 +1641,105 @@ export const adminSubscriptionService = {
 
 export const adminAnalyticsService = {
   /**
-   * Get user count
+   * Get user count using admin RPC function
    */
   async getUserCount() {
     if (!isSupabaseConfigured()) return 0;
 
-    const { count, error } = await supabase
-      .from('users')
-      .select('*', { count: 'exact', head: true });
+    try {
+      // Try RPC function first (bypasses RLS)
+      const { data, error } = await supabase.rpc('admin_get_user_count');
+      
+      if (!error && data !== null) {
+        return data;
+      }
+      
+      // Fallback to direct query (may be blocked by RLS)
+      const { count, error: countError } = await supabase
+        .from('users')
+        .select('*', { count: 'exact', head: true });
 
-    if (error) throw error;
-    return count;
+      if (countError) {
+        console.error('Error fetching user count:', countError);
+        return 0;
+      }
+      return count || 0;
+    } catch (err) {
+      console.error('Error in adminAnalyticsService.getUserCount:', err);
+      return 0;
+    }
   },
 
   /**
-   * Get goal stats
+   * Get goal stats using admin RPC function
    */
   async getGoalStats() {
-    if (!isSupabaseConfigured()) return null;
+    if (!isSupabaseConfigured()) return { total: 0, active: 0, completed: 0 };
 
-    const { data, error } = await supabase
-      .from('goals')
-      .select('status');
+    try {
+      // Try RPC function first (bypasses RLS)
+      const { data, error } = await supabase.rpc('admin_get_goal_stats');
+      
+      if (!error && data) {
+        return data;
+      }
+      
+      // Fallback to direct query
+      const { data: goals, error: goalsError } = await supabase
+        .from('goals')
+        .select('status');
 
-    if (error) throw error;
+      if (goalsError) {
+        console.error('Error fetching goal stats:', goalsError);
+        return { total: 0, active: 0, completed: 0 };
+      }
 
-    return {
-      total: data.length,
-      active: data.filter(g => g.status === 'active').length,
-      completed: data.filter(g => g.status === 'completed').length,
-    };
+      return {
+        total: goals?.length || 0,
+        active: (goals || []).filter(g => g.status === 'active').length,
+        completed: (goals || []).filter(g => g.status === 'completed').length,
+      };
+    } catch (err) {
+      console.error('Error in adminAnalyticsService.getGoalStats:', err);
+      return { total: 0, active: 0, completed: 0 };
+    }
   },
 
   /**
-   * Get milestone stats
+   * Get milestone stats using admin RPC function
    */
   async getMilestoneStats() {
-    if (!isSupabaseConfigured()) return null;
+    if (!isSupabaseConfigured()) return { total: 0, pending: 0, locked: 0, completed: 0, broken: 0 };
 
-    const { data, error } = await supabase
-      .from('milestones')
-      .select('status');
+    try {
+      // Try RPC function first (bypasses RLS)
+      const { data, error } = await supabase.rpc('admin_get_milestone_stats');
+      
+      if (!error && data) {
+        return data;
+      }
+      
+      // Fallback to direct query
+      const { data: milestones, error: milestonesError } = await supabase
+        .from('milestones')
+        .select('status');
 
-    if (error) throw error;
+      if (milestonesError) {
+        console.error('Error fetching milestone stats:', milestonesError);
+        return { total: 0, pending: 0, locked: 0, completed: 0, broken: 0 };
+      }
 
-    return {
-      total: data.length,
-      pending: data.filter(m => m.status === 'pending').length,
-      locked: data.filter(m => m.status === 'locked').length,
-      completed: data.filter(m => m.status === 'completed').length,
-      broken: data.filter(m => m.status === 'broken').length,
-    };
+      return {
+        total: milestones?.length || 0,
+        pending: (milestones || []).filter(m => m.status === 'pending').length,
+        locked: (milestones || []).filter(m => m.status === 'locked').length,
+        completed: (milestones || []).filter(m => m.status === 'completed').length,
+        broken: (milestones || []).filter(m => m.status === 'broken').length,
+      };
+    } catch (err) {
+      console.error('Error in adminAnalyticsService.getMilestoneStats:', err);
+      return { total: 0, pending: 0, locked: 0, completed: 0, broken: 0 };
+    }
   },
 };
 
