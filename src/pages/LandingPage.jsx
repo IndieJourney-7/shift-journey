@@ -261,30 +261,30 @@ export default function LandingPage() {
       {/* Hero Section */}
       <section 
         ref={heroRef}
-        className={`${activeOffer ? 'pt-8 sm:pt-12 lg:pt-20' : 'pt-20 sm:pt-24 lg:pt-32'} pb-12 sm:pb-16 lg:pb-20 px-4 relative overflow-hidden`}
+        className={`${activeOffer ? 'pt-4 sm:pt-6 lg:pt-10' : 'pt-12 sm:pt-14 lg:pt-16'} pb-6 sm:pb-8 lg:pb-10 px-4 relative overflow-hidden min-h-[calc(100vh-80px)] flex items-center`}
       >
         {/* Background gradient with warm accent */}
         <div className="absolute inset-0 gradient-radial opacity-50" />
         <div className="absolute top-1/4 right-1/4 w-96 h-96 bg-amber-500/5 rounded-full blur-3xl" />
 
-        <div className={`max-w-3xl mx-auto relative z-10 transition-all duration-1000 ${heroVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
+        <div className={`max-w-4xl mx-auto relative z-10 transition-all duration-1000 w-full ${heroVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
           {/* Centered Hero Content */}
           <div className="text-center">
-            <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold mb-6">
+            <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold mb-4">
               <span className="text-obsidian-100">Finally keep the</span>
               <br />
               <span className="bg-gradient-to-r from-gold-500 to-amber-400 bg-clip-text text-transparent">promises you make to yourself</span>
             </h1>
 
-            <p className="text-obsidian-300 text-lg sm:text-xl md:text-2xl mb-8 max-w-2xl mx-auto leading-relaxed">
+            <p className="text-obsidian-300 text-base sm:text-lg md:text-xl mb-5 max-w-2xl mx-auto leading-relaxed">
               Write a goal, set a deadline, and lock it. Once locked, you can't change or delete it. 
               You either finish it or mark it failed. Your track record builds over time.
             </p>
 
             {/* Single CTA */}
-            <div className="flex justify-center mb-6">
+            <div className="flex justify-center mb-4">
               <Link to="/login">
-                <Button variant="gold" size="lg" className="min-w-[240px] sm:min-w-[280px] py-4 text-lg group relative overflow-hidden">
+                <Button variant="gold" size="lg" className="min-w-[200px] sm:min-w-[240px] py-3 text-base sm:text-lg group relative overflow-hidden">
                   <span className="relative z-10 flex items-center gap-2">
                     <Lock className="w-5 h-5" />
                     Start Free
@@ -295,7 +295,7 @@ export default function LandingPage() {
             </div>
 
             {/* Trust indicators - larger text */}
-            <div className="flex items-center gap-6 text-sm sm:text-base text-obsidian-400 justify-center">
+            <div className="flex items-center gap-4 sm:gap-6 text-xs sm:text-sm text-obsidian-400 justify-center">
               <span className="flex items-center gap-2">
                 <CheckCircle className="w-4 h-4 text-green-500" /> Free for now 
               </span>
@@ -306,13 +306,13 @@ export default function LandingPage() {
           </div>
 
           {/* Journey Visualization - below hero */}
-          <div className="mt-12 sm:mt-16">
-            <div className="flex justify-center overflow-x-auto pb-4">
+          <div className="mt-6 sm:mt-8">
+            <div className="flex justify-center overflow-x-auto pb-2">
               <JourneyPath milestones={heroMilestones} showGoal={true} />
             </div>
 
               {/* Integrity Score Card */}
-              <div className="flex justify-center mt-6 sm:mt-8">
+              <div className="flex justify-center mt-4 sm:mt-5">
                 <div className="w-full max-w-[300px]">
                   <div className="bg-obsidian-800/90 border border-obsidian-600 rounded-lg p-4 backdrop-blur-sm shadow-xl hover:border-amber-500/30 transition-colors duration-300">
                     <div className="flex items-center justify-between mb-3">
