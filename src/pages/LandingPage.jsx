@@ -274,33 +274,32 @@ export default function LandingPage() {
               {/* Tagline */}
               <div className="inline-block mb-4 sm:mb-6">
                 <span className="text-amber-400 text-xs sm:text-sm font-medium tracking-widest uppercase flex items-center gap-2 justify-center lg:justify-start">
-                  <Sparkles className="w-4 h-4" />
-                  Transform Your Self-Trust
+                  <Lock className="w-4 h-4" />
+                  Commitment System
                 </span>
               </div>
 
               <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold mb-4 sm:mb-6">
-                <span className="text-obsidian-100">Reclaim Your</span>
+                <span className="text-obsidian-100">Lock Your Word.</span>
                 <br />
-                <span className="bg-gradient-to-r from-gold-500 to-amber-400 bg-clip-text text-transparent">Self-Trust</span>
+                <span className="bg-gradient-to-r from-gold-500 to-amber-400 bg-clip-text text-transparent">No Escape.</span>
               </h1>
 
               <p className="text-obsidian-200 text-lg sm:text-xl md:text-2xl mb-4 font-medium">
-                Turn Promises into Proof of Who You Truly Are
+                Set a promise. Set a deadline. It can't be edited or deleted.
               </p>
 
               <p className="text-obsidian-400 text-base sm:text-lg mb-6 sm:mb-8 max-w-lg mx-auto lg:mx-0 leading-relaxed">
-                Imagine waking up <span className="text-obsidian-200">knowing you can rely on yourself</span>—no more excuses, no more regrets. 
-                Shift Ascent isn't just a tool; it's your path to becoming the person who <span className="text-amber-400">shows up, every time</span>. 
-                Feel the weight lift as your integrity score climbs.
+                Deliver—or your failure stays on record <span className="text-obsidian-200">forever</span>. 
+                No rescheduling. No excuses. Just <span className="text-amber-400">you and your word</span>.
               </p>
 
               <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center lg:justify-start">
                 <Link to="/login">
                   <Button variant="gold" size="lg" className="min-w-[180px] sm:min-w-[200px] group relative overflow-hidden">
                     <span className="relative z-10 flex items-center gap-2">
-                      <Sparkles className="w-4 h-4" />
-                      Ignite Your Integrity
+                      <Lock className="w-4 h-4" />
+                      Lock Your First Promise
                     </span>
                     <div className="absolute inset-0 bg-gradient-to-r from-amber-500 to-gold-500 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                   </Button>
@@ -321,7 +320,7 @@ export default function LandingPage() {
                   <CheckCircle className="w-3 h-3 text-green-500" /> No credit card
                 </span>
                 <span className="flex items-center gap-1">
-                  <CheckCircle className="w-3 h-3 text-green-500" /> Just you & your word
+                  <Lock className="w-3 h-3 text-amber-500" /> Immutable promises
                 </span>
               </div>
             </div>
@@ -331,11 +330,11 @@ export default function LandingPage() {
               {/* Description */}
               <div className="text-center lg:text-right mb-6">
                 <p className="text-obsidian-200 text-sm leading-relaxed">
-                  Set a goal. Break it into milestones.
+                  1. Set a goal → 2. Break into milestones
                   <br />
-                  <span className="text-amber-400 font-medium">Lock each promise</span> with a deadline.
+                  3. <span className="text-amber-400 font-medium">Lock one promise</span> with a deadline
                   <br />
-                  No escape. Only progress.
+                  4. Complete or fail. No undo button.
                 </p>
               </div>
 
@@ -434,7 +433,7 @@ export default function LandingPage() {
         <div className="flex items-center gap-2 sm:gap-4">
           <div className="flex-1 h-px bg-gradient-to-r from-transparent via-amber-500/20 to-obsidian-700" />
           <h2 className="text-obsidian-300 text-sm sm:text-base lg:text-lg font-medium text-center whitespace-nowrap px-2">
-            Integrity isn't claimed. <span className="text-amber-400">It's proven.</span>
+            Your word, <span className="text-amber-400">immutable.</span>
           </h2>
           <div className="flex-1 h-px bg-gradient-to-l from-transparent via-amber-500/20 to-obsidian-700" />
         </div>
@@ -450,10 +449,10 @@ export default function LandingPage() {
                 <Target className="w-6 h-6 text-gold-500 group-hover:text-amber-400 transition-colors" />
               </div>
               <h3 className="text-obsidian-100 font-semibold text-base sm:text-lg mb-2">
-                Dreams Become Commitments
+                Write It. Lock It.
               </h3>
               <p className="text-obsidian-400 text-sm">
-                Not another forgotten task list. Each milestone is a <span className="text-amber-400">promise to yourself</span>—locked with a deadline, fueled by purpose.
+                Create a promise with a deadline. Once locked, <span className="text-amber-400">it becomes immutable</span>—no edits, no deletes. Your commitment is now permanent.
               </p>
             </div>
 
@@ -463,10 +462,10 @@ export default function LandingPage() {
                 <Lock className="w-6 h-6 text-gold-500 group-hover:text-amber-400 transition-colors" />
               </div>
               <h3 className="text-obsidian-100 font-semibold text-base sm:text-lg mb-2">
-                No Escape, Only Growth
+                No Undo. No Cheating.
               </h3>
               <p className="text-obsidian-400 text-sm">
-                Once locked, there's no editing or deleting. <span className="text-amber-400">Honor your word</span> or face yourself honestly. That's where transformation happens.
+                The system tracks every promise. <span className="text-amber-400">Kept or broken</span>—it records the truth. You can't hide from your own commitments.
               </p>
             </div>
 
@@ -476,10 +475,10 @@ export default function LandingPage() {
                 <Shield className="w-6 h-6 text-gold-500 group-hover:text-amber-400 transition-colors" />
               </div>
               <h3 className="text-obsidian-100 font-semibold text-base sm:text-lg mb-2">
-                Watch Your Identity Rise
+                Integrity Score
               </h3>
               <p className="text-obsidian-400 text-sm">
-                Your integrity score isn't just a number—it's <span className="text-amber-400">proof of who you're becoming</span>. Every kept promise builds unshakable self-trust.
+                Your score = <span className="text-amber-400">promises kept ÷ total promises</span>. A public, verifiable record of how often you honor your word.
               </p>
             </div>
           </div>
@@ -554,11 +553,10 @@ export default function LandingPage() {
         <div className="max-w-5xl mx-auto">
           <div className="text-center mb-8 sm:mb-12 lg:mb-16">
             <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-obsidian-100 mb-3 sm:mb-4">
-              How Shift Ascent <span className="text-amber-400">Ignites</span> Your Journey
+              How It <span className="text-amber-400">Works</span>
             </h2>
             <p className="text-obsidian-300 text-sm sm:text-base max-w-2xl mx-auto px-4 leading-relaxed">
-              We've all been there: setting goals with excitement, only to watch them fade. 
-              Shift Ascent changes that by <span className="text-amber-400">sparking the fire within</span>—locking in your commitments so you rise above the doubt.
+              The system is simple: you create a promise, set a deadline, and lock it. <span className="text-amber-400">Once locked, it can't be changed</span>. Keep it or break it—your integrity score tracks everything.
             </p>
           </div>
 
@@ -582,9 +580,9 @@ export default function LandingPage() {
               <div className="w-10 h-10 mx-auto mb-3 rounded-full bg-amber-500/20 border border-amber-500/40 flex items-center justify-center group-hover:bg-amber-500/30 transition-colors">
                 <span className="text-amber-400 font-bold">1</span>
               </div>
-              <h3 className="text-obsidian-100 font-semibold text-base mb-2">Dream It</h3>
+              <h3 className="text-obsidian-100 font-semibold text-base mb-2">Create Promise</h3>
               <p className="text-obsidian-400 text-sm">
-                Define the future you want to create.
+                Write what you'll commit to doing.
               </p>
             </div>
 
@@ -592,9 +590,9 @@ export default function LandingPage() {
               <div className="w-10 h-10 mx-auto mb-3 rounded-full bg-amber-500/20 border border-amber-500/40 flex items-center justify-center group-hover:bg-amber-500/30 transition-colors">
                 <span className="text-amber-400 font-bold">2</span>
               </div>
-              <h3 className="text-obsidian-100 font-semibold text-base mb-2">Break It Down</h3>
+              <h3 className="text-obsidian-100 font-semibold text-base mb-2">Set Deadline</h3>
               <p className="text-obsidian-400 text-sm">
-                Turn big dreams into achievable milestones.
+                Choose when it must be done.
               </p>
             </div>
 
@@ -602,9 +600,9 @@ export default function LandingPage() {
               <div className="w-10 h-10 mx-auto mb-3 rounded-full bg-amber-500/20 border border-amber-500/40 flex items-center justify-center group-hover:bg-amber-500/30 transition-colors">
                 <span className="text-amber-400 font-bold">3</span>
               </div>
-              <h3 className="text-obsidian-100 font-semibold text-base mb-2">Lock Your Word</h3>
+              <h3 className="text-obsidian-100 font-semibold text-base mb-2">Lock It</h3>
               <p className="text-obsidian-400 text-sm">
-                Set a deadline. Make it unbreakable.
+                Make it immutable. No edits. No deletes.
               </p>
             </div>
 
@@ -612,9 +610,9 @@ export default function LandingPage() {
               <div className="w-10 h-10 mx-auto mb-3 rounded-full bg-amber-500/20 border border-amber-500/40 flex items-center justify-center group-hover:bg-amber-500/30 transition-colors">
                 <span className="text-amber-400 font-bold">4</span>
               </div>
-              <h3 className="text-obsidian-100 font-semibold text-base mb-2">Rise or Reflect</h3>
+              <h3 className="text-obsidian-100 font-semibold text-base mb-2">Keep or Break</h3>
               <p className="text-obsidian-400 text-sm">
-                Keep it and soar, or confess and learn.
+                Mark complete or confess you broke it.
               </p>
             </div>
           </div>
@@ -622,9 +620,9 @@ export default function LandingPage() {
           <div className="text-center mt-10 sm:mt-12">
             <div className="bg-obsidian-800/50 border border-amber-500/20 rounded-xl p-6 sm:p-8 max-w-2xl mx-auto mb-8">
               <p className="text-obsidian-300 text-base sm:text-lg leading-relaxed">
-                "This isn't about punishment. It's about <span className="text-amber-400 font-medium">becoming who you want to be</span>.
-                Every kept promise is a brick in the foundation of your self-trust. Every honest confession is 
-                <span className="text-obsidian-100 font-medium"> a lesson that makes you stronger</span>."
+                "Most apps let you cheat. <span className="text-amber-400 font-medium">This one doesn't</span>.
+                The system records whether you keep your word or break it.
+                <span className="text-obsidian-100 font-medium"> Over time, you build a track record you can trust.</span>"
               </p>
             </div>
           </div>
@@ -865,11 +863,11 @@ export default function LandingPage() {
             <Sparkles className="w-8 h-8 text-amber-400 mx-auto" />
           </div>
           <h2 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold text-obsidian-100 mb-3 sm:mb-4">
-            Tired of Breaking Promises to Yourself?
+            Stop Letting Yourself Off the Hook
           </h2>
           <p className="text-obsidian-300 text-base sm:text-lg mb-6 sm:mb-8 max-w-lg mx-auto leading-relaxed">
-            Today is the day you start building the self-trust you deserve. 
-            Free to start. No credit card required. <span className="text-amber-400">Just you and your word.</span>
+            Create a promise. Lock it. Keep it or break it—your choice. 
+            Free to start. No credit card. <span className="text-amber-400">Just you and your word.</span>
           </p>
           <Link to="/login">
             <Button 
@@ -879,11 +877,11 @@ export default function LandingPage() {
               iconPosition="left"
               className="group relative overflow-hidden shadow-glow hover:shadow-glow-lg transition-shadow duration-300"
             >
-              <span className="relative z-10">Ignite Your Integrity – Begin Free Now</span>
+              <span className="relative z-10">Lock Your First Promise – Free</span>
             </Button>
           </Link>
           <p className="text-obsidian-600 text-xs mt-4">
-            Join thousands reclaiming their self-trust
+            Join thousands building real accountability
           </p>
         </div>
       </section>
